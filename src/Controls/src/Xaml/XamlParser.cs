@@ -359,6 +359,11 @@ namespace Microsoft.Maui.Controls.Xaml
 		public static Type GetElementType(XmlType xmlType, IXmlLineInfo xmlInfo, Assembly currentAssembly,
 			out XamlParseException exception)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new InvalidOperationException("XAML loading at runtime is disabled. Ensure all XAML files are compiled.");
+			}
+
 			bool hasRetriedNsSearch = false;
 
 		retry:

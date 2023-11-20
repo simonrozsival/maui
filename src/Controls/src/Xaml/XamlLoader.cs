@@ -93,6 +93,11 @@ namespace Microsoft.Maui.Controls.Xaml
 
 		public static object Create(string xaml, bool doNotThrow, bool useDesignProperties)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new InvalidOperationException("XAML parsing at runtime is not supported.");
+			}
+
 			doNotThrow = doNotThrow || ResourceLoader.ExceptionHandler2 != null;
 			void ehandler(Exception e) => ResourceLoader.ExceptionHandler2?.Invoke((e, null));
 
