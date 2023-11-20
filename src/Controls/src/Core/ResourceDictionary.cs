@@ -47,9 +47,18 @@ namespace Microsoft.Maui.Controls
 			//this will return a type if the RD as an x:Class element, and codebehind
 			var type = XamlResourceIdAttribute.GetTypeForPath(assembly, resourcePath);
 			if (type != null)
+			{
 				_mergedInstance = s_instances.GetValue(type, (key) => (ResourceDictionary)Activator.CreateInstance(key));
+			}
 			else
+			{
+				if (!FeatureFlags.IsXamlLoadingEnabled)
+				{
+					throw new InvalidOperationException("XAML loading at runtime is disabled. Make sure all XAML files are compiled.");
+				}
+
 				_mergedInstance = DependencyService.Get<IResourcesLoader>().CreateFromResource<ResourceDictionary>(resourcePath, assembly, lineInfo);
+			}
 			OnValuesChanged(_mergedInstance.ToArray());
 		}
 

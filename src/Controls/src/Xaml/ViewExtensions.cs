@@ -26,26 +26,45 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Microsoft.Maui.Controls.Xaml
 {
 	public static class Extensions
 	{
+		[RequiresUnreferencedCode("It might not be possible to load arbitrary XAML file at runtime. Ensure all XAML files are compiled.")]
 		public static TXaml LoadFromXaml<TXaml>(this TXaml view, Type callingType)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new InvalidOperationException("XAML loading at runtime is disabled. Ensure all XAML files are compiled.");
+			}
+
 			XamlLoader.Load(view, callingType);
 			return view;
 		}
 
+		[RequiresUnreferencedCode("It might not be possible to load arbitrary XAML file at runtime. Ensure all XAML files are compiled.")]
 		public static TXaml LoadFromXaml<TXaml>(this TXaml view, string xaml)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new InvalidOperationException("XAML loading at runtime is disabled. Ensure all XAML files are compiled.");
+			}
+
 			XamlLoader.Load(view, xaml);
 			return view;
 		}
 
+		[RequiresUnreferencedCode("It might not be possible to load arbitrary XAML file at runtime. Ensure all XAML files are compiled.")]
 		internal static TXaml LoadFromXaml<TXaml>(this TXaml view, string xaml, Assembly rootAssembly)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new InvalidOperationException("XAML loading at runtime is disabled. Ensure all XAML files are compiled.");
+			}
+
 			XamlLoader.Load(view, xaml, rootAssembly);
 			return view;
 		}

@@ -16,10 +16,10 @@ namespace Microsoft.Maui.Controls
 	public sealed class BindablePropertyConverter : TypeConverter, IExtendedTypeConverter
 	{
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-			=> sourceType == typeof(string);
+			=> FeatureFlags.IsXamlLoadingEnabled && sourceType == typeof(string);
 
 		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-			=> true;
+			=> FeatureFlags.IsXamlLoadingEnabled;
 
 		object IExtendedTypeConverter.ConvertFromInvariantString(string value, IServiceProvider serviceProvider)
 		{
@@ -32,6 +32,12 @@ namespace Microsoft.Maui.Controls
 			IXmlLineInfo lineinfo = null;
 			if (serviceProvider.GetService(typeof(IXmlLineInfoProvider)) is IXmlLineInfoProvider xmlLineInfoProvider)
 				lineinfo = xmlLineInfoProvider.XmlLineInfo;
+
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				throw new XamlParseException("XAML parsing is disabled.", lineinfo);
+			}
+
 			string[] parts = value.Split('.');
 			Type type = null;
 			if (parts.Length == 1)
@@ -75,6 +81,12 @@ namespace Microsoft.Maui.Controls
 
 		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindablePropertyConverter>()?.LogWarning("XAML parsing at runtime is disabled.");
+				return null;
+			}
+
 			var strValue = value?.ToString();
 
 			if (string.IsNullOrWhiteSpace(strValue))
@@ -96,6 +108,12 @@ namespace Microsoft.Maui.Controls
 
 		BindableProperty ConvertFrom(Type type, string propertyName, IXmlLineInfo lineinfo)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindablePropertyConverter>()?.LogWarning("XAML parsing at runtime is disabled.");
+				return null;
+			}
+
 			string name = propertyName + "Property";
 			FieldInfo bpinfo = type.GetField(fi => fi.Name == name && fi.IsStatic && fi.IsPublic && fi.FieldType == typeof(BindableProperty));
 			if (bpinfo == null)
@@ -144,6 +162,12 @@ namespace Microsoft.Maui.Controls
 
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
+			if (!FeatureFlags.IsXamlLoadingEnabled)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindablePropertyConverter>()?.LogWarning("XAML parsing at runtime is disabled.");
+				return null;
+			}
+
 			if (value is not BindableProperty bp)
 				throw new NotSupportedException();
 			return $"{bp.DeclaringType.Name}.{bp.PropertyName}";
