@@ -16,7 +16,7 @@ namespace Microsoft.Maui.Controls
 		static readonly object s_dependencyLock = new object();
 		static readonly object s_initializeLock = new object();
 
-		static readonly List<Type> DependencyTypes = new List<Type>();
+		static readonly List<DependencyType> DependencyTypes = new List<DependencyType>(); // TODO: should this be HashSet instead?
 		static readonly Dictionary<Type, DependencyData> DependencyImplementations = new Dictionary<Type, DependencyData>();
 
 		public static T Resolve<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(DependencyFetchTarget fallbackFetchTarget = DependencyFetchTarget.GlobalInstance) where T : class
@@ -64,16 +64,14 @@ namespace Microsoft.Maui.Controls
 		public static void Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>() where T : class
 		{
 			Type type = typeof(T);
-			if (!DependencyTypes.Contains(type))
-				DependencyTypes.Add(type);
+			AddDependencyTypeIfNeeded(type);
 		}
 
 		public static void Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TImpl>() where T : class where TImpl : class, T
 		{
 			Type targetType = typeof(T);
 			Type implementorType = typeof(TImpl);
-			if (!DependencyTypes.Contains(targetType))
-				DependencyTypes.Add(targetType);
+			AddDependencyTypeIfNeeded(targetType);
 
 			lock (s_dependencyLock)
 				DependencyImplementations[targetType] = new DependencyData { ImplementorType = implementorType };
@@ -83,16 +81,24 @@ namespace Microsoft.Maui.Controls
 		{
 			Type targetType = typeof(T);
 			Type implementorType = typeof(T);
-			if (!DependencyTypes.Contains(targetType))
-				DependencyTypes.Add(targetType);
+			AddDependencyTypeIfNeeded(targetType);
 
 			lock (s_dependencyLock)
 				DependencyImplementations[targetType] = new DependencyData { ImplementorType = implementorType, GlobalInstance = instance };
 		}
 
+		static void AddDependencyTypeIfNeeded(
+			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
+		{
+			// TODO: could I only allocate if it's missing? - override Equals/GetHashCode on DependencyType so that I can compare it with Type
+			var dependencyType = new DependencyType(type);
+			if (!DependencyTypes.Contains(dependencyType))
+				DependencyTypes.Add(dependencyType);
+		}
+
 		[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 		static Type FindImplementor(Type target) =>
-			DependencyTypes.FirstOrDefault(t => target.IsAssignableFrom(t));
+			DependencyTypes.FirstOrDefault(t => target.IsAssignableFrom(t.Type))?.Type;
 
 		// Once we get essentials/cg converted to using startup.cs
 		// we will delete the initialize code from here and just use
@@ -137,10 +143,7 @@ namespace Microsoft.Maui.Controls
 					for (int i = 0; i < attributes.Length; i++)
 					{
 						DependencyAttribute attribute = (DependencyAttribute)attributes[i];
-						if (!DependencyTypes.Contains(attribute.Implementor))
-						{
-							DependencyTypes.Add(attribute.Implementor);
-						}
+						AddDependencyTypeIfNeeded(attribute.Implementor);
 					}
 				}
 			}
@@ -168,6 +171,21 @@ namespace Microsoft.Maui.Controls
 
 			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 			public Type ImplementorType { get; set; }
+		}
+
+		class DependencyType : IEquatable<DependencyType>
+		{
+			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+			public Type Type { get; }
+
+			public DependencyType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
+			{
+				Type = type;
+			}
+
+			public override int GetHashCode() => Type.GetHashCode();
+			public override bool Equals(object obj) => obj is DependencyType other && Equals(other);
+			public bool Equals(DependencyType other) => other.Type == Type;
 		}
 	}
 }
