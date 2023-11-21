@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,7 +12,6 @@ namespace Microsoft.Maui.Hosting.Internal
 	class MauiFactory : IMauiFactory
 	{
 		static readonly Type EnumerableType = typeof(IEnumerable<>);
-		static readonly Type ListType = typeof(List<>);
 
 		readonly IMauiServiceCollection _collection;
 
@@ -142,15 +143,19 @@ namespace Microsoft.Maui.Hosting.Internal
 
 			if (enumerable != null)
 			{
-				var values = (IList)Activator.CreateInstance(ListType.MakeGenericType(serviceType))!;
+				var values = new List<object>();
 
 				foreach (var descriptor in enumerable)
 				{
-					values.Add(GetService(descriptor));
+					var service = GetService(descriptor);
+					if (service is not null)
+					{
+						values.Add(service);
+					}
 				}
 
 				if (values.Count > 0)
-					return values;
+					return CreateArray(serviceType, values);
 			}
 			return default;
 		}
@@ -169,6 +174,33 @@ namespace Microsoft.Maui.Hosting.Internal
 				return item.ImplementationFactory(this);
 
 			throw new InvalidOperationException($"You need to provide an {nameof(item.ImplementationType)}, an {nameof(item.ImplementationFactory)} or an {nameof(item.ImplementationInstance)}.");
+		}
+
+		// TODO verify that this is indeed the correct way of implementing this
+		// - is the Debug.Assert enough?
+		// - do we also need a runtime check?
+		// Based on https://github.com/dotnet/runtime/pull/79425
+		[UnconditionalSuppressMessage("AotAnalysis", "IL3050:RequiresDynamicCode",
+			Justification = "We make sure elementType is not a ValueType")]
+		static Array CreateArray(Type elementType, List<object> items)
+		{
+			// TODO improved the error message
+			Debug.Assert(IsDynamicCodeSupported() || !elementType.IsValueType, "Value types are not supported when using NativeAOT.");
+
+			Array array = Array.CreateInstance(elementType, items.Count);
+			for (int i = 0; i < items.Count; i++)
+			{
+				array.SetValue(items[i], i);
+			}
+
+			return array;
+			
+			static bool IsDynamicCodeSupported() =>
+#if NETSTANDARD
+				true;
+#else
+				System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported;
+#endif
 		}
 	}
 }
