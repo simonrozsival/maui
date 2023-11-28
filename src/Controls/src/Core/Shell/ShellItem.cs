@@ -220,12 +220,34 @@ namespace Microsoft.Maui.Controls
 				result = new ShellItem();
 
 			result.Route = Routing.GenerateImplicitRoute(shellSection.Route);
-
 			result.Items.Add(shellSection);
-			result.SetBinding(TitleProperty, new Binding(nameof(Title), BindingMode.OneWay, source: shellSection));
-			result.SetBinding(IconProperty, new Binding(nameof(Icon), BindingMode.OneWay, source: shellSection));
-			result.SetBinding(FlyoutDisplayOptionsProperty, new Binding(nameof(FlyoutDisplayOptions), BindingMode.OneTime, source: shellSection));
-			result.SetBinding(FlyoutIconProperty, new Binding(nameof(FlyoutIcon), BindingMode.OneWay, source: shellSection));
+
+			result.SetBinding(TitleProperty,
+				TypedBinding<ShellSection>.Create(
+					ShellSection.TitleProperty,
+					static section => section.Title,
+					mode: BindingMode.OneWay,
+					source: shellSection));
+
+			result.SetBinding(IconProperty,
+				TypedBinding<ShellSection>.Create(
+					ShellSection.IconProperty,
+					static section => section.Icon,
+					mode: BindingMode.OneWay,
+					source: shellSection));
+
+			result.SetBinding(FlyoutDisplayOptionsProperty,
+				TypedBinding<ShellSection>.Create(
+					ShellSection.FlyoutDisplayOptionsProperty,
+					static section => section.FlyoutDisplayOptions,
+					mode: BindingMode.OneTime,
+					source: shellSection));
+
+			result.SetBinding(FlyoutIconProperty,
+				TypedBinding<ShellSection>.Create(
+					ShellSection.FlyoutIconProperty,
+					static section => section.FlyoutIcon,
+					source: shellSection));
 
 			return result;
 		}

@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.ComponentModel;
+using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 
@@ -16,8 +17,13 @@ namespace Microsoft.Maui.Controls
 		/// <include file="../../docs/Microsoft.Maui.Controls/ContentPresenter.xml" path="//Member[@MemberName='.ctor']/Docs/*" />
 		public ContentPresenter()
 		{
-			SetBinding(ContentProperty, new Binding(ContentProperty.PropertyName, source: RelativeBindingSource.TemplatedParent,
-				converterParameter: this, converter: new ContentConverter()));
+			SetBinding(ContentProperty,
+				TypedBinding<ContentPresenter>.Create(
+					ContentProperty,
+					getter: static presenter => presenter.Content,
+					converter: new ContentConverter(),
+					converterParameter: this,
+					source: RelativeBindingSource.TemplatedParent));
 		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/ContentPresenter.xml" path="//Member[@MemberName='Content']/Docs/*" />

@@ -212,9 +212,9 @@ namespace Microsoft.Maui.Controls
 			shellContent.Route = Routing.GenerateImplicitRoute(pageRoute);
 
 			shellContent.Content = page;
-			shellContent.SetBinding(TitleProperty, new Binding(nameof(Title), BindingMode.OneWay, source: page));
-			shellContent.SetBinding(IconProperty, new Binding(nameof(Icon), BindingMode.OneWay, source: page));
-			shellContent.SetBinding(FlyoutIconProperty, new Binding(nameof(FlyoutIcon), BindingMode.OneWay, source: page));
+			shellContent.SetBinding(TitleProperty, TypedBinding<Page>.Create(Page.TitleProperty, static p => p.Title, mode: BindingMode.OneWay, source: page));
+			shellContent.SetBinding(IconProperty, TypedBinding<Page>.Create(Page.IconImageSourceProperty, static p => p.IconImageSource, mode: BindingMode.OneWay, source: page));
+			shellContent.SetBinding(FlyoutIconProperty, TypedBinding<Page>.Create(Page.IconImageSourceProperty, static p => p.IconImageSource, mode: BindingMode.OneWay, source: page));
 
 			return shellContent;
 		}

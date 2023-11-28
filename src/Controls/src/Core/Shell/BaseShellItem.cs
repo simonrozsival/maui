@@ -339,7 +339,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
-		internal static DataTemplate CreateDefaultFlyoutItemCell(string textBinding, string iconBinding)
+		internal static DataTemplate CreateDefaultFlyoutItemCell(BindableObject bo)
 		{
 			return new DataTemplate(() =>
 			{
@@ -423,7 +423,7 @@ namespace Microsoft.Maui.Controls
 				columnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 				defaultGridClass.Setters.Add(new Setter { Property = Grid.ColumnDefinitionsProperty, Value = columnDefinitions });
 
-				Binding automationIdBinding = new Binding(Element.AutomationIdProperty.PropertyName);
+				BindingBase automationIdBinding = TypedBinding<Element>.Create(Element.AutomationIdProperty, static element => element.AutomationId);
 				defaultGridClass.Setters.Add(new Setter { Property = Element.AutomationIdProperty, Value = automationIdBinding });
 
 				var image = new Image();
@@ -450,13 +450,42 @@ namespace Microsoft.Maui.Controls
 					defaultImageClass.Setters.Add(new Setter { Property = Image.MarginProperty, Value = new Thickness(12, 0, 12, 0) });
 				}
 
-				Binding imageBinding = new Binding(iconBinding);
+				BindingBase imageBinding = null;
+				BindingBase labelBinding = null;
+
+				if (bo is MenuItem)
+				{
+					imageBinding = TypedBinding<MenuItem>.Create(
+						MenuItem.IconImageSourceProperty,
+						getter: menuItem => menuItem.IconImageSource,
+						setter: (menuItem, value) => menuItem.IconImageSource = value);
+					labelBinding = TypedBinding<MenuItem>.Create(
+						MenuItem.TextProperty,
+						getter: menuItem => menuItem.Text,
+						setter: (menuItem, value) => menuItem.Text = value);
+				}
+				else if (bo is BaseShellItem)
+				{
+					imageBinding = TypedBinding<BaseShellItem>.Create(
+						BaseShellItem.IconProperty,
+						getter: item => item.Icon,
+						setter: (item, value) => item.Icon = value);
+					labelBinding = TypedBinding<BaseShellItem>.Create(
+						BaseShellItem.TitleProperty,
+						getter: item => item.Title,
+						setter: (item, value) => item.Title = value);
+				}
+				else
+				{
+					// TODO make sure this never throws
+					throw new NotImplementedException($"TODO: add CreateDefaultFlyoutItemCell implementation for {bo.GetType()}");
+				}
+
 				defaultImageClass.Setters.Add(new Setter { Property = Image.SourceProperty, Value = imageBinding });
 
 				grid.Add(image);
 
 				var label = new Label();
-				Binding labelBinding = new Binding(textBinding);
 				defaultLabelClass.Setters.Add(new Setter { Property = Label.TextProperty, Value = labelBinding });
 
 				grid.Add(label, 1, 0);
@@ -524,7 +553,8 @@ namespace Microsoft.Maui.Controls
 							// just bind the semantic description to the title
 							if (!g.IsSet(SemanticProperties.DescriptionProperty))
 							{
-								g.SetBinding(SemanticProperties.DescriptionProperty, TitleProperty.PropertyName);
+								g.SetBinding(SemanticProperties.DescriptionProperty,
+									TypedBinding<BaseShellItem>.Create(BaseShellItem.TitleProperty, getter: static item => item.Title));
 							}
 						}
 					}

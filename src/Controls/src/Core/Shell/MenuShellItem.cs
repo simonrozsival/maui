@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.StyleSheets;
 
 namespace Microsoft.Maui.Controls
@@ -13,10 +14,10 @@ namespace Microsoft.Maui.Controls
 			MenuItem = menuItem;
 			MenuItem.Parent = this;
 			Shell.SetFlyoutItemIsVisible(this, Shell.GetFlyoutItemIsVisible(menuItem));
-			SetBinding(TitleProperty, new Binding(nameof(MenuItem.Text), BindingMode.OneWay, source: menuItem));
-			SetBinding(IconProperty, new Binding(nameof(MenuItem.IconImageSource), BindingMode.OneWay, source: menuItem));
-			SetBinding(FlyoutIconProperty, new Binding(nameof(MenuItem.IconImageSource), BindingMode.OneWay, source: menuItem));
-			SetBinding(AutomationIdProperty, new Binding(nameof(MenuItem.AutomationId), BindingMode.OneWay, source: menuItem));
+			SetBinding(TitleProperty, TypedBinding<MenuItem>.Create(MenuItem.TextProperty, static item => item.Text, mode: BindingMode.OneWay, source: menuItem));
+			SetBinding(IconProperty, TypedBinding<MenuItem>.Create(MenuItem.IconImageSourceProperty, static item => item.IconImageSource, mode: BindingMode.OneWay, source: menuItem));
+			SetBinding(FlyoutIconProperty, TypedBinding<MenuItem>.Create(MenuItem.IconImageSourceProperty, static item => item.IconImageSource, mode: BindingMode.OneWay, source: menuItem));
+			SetBinding(AutomationIdProperty, TypedBinding<MenuItem>.Create(MenuItem.AutomationIdProperty, static item => item.AutomationId, mode: BindingMode.OneWay, source: menuItem));
 
 			MenuItem.PropertyChanged += OnMenuItemPropertyChanged;
 		}
