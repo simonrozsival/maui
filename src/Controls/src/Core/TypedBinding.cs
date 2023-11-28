@@ -68,6 +68,38 @@ namespace Microsoft.Maui.Controls.Internals
 		}
 	}
 
+	internal static class TypedBinding<TSource>
+	{
+		// TODO this is just for simple bindings that aren't nested, maybe the method name should reflect that somehow
+		// BTW for more complex type bindings we'd likely need a source generator with interceptors to generate the
+		// handlers array. It could be quite annoying to write it manually by customers...
+		// ... OR could we use `[CallerExpression] somehow to at least get rid of the `property` parameter (optionally)?
+		internal static BindingBase Create<TProperty>(
+			BindableProperty property,
+			Func<TSource, TProperty> getter,
+			Action<TSource, TProperty> setter = null,
+			IValueConverter converter = null,
+			object converterParameter = null,
+			BindingMode mode = BindingMode.Default,
+			string stringFormat = null,
+			object source = null,
+			string updateSourceEventName = null)
+		{
+			return new TypedBinding<TSource, TProperty>(
+				getter: source => (getter(source), true),
+				setter,
+				handlers: new[] { new Tuple<Func<TSource, object>, string>(source => source, property.PropertyName) })
+				{
+					Converter = converter,
+					ConverterParameter = converterParameter,
+					Mode = mode,
+					StringFormat = StringFormat,
+					Source = Source,
+					UpdateSourceEventName = UpdateSourceEventName,
+				};
+		}
+	}
+
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public sealed class TypedBinding<TSource, TProperty> : TypedBindingBase
 	{
@@ -129,6 +161,8 @@ namespace Microsoft.Maui.Controls.Internals
 				return;
 
 			base.Apply(source, bindObj, targetProperty, fromBindingContextChanged, specificity);
+
+			// TODO: relativebindingsource...
 
 #if (!DO_NOT_CHECK_FOR_BINDING_REUSE)
 			BindableObject prevTarget;
