@@ -37,7 +37,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				return _defaultTemplate ?? (_defaultTemplate = new DataTemplate(() =>
 					{
 						var label = new Label();
-						label.SetBinding(Label.TextProperty, SearchHandler.DisplayMemberName ?? ".");
+						// TODO this needs fixing. this API probably can't be used with NativeAOT/trimming?
+						// - should we introduce `SearchHandler.DisplayMemberGetter`?
+						// label.SetBinding(Label.TextProperty, SearchHandler.DisplayMemberName ?? ".");
 						label.HorizontalTextAlignment = TextAlignment.Center;
 						label.VerticalTextAlignment = TextAlignment.Center;
 
