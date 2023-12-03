@@ -1246,7 +1246,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 
 			if (valueNode != null)
 			{
-				foreach (var instruction in valueNode.PushConvertedValue(context, bpRef, valueNode.PushServiceProvider(context, bpRef: bpRef), true, false))
+				foreach (var instruction in valueNode.PushConvertedValue(context, bpRef, valueNode.PushServiceProvider(context, bpRef: bpRef), boxValueTypes: false, false))
 					yield return instruction;
 			}
 			else if (elementNode != null)
@@ -1254,16 +1254,24 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 				var bpTypeRef = bpRef.GetBindablePropertyType(context.Cache, iXmlLineInfo, module);
 				foreach (var instruction in context.Variables[elementNode].LoadAs(context.Cache, bpTypeRef, module))
 					yield return instruction;
-				if (bpTypeRef.IsValueType)
-					yield return Create(Box, module.ImportReference(bpTypeRef));
 			}
-			yield return Create(Callvirt, module.ImportMethodReference(context.Cache,
-																	   bindableObjectType,
-																	   methodName: "SetValue",
-																	   parameterTypes: new[] {
-																		   ("Microsoft.Maui.Controls", "Microsoft.Maui.Controls", "BindableProperty"),
-																		   ("mscorlib", "System", "Object"),
-																	   }));
+
+			var propertyType = bpRef.GetBindablePropertyType(context.Cache, iXmlLineInfo, module);
+			var setValueOpenMethod = module.ImportMethodReference(context.Cache,
+																		bindableObjectType,
+																		methodName: "SetValue",
+																		predicate: md =>
+																			!md.IsStatic
+																			&& md.Parameters.Count == 2
+																			&& md.GenericParameters.Count == 1
+																			&& TypeRefComparer.Default.Equals(
+																				md.Parameters[0].ParameterType,
+																				module.ImportReference(context.Cache, ("Microsoft.Maui.Controls", "Microsoft.Maui.Controls", "BindableProperty")))
+																			&& /* TODO: second param is generic */true);
+			var setValueMethod = new GenericInstanceMethod(setValueOpenMethod);
+			setValueMethod.GenericArguments.Add(module.ImportReference(propertyType));
+
+			yield return Create(Callvirt, setValueMethod);
 		}
 
 		static IEnumerable<Instruction> GetValue(VariableDefinition parent, FieldReference bpRef, IXmlLineInfo iXmlLineInfo, ILContext context, out TypeReference propertyType)

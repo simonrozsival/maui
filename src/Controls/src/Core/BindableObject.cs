@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
@@ -157,9 +158,6 @@ namespace Microsoft.Maui.Controls
 		/// <returns>The value that is contained in the <see cref="BindableProperty" />.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
 		/// <remarks>
-		/// <see cref="GetValue(BindableProperty)" /> and <see cref="SetValue(BindableProperty, object)" /> are used to access the values of properties that are implemented by a <see cref="BindableProperty" />.
-		/// That is, application developers typically provide an interface for a bound property by defining a <see langword="public" /> property whose <see langword="get" /> accessor casts the result of <see cref="GetValue(BindableProperty)" /> to the appropriate type and returns it, and whose <see langword="set" /> accessor uses <see cref="SetValue(BindableProperty, object)" /> to set the value on the correct property.
-		/// Application developers should perform no other steps in the public property that defines the interface of the bound property.
 		/// </remarks>
 		public object GetValue(BindableProperty property)
 		{
@@ -461,8 +459,10 @@ namespace Microsoft.Maui.Controls
 		/// <param name="value">The value to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
 		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
-		public void SetValue(BindableProperty property, object value)
+		public void SetValue<T>(BindableProperty property, T value)
 		{
+			System.Diagnostics.Debug.Assert(typeof(T).IsAssignableFrom(property.ReturnType));
+
 			if (property == null)
 				throw new ArgumentNullException(nameof(property));
 
@@ -471,7 +471,7 @@ namespace Microsoft.Maui.Controls
 				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
 				return;
 			}
-			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+			SetValueCore<T>(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
 		}
 
 		/// <summary>
@@ -481,14 +481,15 @@ namespace Microsoft.Maui.Controls
 		/// <param name="value">The value to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
 		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
-		public void SetValue(BindablePropertyKey propertyKey, object value)
+		public void SetValue<T>(BindablePropertyKey propertyKey, T value)
 		{
 			if (propertyKey == null)
 				throw new ArgumentNullException(nameof(propertyKey));
 
-			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+			SetValueCore<T>(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
 		}
 
+		// [RequiresUnreferencedCode("The SetValue method uses reflection to convert the value to the property type. Use the generic overload SetValue<T> to set the value directly instead.")]
 		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
 		{
 			if (property == null)
@@ -503,6 +504,23 @@ namespace Microsoft.Maui.Controls
 			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
 		}
 
+		internal void SetValue<T>(BindableProperty property, T value, SetterSpecificity specificity)
+		{
+			System.Diagnostics.Debug.Assert(typeof(T).IsAssignableFrom(property.ReturnType));
+
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore<T>(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		// [RequiresUnreferencedCode("The SetValue method uses reflection to convert the value to the property type. Use the generic overload SetValue<T> to set the value directly instead.")]
 		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
 		{
 			if (propertyKey == null)
@@ -521,13 +539,16 @@ namespace Microsoft.Maui.Controls
 		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("go away")]
+		// [RequiresUnreferencedCode("The SetValue method uses reflection to convert the value to the property type. Use the generic overload SetValue<T> to set the value directly instead.")]
 		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
 			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
 
 		//FIXME: GO AWAY
+		// [RequiresUnreferencedCode("The SetValue method uses reflection to convert the value to the property type. Use the generic overload SetValue<T> to set the value directly instead.")]
 		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
 			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
 
+		// [RequiresUnreferencedCode("The SetValue method uses reflection to convert the value to the property type. Use the generic overload SetValue<T> to set the value directly instead.")]
 		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
 		{
 			if (property == null)
@@ -567,6 +588,59 @@ namespace Microsoft.Maui.Controls
 				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
 				context.Attributes |= BindableContextAttributes.IsBeingSet;
 				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		internal void SetValueCore<T>(BindableProperty property, T value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			// Unlike the non-generic SetValueCore, the generic method already expects the correct value type.
+			// There's no need to convert the value any further.
+			System.Diagnostics.Debug.Assert(typeof(T).IsAssignableFrom(property.ReturnType));
+
+			// TODO reduce code duplication
+
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			object actualValue = property.CoerceValue is not null ? property.CoerceValue(this, value) : value;
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, actualValue, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, actualValue, currentlyApplying, attributes, specificity, silent);
 
 				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
 				if (delayQueue != null)

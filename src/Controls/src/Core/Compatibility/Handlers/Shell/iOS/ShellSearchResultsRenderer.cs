@@ -37,7 +37,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				return _defaultTemplate ?? (_defaultTemplate = new DataTemplate(() =>
 					{
 						var label = new Label();
-						label.SetBinding(Label.TextProperty, SearchHandler.DisplayMemberName ?? ".");
+						// label.SetBinding(Label.TextProperty, SearchHandler.DisplayMemberName ?? ".");
 						label.HorizontalTextAlignment = TextAlignment.Center;
 						label.VerticalTextAlignment = TextAlignment.Center;
 

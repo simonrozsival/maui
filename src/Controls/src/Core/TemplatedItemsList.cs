@@ -1122,7 +1122,7 @@ namespace Microsoft.Maui.Controls.Internals
 				if (GroupShortNameBinding == null)
 				{
 					foreach (TemplatedItemsList<TView, TItem> list in _groupedItems.Values)
-						list.SetValue(ShortNameProperty, null);
+						list.SetValue<string>(ShortNameProperty, null);
 
 					return;
 				}

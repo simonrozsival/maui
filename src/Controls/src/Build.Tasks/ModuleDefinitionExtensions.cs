@@ -232,6 +232,19 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 														   classArguments: classArguments?.Select(gp => x.module.GetTypeDefinition(cache, (gp.assemblyName, gp.clrNamespace, gp.typeName))).ToArray()));
 		}
 
+		public static MethodReference ImportMethodReference(this ModuleDefinition module,
+													XamlCache cache,
+													(string assemblyName, string clrNamespace, string typeName) type,
+													string methodName,
+													Func<MethodDefinition, bool> predicate)
+		{
+			var methodKey = $"TODO: {type}.{methodName}({predicate})";
+			return cache.GetOrAddMethodReference(module, methodKey, x => x.module.ImportMethodReference(cache,
+														   module.ImportReference(cache, type),
+														   methodName,
+														   predicate));
+		}
+
 		static FieldReference ImportFieldReference(this ModuleDefinition module, XamlCache cache, TypeReference type, string fieldName, Func<FieldDefinition, bool> predicate = null, bool caseSensitive = true)
 		{
 			var field = module
