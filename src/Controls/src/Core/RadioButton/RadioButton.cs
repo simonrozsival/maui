@@ -444,15 +444,6 @@ namespace Microsoft.Maui.Controls
 			SetValue(IsCheckedProperty, true, specificity: SetterSpecificity.FromHandler);
 		}
 
-		static void BindToTemplatedParent(BindableObject bindableObject, params BindableProperty[] properties)
-		{
-			foreach (var property in properties)
-			{
-				bindableObject.SetBinding(property, new Binding(property.PropertyName,
-					source: RelativeBindingSource.TemplatedParent));
-			}
-		}
-
 		static View BuildDefaultTemplate()
 		{
 			Border border = new Border()
@@ -460,21 +451,90 @@ namespace Microsoft.Maui.Controls
 				Padding = 6
 			};
 
-			BindToTemplatedParent(border, BackgroundColorProperty, HorizontalOptionsProperty,
-				MarginProperty, OpacityProperty, RotationProperty, ScaleProperty, ScaleXProperty, ScaleYProperty,
-				TranslationYProperty, TranslationXProperty, VerticalOptionsProperty);
+			border.SetBinding(Border.BackgroundColorProperty,
+				StrictBinding<RadioButton>.Create(
+					BackgroundColorProperty,
+					static radioButton => radioButton.BackgroundColor,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.HorizontalOptionsProperty,
+				StrictBinding<RadioButton>.Create(
+					HorizontalOptionsProperty,
+					static radioButton => radioButton.HorizontalOptions,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.MarginProperty,
+				StrictBinding<RadioButton>.Create(
+					MarginProperty,
+					static radioButton => radioButton.Margin,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.OpacityProperty,
+				StrictBinding<RadioButton>.Create(
+					OpacityProperty,
+					static radioButton => radioButton.Opacity,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.RotationProperty,
+				StrictBinding<RadioButton>.Create(
+					RotationProperty,
+					static radioButton => radioButton.Rotation,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.ScaleProperty,
+				StrictBinding<RadioButton>.Create(
+					ScaleProperty,
+					static radioButton => radioButton.Scale,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.ScaleXProperty,
+				StrictBinding<RadioButton>.Create(
+					ScaleXProperty,
+					static radioButton => radioButton.ScaleX,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.ScaleYProperty,
+				StrictBinding<RadioButton>.Create(
+					ScaleYProperty,
+					static radioButton => radioButton.ScaleY,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.TranslationYProperty,
+				StrictBinding<RadioButton>.Create(
+					TranslationYProperty,
+					static radioButton => radioButton.TranslationY,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.TranslationXProperty,
+				StrictBinding<RadioButton>.Create(
+					TranslationXProperty,
+					static radioButton => radioButton.TranslationX,
+					source: RelativeBindingSource.TemplatedParent));
+
+			border.SetBinding(Border.VerticalOptionsProperty,
+				StrictBinding<RadioButton>.Create(
+					VerticalOptionsProperty,
+					static radioButton => radioButton.VerticalOptions,
+					source: RelativeBindingSource.TemplatedParent));
 
 			border.SetBinding(Border.StrokeProperty,
-				new Binding(BorderColorProperty.PropertyName,
-							source: RelativeBindingSource.TemplatedParent));
+				StrictBinding<RadioButton>.Create(
+					BorderColorProperty,
+					static radioButton => radioButton.BorderColor,
+					source: RelativeBindingSource.TemplatedParent));
 
 			border.SetBinding(Border.StrokeShapeProperty,
-				new Binding(CornerRadiusProperty.PropertyName, converter: new CornerRadiusToShape(),
-							source: RelativeBindingSource.TemplatedParent));
+				StrictBinding<RadioButton>.Create(
+					CornerRadiusProperty,
+					static radioButton => radioButton.CornerRadius,
+					converter: new CornerRadiusToShape(),
+					source: RelativeBindingSource.TemplatedParent));
 
 			border.SetBinding(Border.StrokeThicknessProperty,
-				new Binding(BorderWidthProperty.PropertyName,
-							source: RelativeBindingSource.TemplatedParent));
+				StrictBinding<RadioButton>.Create(
+					BorderWidthProperty,
+					static radioButton => radioButton.BorderWidth,
+					source: RelativeBindingSource.TemplatedParent));
 
 			var grid = new Grid
 			{
@@ -573,9 +633,8 @@ namespace Microsoft.Maui.Controls
 					out checkMarkFillVisualStateDark);
 			}
 
-			contentPresenter.SetBinding(MarginProperty, new Binding("Padding", source: RelativeBindingSource.TemplatedParent));
-			contentPresenter.SetBinding(BackgroundColorProperty, new Binding(BackgroundColorProperty.PropertyName,
-				source: RelativeBindingSource.TemplatedParent));
+			contentPresenter.SetBinding(MarginProperty, StrictBinding<ContentPresenter>.Create(PaddingProperty, static p => p.Padding, source: RelativeBindingSource.TemplatedParent));
+			contentPresenter.SetBinding(BackgroundColorProperty, StrictBinding<ContentPresenter>.Create(BackgroundColorProperty, static p => p.BackgroundColor, source: RelativeBindingSource.TemplatedParent));
 
 			grid.Add(normalEllipse);
 			grid.Add(checkMark);

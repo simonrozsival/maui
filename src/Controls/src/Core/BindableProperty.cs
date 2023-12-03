@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.Xaml;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Converters;
@@ -202,44 +203,7 @@ namespace Microsoft.Maui.Controls
 
 		internal bool TryConvert(ref object value)
 		{
-			Type returnType = ReturnType;
-
-			if (value == null)
-				return !returnType.IsValueType || returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Nullable<>);
-
-			Type valueType = value.GetType();
-
-			// already the same type, no need to convert
-			if (returnType == valueType)
-				return true;
-
-			// Dont support arbitrary IConvertible by limiting which types can use this
-			if (SimpleConvertTypes.TryGetValue(valueType, out Type[] convertibleTo) && Array.IndexOf(convertibleTo, returnType) != -1)
-			{
-				value = Convert.ChangeType(value, returnType);
-				return true;
-			}
-			if (KnownTypeConverters.TryGetValue(returnType, out TypeConverter typeConverterTo) && typeConverterTo.CanConvertFrom(valueType))
-			{
-				value = typeConverterTo.ConvertFromInvariantString(value.ToString());
-				return true;
-			}
-			if (returnType.IsAssignableFrom(valueType))
-				return true;
-
-			var cast = returnType.GetImplicitConversionOperator(fromType: valueType, toType: returnType) ?? valueType.GetImplicitConversionOperator(fromType: valueType, toType: returnType);
-			if (cast != null)
-			{
-				value = cast.Invoke(null, new[] { value });
-				return true;
-			}
-			if (KnownIValueConverters.TryGetValue(returnType, out IValueConverter valueConverter))
-			{
-				value = valueConverter.Convert(value, returnType, null, CultureInfo.CurrentUICulture);
-				return true;
-			}
-
-			return false;
+			return ConversionHelpers.TryConvert(ref value, ReturnType);
 		}
 
 		internal delegate void BindablePropertyBindingChanging(BindableObject bindable, BindingBase oldValue, BindingBase newValue);

@@ -1259,7 +1259,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			}
 			yield return Create(Callvirt, module.ImportMethodReference(context.Cache,
 																	   bindableObjectType,
-																	   methodName: "SetValue",
+																	   methodName: "_SetValue",
 																	   parameterTypes: new[] {
 																		   ("Microsoft.Maui.Controls", "Microsoft.Maui.Controls", "BindableProperty"),
 																		   ("mscorlib", "System", "Object"),
