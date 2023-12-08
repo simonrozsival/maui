@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,14 +10,20 @@ namespace Microsoft.Maui.Platform
 {
 	internal static class ReflectionExtensions
 	{
-		public static FieldInfo? GetField(this Type type, Func<FieldInfo, bool> predicate)
+		public static FieldInfo? GetField([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] this Type type, Func<FieldInfo, bool> predicate)
 		{
 			return GetFields(type).FirstOrDefault(predicate);
 		}
 
-		public static IEnumerable<FieldInfo> GetFields(this Type type)
+		public static IEnumerable<FieldInfo> GetFields([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] this Type? type)
 		{
-			return GetParts(type, i => i.DeclaredFields);
+			while (type != null)
+			{
+				var declaredFields = type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+				foreach (FieldInfo field in declaredFields)
+					yield return field;
+				type = type.BaseType;
+			}
 		}
 
 		internal static object[]? GetCustomAttributesSafe(this Assembly assembly, Type attrType)
@@ -37,18 +44,6 @@ namespace Microsoft.Maui.Platform
 		public static bool IsInstanceOfType(this Type self, object o)
 		{
 			return self.IsAssignableFrom(o.GetType());
-		}
-
-		static IEnumerable<T> GetParts<T>(Type type, Func<TypeInfo, IEnumerable<T>> selector)
-		{
-			Type? t = type;
-			while (t != null)
-			{
-				TypeInfo ti = t.GetTypeInfo();
-				foreach (T f in selector(ti))
-					yield return f;
-				t = ti.BaseType;
-			}
 		}
 	}
 }
