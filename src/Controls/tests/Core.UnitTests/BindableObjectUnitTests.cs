@@ -1407,42 +1407,19 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.NotEqual(-42, bindable.GetValue(prop));
 		}
 
-		class CastFromString
+		class ConvertViaValueConverter : IValueConverter
 		{
-			public string Result { get; private set; }
-			public static implicit operator CastFromString(string source)
-			{
-				var o = new CastFromString();
-				o.Result = source;
-				return o;
-			}
+			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+				=> new ConversionResult { Result = value?.ToString() };
+
+			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+				=> throw new NotImplementedException();
 		}
 
-		[Fact]
-		public void SetValueCoreInvokesOpImplicitOnPropertyType()
+		[ValueConverter(typeof(ConvertViaValueConverter))]
+		class ConversionResult
 		{
-			var prop = BindableProperty.Create("Foo", typeof(CastFromString), typeof(MockBindable), null);
-			var bindable = new MockBindable();
-
-			Assert.Null(bindable.GetValue(prop));
-			bindable.SetValue(prop, "foo");
-
-			Assert.Equal("foo", ((CastFromString)bindable.GetValue(prop)).Result);
-		}
-
-		class CastToString
-		{
-			string Result { get; set; }
-
-			public CastToString(string result)
-			{
-				Result = result;
-			}
-
-			public static implicit operator string(CastToString source)
-			{
-				return source.Result;
-			}
+			public string Result { get; set; }
 
 			public override string ToString()
 			{
@@ -1451,13 +1428,45 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 		}
 
 		[Fact]
-		public void SetValueCoreInvokesOpImplicitOnValue()
+		public void SetValueCoreInvokesIValueConverter()
+		{
+			var prop = BindableProperty.Create("Foo", typeof(ConversionResult), typeof(MockBindable), null);
+			var bindable = new MockBindable();
+
+			Assert.Null(bindable.GetValue(prop));
+			bindable.SetValue(prop, "foo");
+
+			Assert.Equal("foo", ((ConversionResult)bindable.GetValue(prop)).Result);
+		}
+
+		class NoCastToString
+		{
+			string Result { get; set; }
+
+			public NoCastToString(string result)
+			{
+				Result = result;
+			}
+
+			public static implicit operator string(NoCastToString source)
+			{
+				throw new InvalidOperationException();
+			}
+
+			public override string ToString()
+			{
+				return Result;
+			}
+		}
+
+		[Fact]
+		public void SetValueCoreDoesNotInvokeOpImplicitOnValue()
 		{
 			var prop = BindableProperty.Create("Foo", typeof(string), typeof(MockBindable), null);
 			var bindable = new MockBindable();
 
 			Assert.Null(bindable.GetValue(prop));
-			bindable.SetValue(prop, new CastToString("foo"));
+			bindable.SetValue(prop, new NoCastToString("foo"));
 
 			Assert.Equal("foo", bindable.GetValue(prop));
 		}

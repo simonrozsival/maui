@@ -9,6 +9,7 @@ namespace Microsoft.Maui.Controls
 {
 	/// <include file="../../docs/Microsoft.Maui.Controls/ImageSource.xml" path="Type[@FullName='Microsoft.Maui.Controls.ImageSource']/Docs/*" />
 	[System.ComponentModel.TypeConverter(typeof(ImageSourceConverter))]
+	[ValueConverter(typeof(ImageSourceValueConverter))]
 	public abstract partial class ImageSource : Element
 	{
 		readonly object _synchandle = new object();

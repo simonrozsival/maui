@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Maui.Controls.Xaml;
+using Microsoft.Maui.Converters;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Converters;
 
@@ -46,9 +48,32 @@ namespace Microsoft.Maui.Controls
 			{ typeof(Maui.Graphics.Color), new ColorTypeConverter() },
 		};
 
+		// TODO what other casts do we need to migrate to this dictionary?
 		static readonly Dictionary<Type, IValueConverter> KnownIValueConverters = new Dictionary<Type, IValueConverter>
 		{
-			{ typeof(string), new ToStringValueConverter() },
+			[typeof(string)] = new ToStringValueConverter(),
+			[typeof(Thickness)] = new ValueConverter<Thickness?>(
+				value => value switch
+				{
+					Size size => (Thickness)size,
+					double x => (Thickness)x,
+					int y => (Thickness)(double)y,
+					_ => null,
+				}),
+			[typeof(Brush)] = new ValueConverter<Brush>(
+				value => value switch
+				{
+					Paint paint => (Brush)paint,
+					Color color => (Brush)color,
+					_ => null,
+				}),
+			[typeof(GridLength)] = new ValueConverter<GridLength?>(
+				value => value switch
+				{
+					double absoluteValue => (GridLength)absoluteValue,
+					int absoluteValue => (GridLength)(double)absoluteValue,
+					_ => null,
+				}),
 		};
 
 		// more or less the encoding of this, without the need to reflect
@@ -227,10 +252,9 @@ namespace Microsoft.Maui.Controls
 			if (returnType.IsAssignableFrom(valueType))
 				return true;
 
-			var cast = returnType.GetImplicitConversionOperator(fromType: valueType, toType: returnType) ?? valueType.GetImplicitConversionOperator(fromType: valueType, toType: returnType);
-			if (cast != null)
+			if (returnType.GetCustomAttribute<ValueConverterAttribute>() is ValueConverterAttribute attribute)
 			{
-				value = cast.Invoke(null, new[] { value });
+				value = attribute.CreateValueConverter().Convert(value, returnType, null, CultureInfo.CurrentUICulture);
 				return true;
 			}
 			if (KnownIValueConverters.TryGetValue(returnType, out IValueConverter valueConverter))
@@ -243,5 +267,38 @@ namespace Microsoft.Maui.Controls
 		}
 
 		internal delegate void BindablePropertyBindingChanging(BindableObject bindable, BindingBase oldValue, BindingBase newValue);
+
+		private class ValueConverter<T> : IValueConverter
+		{
+			private readonly Func<object, T> _convert;
+
+			public ValueConverter(Func<object, T> convert)
+			{
+				_convert = convert;
+			}
+			
+			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+			{
+				if (value is null)
+				{
+					return null;
+				}
+				else if (value is T t)
+				{
+					return t;
+				}
+
+				var converted = _convert(value);
+				if (converted is null)
+				{
+					throw new InvalidOperationException($"Cannot convert {value.GetType()} from {typeof(T)} to {targetType}");
+				}
+
+				return converted;
+			}
+
+			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+				=> throw new NotImplementedException();
+		}
 	}
 }
