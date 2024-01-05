@@ -3,6 +3,21 @@ using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Devices;
 
+[assembly: Microsoft.Maui.Controls.Visual("Material", typeof(Microsoft.Maui.Controls.VisualMarker.MaterialVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("MaterialVisual", typeof(Microsoft.Maui.Controls.VisualMarker.MaterialVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.Material", typeof(Microsoft.Maui.Controls.VisualMarker.MaterialVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.MaterialVisual", typeof(Microsoft.Maui.Controls.VisualMarker.MaterialVisual))]
+
+[assembly: Microsoft.Maui.Controls.Visual("Default", typeof(Microsoft.Maui.Controls.VisualMarker.DefaultVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("DefaultVisual", typeof(Microsoft.Maui.Controls.VisualMarker.DefaultVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.Default", typeof(Microsoft.Maui.Controls.VisualMarker.DefaultVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.DefaultVisual", typeof(Microsoft.Maui.Controls.VisualMarker.DefaultVisual))]
+
+[assembly: Microsoft.Maui.Controls.Visual("MatchParent", typeof(Microsoft.Maui.Controls.VisualMarker.MatchParentVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("MatchParentVisual", typeof(Microsoft.Maui.Controls.VisualMarker.MatchParentVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.MatchParent", typeof(Microsoft.Maui.Controls.VisualMarker.MatchParentVisual))]
+[assembly: Microsoft.Maui.Controls.Visual("Microsoft.Maui.Controls.MatchParentVisual", typeof(Microsoft.Maui.Controls.VisualMarker.MatchParentVisual))]
+
 namespace Microsoft.Maui.Controls
 {
 	/// <include file="../../../docs/Microsoft.Maui.Controls/VisualMarker.xml" path="Type[@FullName='Microsoft.Maui.Controls.VisualMarker']/Docs/*" />
