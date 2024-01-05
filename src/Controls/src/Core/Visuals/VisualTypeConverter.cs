@@ -28,14 +28,11 @@ namespace Microsoft.Maui.Controls
 			var mappings = new Dictionary<string, IVisual>(StringComparer.OrdinalIgnoreCase);
 			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-			// Check for IVisual Types
-			foreach (var assembly in assemblies)
-				Register(assembly, mappings);
-
-			if (Internals.Registrar.ExtraAssemblies != null)
-				foreach (var assembly in Internals.Registrar.ExtraAssemblies)
-					Register(assembly, mappings);
-
+			if (RuntimeFeature.IsIVisualScanningSupported)
+			{
+				// Check for IVisual Types
+				ScanAssemblies(assemblies, mappings);
+			}
 
 			// Check for visual assembly attributes	after scanning for IVisual Types
 			// this will let users replace the default visual names if they want to
@@ -47,6 +44,19 @@ namespace Microsoft.Maui.Controls
 					RegisterFromAttributes(assembly, mappings);
 
 			_visualTypeMappings = mappings;
+		}
+
+		[RequiresUnreferencedCode("The IVisual types might be removed by trimming. "
+			+ "Use the [assembly: Visual(\"key\", typeof(MyIVisual))] attribute to explicitly register the IVisual types instead.",
+			Url = "TODO")]
+		static void ScanAssemblies(Assembly[] assemblies, Dictionary<string, IVisual> mappings)
+		{
+			foreach (var assembly in assemblies)
+				Register(assembly, mappings);
+
+			if (Internals.Registrar.ExtraAssemblies != null)
+				foreach (var assembly in Internals.Registrar.ExtraAssemblies)
+					Register(assembly, mappings);
 		}
 
 		static void RegisterFromAttributes(Assembly assembly, Dictionary<string, IVisual> mappings)
