@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Microsoft.Maui.Controls.Xaml.Diagnostics;
 using Microsoft.Maui.Dispatching;
 
@@ -67,6 +68,85 @@ namespace Microsoft.Maui.Controls.Internals
 		{
 		}
 	}
+
+#if !NETSTANDARD
+	internal static class TypedBinding<TSource>
+	{
+		internal static TypedBinding<TSource, TProperty> Create<TProperty>(
+			Func<TSource, TProperty> getter,
+			Action<TSource, TProperty> setter = null,
+			[CallerArgumentExpression(nameof(getter))] string getterExpression = null)
+		{
+			if (getterExpression == null)
+				throw new ArgumentNullException(nameof(getterExpression));
+
+			return new TypedBinding<TSource, TProperty>(
+				source => (getter(source), true),
+				setter,
+				handlers: new Tuple<Func<TSource, object>, string>[]
+				{
+					new(static source => source, GetPropertyName(getterExpression)),
+				});
+		}
+
+		internal static TypedBinding<TSource, TProperty> Create<T1, TProperty>(
+			Func<TSource, T1> getter1,
+			Func<T1, TProperty> getter2,
+			Action<TSource, TProperty> setter = null,
+			[CallerArgumentExpression(nameof(getter1))] string getterExpression1 = null,
+			[CallerArgumentExpression(nameof(getter2))] string getterExpression2 = null)
+			where T1 : INotifyPropertyChanged
+		{
+			if (getterExpression1 == null) throw new ArgumentNullException(nameof(getterExpression1));
+			if (getterExpression2 == null) throw new ArgumentNullException(nameof(getterExpression2));
+
+			return new TypedBinding<TSource, TProperty>(
+				source => (getter2(getter1(source)), true),
+				setter,
+				handlers: new Tuple<Func<TSource, object>, string>[]
+				{
+					new(static source => source, GetPropertyName(getterExpression1)),
+					new(source => getter1(source), GetPropertyName(getterExpression2)),
+				});
+		}
+
+		internal static TypedBinding<TSource, TProperty> Create<T1, T2, TProperty>(
+			Func<TSource, T1> getter1,
+			Func<T1, T2> getter2,
+			Func<T2, TProperty> getter3,
+			Action<TSource, TProperty> setter = null,
+			[CallerArgumentExpression(nameof(getter1))] string getterExpression1 = null,
+			[CallerArgumentExpression(nameof(getter2))] string getterExpression2 = null,
+			[CallerArgumentExpression(nameof(getter3))] string getterExpression3 = null)
+			where T1 : INotifyPropertyChanged
+			where T2 : INotifyPropertyChanged
+		{
+			if (getterExpression1 == null) throw new ArgumentNullException(nameof(getterExpression1));
+			if (getterExpression2 == null) throw new ArgumentNullException(nameof(getterExpression2));
+			if (getterExpression3 == null) throw new ArgumentNullException(nameof(getterExpression3));
+
+			return new TypedBinding<TSource, TProperty>(
+				source => (getter3(getter2(getter1(source))), true),
+				setter,
+				handlers: new Tuple<Func<TSource, object>, string>[]
+				{
+					new(static source => source, GetPropertyName(getterExpression1)),
+					new(source => getter1(source), GetPropertyName(getterExpression2)),
+					new(source => getter2(getter1(source)), GetPropertyName(getterExpression3)),
+				});
+		}
+
+		private static string GetPropertyName(string getterExpression)
+		{
+			// TODO in debug mode we would need to check that the expression conforms to the expected format
+			var lastDot = getterExpression.LastIndexOf('.');
+			if (lastDot == -1)
+				throw new ArgumentException("Expression must be a property expression", nameof(getterExpression));
+
+			return getterExpression.Substring(lastDot + 1);
+		}
+	}
+#endif
 
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public sealed class TypedBinding<TSource, TProperty> : TypedBindingBase
