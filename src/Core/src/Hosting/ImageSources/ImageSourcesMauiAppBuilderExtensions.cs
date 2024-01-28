@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Maui.Hosting;
@@ -60,6 +61,21 @@ namespace Microsoft.Maui.Hosting
 						effectRegistration.AddRegistration(this);
 					}
 				}
+			}
+
+			public IImageSourceServiceCollection AddService<TImageSource, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImageSourceService>()
+				where TImageSource : IImageSource
+				where TImageSourceService : class, IImageSourceService<TImageSource>
+			{
+				Add(ServiceDescriptor.Singleton(typeof(IImageSourceService<TImageSource>), typeof(TImageSourceService)));
+				return this;
+			}
+
+			public IImageSourceServiceCollection AddService<TImageSource>(Func<IServiceProvider, IImageSourceService<TImageSource>> implementationFactory)
+				where TImageSource : IImageSource
+			{
+				Add(ServiceDescriptor.Singleton(typeof(TImageSource), provider => implementationFactory(((IImageSourceServiceProvider)provider).HostServiceProvider)));
+				return this;
 			}
 		}
 	}

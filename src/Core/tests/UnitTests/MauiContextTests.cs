@@ -16,7 +16,7 @@ namespace Microsoft.Maui.UnitTests
 			var obj = new TestThing();
 
 			var collection = new MauiServiceCollection();
-			collection.AddSingleton(obj);
+			collection.Add(ServiceDescriptor.Singleton(obj));
 			var services = new MauiFactory(collection);
 
 			var first = new MauiContext(services);
@@ -31,7 +31,7 @@ namespace Microsoft.Maui.UnitTests
 			var baseObj = new TestThing();
 
 			var collection = new MauiServiceCollection();
-			collection.AddSingleton(baseObj);
+			collection.Add(ServiceDescriptor.Singleton(baseObj));
 			var services = new MauiFactory(collection);
 
 			var specificObj = new TestThing();
@@ -90,7 +90,7 @@ namespace Microsoft.Maui.UnitTests
 			var obj2 = new TestThing();
 
 			var collection = new MauiServiceCollection();
-			collection.AddSingleton(obj);
+			collection.Add(ServiceDescriptor.Singleton(obj));
 			var services = new MauiFactory(collection);
 
 			var first = new MauiContext(services);

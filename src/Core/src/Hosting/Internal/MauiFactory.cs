@@ -25,7 +25,7 @@ namespace Microsoft.Maui.Hosting.Internal
 			_singletons = new ConcurrentDictionary<ServiceDescriptor, object?>();
 
 			// to make things easier, just add the provider
-			collection.AddSingleton<IServiceProvider>(this);
+			((MauiServiceCollection)collection).Add(ServiceDescriptor.Singleton(typeof(IServiceProvider), this));
 		}
 
 		public object? GetService(Type serviceType)

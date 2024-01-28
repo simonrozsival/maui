@@ -1,7 +1,8 @@
 using System;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
+using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Hosting.Internal;
 using Xunit;
 
@@ -77,8 +78,8 @@ namespace Microsoft.Maui.UnitTests
 			HandlerStub handlerStub = new HandlerStub();
 
 			var collection = new MauiServiceCollection();
-			collection.TryAddSingleton<IMauiHandlersFactory>(new MauiHandlersFactory(null));
-			collection.TryAddSingleton<IFooService, FooService>();
+			collection.Add(ServiceDescriptor.Singleton(typeof(IMauiHandlersFactory), new MauiHandlersFactory(null)));
+			collection.Add(ServiceDescriptor.Singleton(typeof(IFooService), typeof(FooService)));
 
 			var provider = new MauiFactory(collection);
 
