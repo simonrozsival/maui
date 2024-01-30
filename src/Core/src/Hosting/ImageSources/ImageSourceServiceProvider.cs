@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using Microsoft.Maui.Hosting.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Maui.Hosting
 {
@@ -14,7 +15,7 @@ namespace Microsoft.Maui.Hosting
 		readonly ConcurrentDictionary<Type, Type> _imageSourceCache = new ConcurrentDictionary<Type, Type>();
 		readonly ConcurrentDictionary<Type, Type> _serviceCache = new ConcurrentDictionary<Type, Type>();
 
-		private readonly IServiceProvider _serviceProvider;
+		private readonly ServiceProvider _serviceProvider;
 
 		public ImageSourceServiceProvider(IImageSourceServiceCollection collection, IServiceProvider hostServiceProvider)
 		{

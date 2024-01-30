@@ -14,10 +14,7 @@ namespace Microsoft.Maui.UnitTests
 		public void CloneIncludeSameServices()
 		{
 			var obj = new TestThing();
-
-			var collection = new MauiServiceCollection();
-			collection.AddSingleton(obj);
-			var services = new MauiFactory(collection);
+			var services = new MauiHandlersFactory(new[] { new HandlerMauiAppBuilderExtensions.HandlerRegistration((collection) => collection.AddSingleton(obj)) });
 
 			var first = new MauiContext(services);
 			var second = new MauiContext(first.Services);
@@ -31,8 +28,7 @@ namespace Microsoft.Maui.UnitTests
 			var baseObj = new TestThing();
 
 			var collection = new MauiServiceCollection();
-			collection.AddSingleton(baseObj);
-			var services = new MauiFactory(collection);
+			var services = new MauiHandlersFactory(new[] { new HandlerMauiAppBuilderExtensions.HandlerRegistration((collection) => collection.AddSingleton(baseObj)) });
 
 			var specificObj = new TestThing();
 			var context = new MauiContext(services);
@@ -44,8 +40,7 @@ namespace Microsoft.Maui.UnitTests
 		[Fact]
 		public void AddSpecificIsNotWeak()
 		{
-			var collection = new MauiServiceCollection();
-			var services = new MauiFactory(collection);
+			var services = new MauiHandlersFactory(Array.Empty<HandlerMauiAppBuilderExtensions.HandlerRegistration>());
 			var context = new MauiContext(services);
 
 			DoAdd(context);
@@ -65,8 +60,7 @@ namespace Microsoft.Maui.UnitTests
 		[Fact]
 		public void AddWeakSpecificIsWeak()
 		{
-			var collection = new MauiServiceCollection();
-			var services = new MauiFactory(collection);
+			var services = new MauiHandlersFactory(Array.Empty<HandlerMauiAppBuilderExtensions.HandlerRegistration>());
 			var context = new MauiContext(services);
 
 			DoAdd(context);
@@ -89,9 +83,7 @@ namespace Microsoft.Maui.UnitTests
 			var obj = new TestThing();
 			var obj2 = new TestThing();
 
-			var collection = new MauiServiceCollection();
-			collection.AddSingleton(obj);
-			var services = new MauiFactory(collection);
+			var services = new MauiHandlersFactory(new[] { new HandlerMauiAppBuilderExtensions.HandlerRegistration((collection) => collection.AddSingleton(obj)) });
 
 			var first = new MauiContext(services);
 

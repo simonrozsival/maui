@@ -73,7 +73,8 @@ namespace Microsoft.Maui.UnitTests.Hosting
 		public void CanRegisterAndGetHandlerForConcreteType()
 		{
 			var mauiApp = MauiApp.CreateBuilder()
-				.ConfigureMauiHandlers(handlers => handlers.AddHandler<IViewStub, ViewHandlerStub>())
+				// .ConfigureMauiHandlers(handlers => handlers.AddHandler<IViewStub, ViewHandlerStub>())
+				.ConfigureMauiHandlers(handlers => handlers.AddHandler<ViewStub, ViewHandlerStub>())
 				.Build();
 
 			var handler = mauiApp.Services.GetRequiredService<IMauiHandlersFactory>().GetHandler(typeof(ViewStub));

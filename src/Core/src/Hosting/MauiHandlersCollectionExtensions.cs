@@ -19,9 +19,7 @@ namespace Microsoft.Maui.Hosting
 			Type viewType,
 			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerType)
 		{
-#pragma warning disable RS0030 // Do not use banned APIs, the current method is also banned
-			handlersCollection.AddTransient(viewType, handlerType);
-#pragma warning restore RS0030 // Do not use banned APIs
+			handlersCollection.AddTransient(viewType, _ => Activator.CreateInstance(handlerType)!);
 			return handlersCollection;
 		}
 
@@ -37,9 +35,7 @@ namespace Microsoft.Maui.Hosting
 			where TType : IElement
 			where TTypeRender : IElementHandler
 		{
-#pragma warning disable RS0030 // Do not use banned APIs, the current method is also banned
-			handlersCollection.AddTransient(typeof(TType), typeof(TTypeRender));
-#pragma warning restore RS0030 // Do not use banned APIs
+			handlersCollection.AddTransient(typeof(TType), _ => Activator.CreateInstance<TTypeRender>());
 			return handlersCollection;
 		}
 
@@ -71,9 +67,7 @@ namespace Microsoft.Maui.Hosting
 			Type viewType,
 			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerType)
 		{
-#pragma warning disable RS0030 // Do not use banned APIs, the current method is also banned
-			handlersCollection.TryAddTransient(viewType, handlerType);
-#pragma warning restore RS0030 // Do not use banned APIs
+			handlersCollection.TryAddTransient(viewType, _ => Activator.CreateInstance(handlerType)!);
 			return handlersCollection;
 		}
 
@@ -89,9 +83,7 @@ namespace Microsoft.Maui.Hosting
 			where TType : IView
 			where TTypeRender : IViewHandler
 		{
-#pragma warning disable RS0030 // Do not use banned APIs, the current method is also banned
-			handlersCollection.TryAddTransient(typeof(TType), typeof(TTypeRender));
-#pragma warning restore RS0030 // Do not use banned APIs
+			handlersCollection.TryAddTransient(typeof(TType), _ => Activator.CreateInstance<TTypeRender>());
 			return handlersCollection;
 		}
 

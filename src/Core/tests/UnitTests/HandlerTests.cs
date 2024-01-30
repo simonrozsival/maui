@@ -25,7 +25,8 @@ namespace Microsoft.Maui.UnitTests.Hosting
 		public void ExceptionPropagatesFromHandler()
 		{
 			var mauiApp = MauiApp.CreateBuilder()
-				.ConfigureMauiHandlers(handlers => handlers.AddHandler<IViewStub, ViewHandlerWithChildException>())
+				// .ConfigureMauiHandlers(handlers => handlers.AddHandler<IViewStub, ViewHandlerWithChildException>())
+				.ConfigureMauiHandlers(handlers => handlers.AddHandler<ViewStub, ViewHandlerWithChildException>())
 				.ConfigureMauiHandlers(handlers => handlers.AddHandler<ExceptionThrowingStub, ExceptionThrowingViewHandler>())
 				.Build();
 
