@@ -5,11 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Maui.Hosting.Internal
 {
-	sealed class MauiHandlersFactory : MauiFactory, IMauiHandlersFactory
+	sealed class MauiHandlersFactory : IMauiFactory, IMauiHandlersFactory
 	{
-		public MauiHandlersFactory(IEnumerable<HandlerMauiAppBuilderExtensions.HandlerRegistration> registrationActions) :
-			base(CreateHandlerCollection(registrationActions))
+		public MauiHandlersFactory(IEnumerable<HandlerMauiAppBuilderExtensions.HandlerRegistration> registrationActions)
 		{
+			_collection = CreateHandlerCollection(registrationActions);
+			_serviceProvider = _collection.BuildServiceProvider(new ServiceProviderOptions());
 		}
 
 		static MauiHandlersCollection CreateHandlerCollection(IEnumerable<HandlerMauiAppBuilderExtensions.HandlerRegistration> registrationActions)
@@ -26,6 +27,9 @@ namespace Microsoft.Maui.Hosting.Internal
 			return collection;
 		}
 
+		public object? GetService(Type serviceType)
+			=> _serviceProvider.GetService(serviceType);
+
 		public IElementHandler? GetHandler(Type type)
 			=> GetService(type) as IElementHandler;
 
@@ -34,25 +38,8 @@ namespace Microsoft.Maui.Hosting.Internal
 
 		[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 		public Type? GetHandlerType(Type iview)
-		{
-			// if (!TryGetServiceDescriptors(ref iview, out var single, out var enumerable))
-			// 	return default;
+			=> _collection.TryGetService(iview, out var descriptor) ? descriptor : null;
 
-			// if (single != null)
-			// 	return single.ImplementationType;
-
-			// if (enumerable != null)
-			// {
-			// 	foreach (var descriptor in enumerable)
-			// 	{
-			// 		return descriptor.ImplementationType;
-			// 	}
-			// }
-
-			return default;
-		}
-
-		// public IMauiHandlersCollection GetCollection() => (IMauiHandlersCollection)InternalCollection;
-		public IMauiHandlersCollection GetCollection() => null!;
+		public IMauiHandlersCollection GetCollection() => _collection;
 	}
 }

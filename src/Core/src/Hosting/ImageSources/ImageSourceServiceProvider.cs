@@ -6,7 +6,7 @@ using Microsoft.Maui.Hosting.Internal;
 
 namespace Microsoft.Maui.Hosting
 {
-	sealed class ImageSourceServiceProvider : MauiFactory, IImageSourceServiceProvider
+	sealed class ImageSourceServiceProvider : IMauiFactory, IImageSourceServiceProvider
 	{
 		static readonly string ImageSourceInterface = typeof(IImageSource).FullName!;
 		static readonly Type ImageSourceServiceType = typeof(IImageSourceService<>);
@@ -14,13 +14,20 @@ namespace Microsoft.Maui.Hosting
 		readonly ConcurrentDictionary<Type, Type> _imageSourceCache = new ConcurrentDictionary<Type, Type>();
 		readonly ConcurrentDictionary<Type, Type> _serviceCache = new ConcurrentDictionary<Type, Type>();
 
+		private readonly IServiceProvider _serviceProvider;
+
 		public ImageSourceServiceProvider(IImageSourceServiceCollection collection, IServiceProvider hostServiceProvider)
-			: base(collection)
 		{
+			collection.AddSingleton<IImageSourceServiceProvider>(this);
+			_serviceProvider = collection.BuildServiceProvider(new ServiceProviderOptions());
+
 			HostServiceProvider = hostServiceProvider;
 		}
 
 		public IServiceProvider HostServiceProvider { get; }
+
+		public object? GetService(Type serviceType) =>
+			_serviceProvider.GetService(serviceType);
 
 		public IImageSourceService? GetImageSourceService(Type imageSource) =>
 			(IImageSourceService?)GetService(GetImageSourceServiceType(imageSource));
