@@ -1,14 +1,9 @@
 #nullable disable
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Reflection;
 using Microsoft.Maui.Controls.Xaml;
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Graphics.Converters;
 
 namespace Microsoft.Maui.Controls
 {
@@ -39,34 +34,6 @@ namespace Microsoft.Maui.Controls
 		public delegate bool ValidateValueDelegate(BindableObject bindable, object value);
 
 		public delegate bool ValidateValueDelegate<in TPropertyType>(BindableObject bindable, TPropertyType value);
-
-		static readonly Dictionary<Type, TypeConverter> KnownTypeConverters = new Dictionary<Type, TypeConverter>
-		{
-			{ typeof(Uri), new UriTypeConverter() },
-			{ typeof(Easing), new Maui.Converters.EasingTypeConverter() },
-			{ typeof(Maui.Graphics.Color), new ColorTypeConverter() },
-		};
-
-		static readonly Dictionary<Type, IValueConverter> KnownIValueConverters = new Dictionary<Type, IValueConverter>
-		{
-			{ typeof(string), new ToStringValueConverter() },
-		};
-
-		// more or less the encoding of this, without the need to reflect
-		// http://msdn.microsoft.com/en-us/library/y5b434w4.aspx
-		static readonly Dictionary<Type, Type[]> SimpleConvertTypes = new Dictionary<Type, Type[]>
-		{
-			{ typeof(sbyte), new[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(byte), new[] { typeof(string), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(short), new[] { typeof(string), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(ushort), new[] { typeof(string), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(int), new[] { typeof(string), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(uint), new[] { typeof(string), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(long), new[] { typeof(string), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(char), new[] { typeof(string), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
-			{ typeof(float), new[] { typeof(string), typeof(double) } },
-			{ typeof(ulong), new[] { typeof(string), typeof(float), typeof(double), typeof(decimal) } },
-		};
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/BindableProperty.xml" path="//Member[@MemberName='UnsetValue']/Docs/*" />
 		public static readonly object UnsetValue = new object();
@@ -200,48 +167,6 @@ namespace Microsoft.Maui.Controls
 				return DefaultValueCreator(bindable);
 
 			return DefaultValue;
-		}
-
-		internal bool TryConvert(ref object value)
-		{
-			Type returnType = ReturnType;
-
-			if (value == null)
-				return !returnType.IsValueType || returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Nullable<>);
-
-			Type valueType = value.GetType();
-
-			// already the same type, no need to convert
-			if (returnType == valueType)
-				return true;
-
-			// Dont support arbitrary IConvertible by limiting which types can use this
-			if (SimpleConvertTypes.TryGetValue(valueType, out Type[] convertibleTo) && Array.IndexOf(convertibleTo, returnType) != -1)
-			{
-				value = Convert.ChangeType(value, returnType);
-				return true;
-			}
-			if (KnownTypeConverters.TryGetValue(returnType, out TypeConverter typeConverterTo) && typeConverterTo.CanConvertFrom(valueType))
-			{
-				value = typeConverterTo.ConvertFromInvariantString(value.ToString());
-				return true;
-			}
-			if (returnType.IsAssignableFrom(valueType))
-				return true;
-
-			var cast = returnType.GetImplicitConversionOperator(fromType: valueType, toType: returnType) ?? valueType.GetImplicitConversionOperator(fromType: valueType, toType: returnType);
-			if (cast != null)
-			{
-				value = cast.Invoke(null, new[] { value });
-				return true;
-			}
-			if (KnownIValueConverters.TryGetValue(returnType, out IValueConverter valueConverter))
-			{
-				value = valueConverter.Convert(value, returnType, null, CultureInfo.CurrentUICulture);
-				return true;
-			}
-
-			return false;
 		}
 
 		internal delegate void BindablePropertyBindingChanging(BindableObject bindable, BindingBase oldValue, BindingBase newValue);

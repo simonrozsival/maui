@@ -540,7 +540,7 @@ namespace Microsoft.Maui.Controls
 
 			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
 
-			if (!converted && !property.TryConvert(ref value))
+			if (!converted && !TypeConversionUtils.TryConvert(ref value, property.ReturnType))
 			{
 				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
 				return;

@@ -436,7 +436,7 @@ namespace Microsoft.Maui.Controls
 				return !convertTo.GetTypeInfo().IsValueType || Nullable.GetUnderlyingType(convertTo) != null;
 			try
 			{
-				if ((toTarget && targetProperty.TryConvert(ref value)) || (!toTarget && convertTo.IsInstanceOfType(value)))
+				if ((toTarget && TypeConversionUtils.TryConvert(ref value, targetProperty.ReturnType)) || (!toTarget && convertTo.IsInstanceOfType(value)))
 					return true;
 			}
 			catch (InvalidOperationException)

@@ -33,6 +33,8 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Maui.Controls.Xaml.Internals;
 
 namespace Microsoft.Maui.Controls.Xaml
@@ -233,12 +235,9 @@ namespace Microsoft.Maui.Controls.Xaml
 			//if the value is not assignable and there's an implicit conversion, convert
 			if (value != null && !toType.IsAssignableFrom(value.GetType()))
 			{
-				var opImplicit = value.GetType().GetImplicitConversionOperator(fromType: value.GetType(), toType: toType)
-								?? toType.GetImplicitConversionOperator(fromType: value.GetType(), toType: toType);
-
-				if (opImplicit != null)
+				var conversionService = serviceProvider.GetService<TypeConversionService>();
+				if (conversionService is not null && conversionService.TryConvert(ref value, toType))
 				{
-					value = opImplicit.Invoke(null, new[] { value });
 					return value;
 				}
 			}
@@ -250,48 +249,6 @@ namespace Microsoft.Maui.Controls.Xaml
 				return platformValue;
 
 			return value;
-		}
-
-		internal static MethodInfo GetImplicitConversionOperator(this Type onType, Type fromType, Type toType)
-		{
-			var bindingAttr = BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;
-			IEnumerable<MethodInfo> mis = null;
-			try
-			{
-				mis = new[] { onType.GetMethod("op_Implicit", bindingAttr, null, new[] { fromType }, null) };
-			}
-			catch (AmbiguousMatchException)
-			{
-				mis = new List<MethodInfo>();
-				foreach (var mi in onType.GetMethods(bindingAttr))
-				{
-					if (mi.Name != "op_Implicit")
-						break;
-					var parameters = mi.GetParameters();
-					if (parameters.Length == 0)
-						continue;
-					if (!parameters[0].ParameterType.IsAssignableFrom(fromType))
-						continue;
-					((List<MethodInfo>)mis).Add(mi);
-				}
-			}
-
-			foreach (var mi in mis)
-			{
-				if (mi == null)
-					continue;
-				if (!mi.IsSpecialName)
-					continue;
-				if (!mi.IsPublic)
-					continue;
-				if (!mi.IsStatic)
-					continue;
-				if (!toType.IsAssignableFrom(mi.ReturnType))
-					continue;
-
-				return mi;
-			}
-			return null;
 		}
 	}
 }

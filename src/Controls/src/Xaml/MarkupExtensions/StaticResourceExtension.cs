@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Maui.Controls.Xaml.Internals;
 
 namespace Microsoft.Maui.Controls.Xaml
@@ -28,11 +30,11 @@ namespace Microsoft.Maui.Controls.Xaml
 
 			Diagnostics.ResourceDictionaryDiagnostics.OnStaticResourceResolved(resourceDictionary, Key, valueProvider.TargetObject, valueProvider.TargetProperty);
 
-			return CastTo(resource, valueProvider.TargetProperty);
+			return CastTo(resource, valueProvider.TargetProperty, serviceProvider);
 		}
 
 		//used by X.HR.F
-		internal static object CastTo(object value, object targetProperty)
+		internal static object CastTo(object value, object targetProperty, IServiceProvider serviceProvider)
 		{
 			var bp = targetProperty as BindableProperty;
 			var pi = targetProperty as PropertyInfo;
@@ -42,21 +44,15 @@ namespace Microsoft.Maui.Controls.Xaml
 			if (propertyType is null || propertyType.IsAssignableFrom(valueType))
 				return value;
 
-			MethodInfo implicit_op;
-
-			//OnPlatform might need double cast
-			if (valueType.IsGenericType && valueType.Name == "OnPlatform`1")
+			//OnPlatform needs unwrapping
+			if (valueType is IPlatformValue platform)
 			{
-				var onPlatType = valueType.GetGenericArguments()[0];
-				implicit_op = valueType.GetImplicitConversionOperator(fromType: valueType, toType: onPlatType);
-				value = implicit_op.Invoke(value, new[] { value });
+				value = platform.Value;
 				valueType = value.GetType();
 			}
 
-			implicit_op = valueType.GetImplicitConversionOperator(fromType: valueType, toType: propertyType)
-							?? propertyType.GetImplicitConversionOperator(fromType: valueType, toType: propertyType);
-			if (implicit_op != null)
-				return implicit_op.Invoke(value, new[] { value });
+			var conversionService = serviceProvider.GetService<TypeConversionService>();
+			_ = conversionService?.TryConvert(ref value, propertyType);
 
 			return value;
 		}
