@@ -37,11 +37,17 @@ namespace Microsoft.Maui.Controls
 			// Check for visual assembly attributes	after scanning for IVisual Types
 			// this will let users replace the default visual names if they want to
 			foreach (var assembly in assemblies)
+			{
 				RegisterFromAttributes(assembly, mappings);
+			}
 
 			if (Internals.Registrar.ExtraAssemblies != null)
+			{
 				foreach (var assembly in Internals.Registrar.ExtraAssemblies)
+				{
 					RegisterFromAttributes(assembly, mappings);
+				}
+			}
 
 			_visualTypeMappings = mappings;
 		}
@@ -52,11 +58,17 @@ namespace Microsoft.Maui.Controls
 		static void ScanAssemblies(Assembly[] assemblies, Dictionary<string, IVisual> mappings)
 		{
 			foreach (var assembly in assemblies)
+			{
 				Register(assembly, mappings);
+			}
 
 			if (Internals.Registrar.ExtraAssemblies != null)
+			{
 				foreach (var assembly in Internals.Registrar.ExtraAssemblies)
+				{
 					Register(assembly, mappings);
+				}
+			}
 		}
 
 		static void RegisterFromAttributes(Assembly assembly, Dictionary<string, IVisual> mappings)
@@ -69,7 +81,9 @@ namespace Microsoft.Maui.Controls
 				{
 					var visual = CreateVisual(attribute.Visual);
 					if (visual != null)
+					{
 						mappings[attribute.Key] = visual;
+					}
 				}
 			}
 		}
@@ -77,13 +91,19 @@ namespace Microsoft.Maui.Controls
 		static void Register(Assembly assembly, Dictionary<string, IVisual> mappings)
 		{
 			if (assembly.IsDynamic)
+			{
 				return;
+			}
 
 			try
 			{
 				foreach (var type in assembly.GetExportedTypes())
+				{
 					if (typeof(IVisual).IsAssignableFrom(type) && type != typeof(IVisual))
+					{
 						Register(type, mappings);
+					}
+				}
 			}
 			catch (NotSupportedException)
 			{
@@ -105,7 +125,9 @@ namespace Microsoft.Maui.Controls
 		{
 			IVisual registeredVisual = CreateVisual(visual);
 			if (registeredVisual == null)
+			{
 				return;
+			}
 
 			string name = visual.Name;
 			string fullName = visual.FullName;
@@ -141,12 +163,16 @@ namespace Microsoft.Maui.Controls
 		{
 			var strValue = value?.ToString();
 			if (_visualTypeMappings == null)
+			{
 				InitMappings();
+			}
 
 			if (strValue != null)
 			{
 				if (_visualTypeMappings.TryGetValue(strValue, out IVisual returnValue))
+				{
 					return returnValue;
+				}
 
 				return VisualMarker.Default;
 			}
@@ -157,16 +183,25 @@ namespace Microsoft.Maui.Controls
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
 			if (value is not IVisual visual)
+			{
 				throw new NotSupportedException();
+			}
 
 			if (_visualTypeMappings == null)
+			{
 				InitMappings();
+			}
 
 			if (visual == VisualMarker.Default)
+			{
 				return "default";
+			}
 
 			if (_visualTypeMappings.ContainsValue(visual))
+			{
 				return _visualTypeMappings.Keys.Skip(_visualTypeMappings.Values.IndexOf(visual)).First();
+			}
+
 			throw new NotSupportedException();
 		}
 
