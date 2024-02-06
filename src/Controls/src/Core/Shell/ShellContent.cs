@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Maui.Controls.Internals;
 
@@ -305,33 +306,14 @@ namespace Microsoft.Maui.Controls
 
 			foreach (QueryPropertyAttribute attrib in queryPropertyAttributes)
 			{
-				if (query.TryGetValue(attrib.QueryId, out var value))
+				if (!RuntimeFeature.IsQueryPropertyAttributeSupported)
 				{
-					PropertyInfo prop = type.GetRuntimeProperty(attrib.Name);
-
-					if (prop != null && prop.CanWrite && prop.SetMethod.IsPublic)
-					{
-						if (prop.PropertyType == typeof(string))
-						{
-							if (value != null)
-								value = global::System.Net.WebUtility.UrlDecode((string)value);
-
-							prop.SetValue(content, value);
-						}
-						else
-						{
-							var castValue = Convert.ChangeType(value, prop.PropertyType);
-							prop.SetValue(content, castValue);
-						}
-					}
+					throw new InvalidOperationException(
+						"QueryPropertyAttribute is not supported. Consider implementing IQueryAttributable interface instead. " +
+						"Otherwise, enable the MauiQueryPropertyAttributeSupport feature flag.");
 				}
-				else if (oldQuery.TryGetValue(attrib.QueryId, out var oldValue))
-				{
-					PropertyInfo prop = type.GetRuntimeProperty(attrib.Name);
 
-					if (prop != null && prop.CanWrite && prop.SetMethod.IsPublic)
-						prop.SetValue(content, null);
-				}
+				ApplyQueryAttribute(content, query, oldQuery, attrib);
 			}
 
 			ClearQueryIfAppliedToPage(query, content);
@@ -342,6 +324,39 @@ namespace Microsoft.Maui.Controls
 				// parameters used during navigation
 				if (content is ContentPage)
 					query.ResetToQueryParameters();
+			}
+		}
+
+		[RequiresUnreferencedCode("The target property may be removed by trimming. Implement IQueryAttributable interface instead.",
+			Url = "https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/shell/navigation#process-navigation-data-using-a-single-method")]
+		private static void ApplyQueryAttribute(object content, ShellRouteParameters query, ShellRouteParameters oldQuery, QueryPropertyAttribute attrib)
+		{
+			if (query.TryGetValue(attrib.QueryId, out var value))
+			{
+				PropertyInfo prop = content.GetType().GetRuntimeProperty(attrib.Name);
+
+				if (prop != null && prop.CanWrite && prop.SetMethod.IsPublic)
+				{
+					if (prop.PropertyType == typeof(string))
+					{
+						if (value != null)
+							value = global::System.Net.WebUtility.UrlDecode((string)value);
+
+						prop.SetValue(content, value);
+					}
+					else
+					{
+						var castValue = Convert.ChangeType(value, prop.PropertyType);
+						prop.SetValue(content, castValue);
+					}
+				}
+			}
+			else if (oldQuery.TryGetValue(attrib.QueryId, out var oldValue))
+			{
+				PropertyInfo prop = content.GetType().GetRuntimeProperty(attrib.Name);
+
+				if (prop != null && prop.CanWrite && prop.SetMethod.IsPublic)
+					prop.SetValue(content, null);
 			}
 		}
 	}
