@@ -209,11 +209,16 @@
   <Target Name="_MauiPrepareForILLink" BeforeTargets="PrepareForILLink">
     <PropertyGroup>
       <MauiXamlRuntimeParsingSupport Condition="'$(MauiXamlRuntimeParsingSupport)' == '' and '$(PublishAot)' == 'true'">false</MauiXamlRuntimeParsingSupport>
+      <MauiQueryPropertyAttributeSupport Condition="'$(MauiQueryPropertyAttributeSupport)' == '' and '$(PublishAot)' == 'true'">false</MauiQueryPropertyAttributeSupport>
     </PropertyGroup>
     <ItemGroup>
       <RuntimeHostConfigurationOption Include="Microsoft.Maui.RuntimeFeature.IsXamlRuntimeParsingSupported"
                                       Condition="'$(MauiXamlRuntimeParsingSupport)' != ''"
                                       Value="$(MauiXamlRuntimeParsingSupport)"
+                                      Trim="true" />
+      <RuntimeHostConfigurationOption Include="Microsoft.Maui.RuntimeFeature.IsQueryPropertyAttributeSupported"
+                                      Condition="'$(MauiQueryPropertyAttributeSupport)' != ''"
+                                      Value="$(MauiQueryPropertyAttributeSupport)"
                                       Trim="true" />
     </ItemGroup>
   </Target>
