@@ -26,7 +26,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 		static Assembly _assembly;
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Resource.designer.cs is in the root application assembly, which should be preserved.")]
 		[UnconditionalSuppressMessage("Trimming", "IL2073", Justification = "Resource.designer.cs may be linked away, so don't worry if there are missing things.")]
-		[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+		[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 		static Type FindType(string name, string altName)
 		{
 			if (_assembly != null)
@@ -39,25 +39,25 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			}
 			return null;
 		}
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 		static Type _drawableClass;
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 		static Type _resourceClass;
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 		static Type _styleClass;
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 		static Type _layoutClass;
 
 		public static Type DrawableClass
 		{
-			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			get
 			{
 				if (_drawableClass == null)
 					_drawableClass = FindType("Drawable", "Resource_Drawable");
 				return _drawableClass;
 			}
-			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			set
 			{
 				_drawableClass = value;
@@ -66,14 +66,14 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static Type ResourceClass
 		{
-			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			get
 			{
 				if (_resourceClass == null)
 					_resourceClass = FindType("Id", "Resource_Id");
 				return _resourceClass;
 			}
-			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			set
 			{
 				_resourceClass = value;
@@ -82,14 +82,14 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static Type StyleClass
 		{
-			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			get
 			{
 				if (_styleClass == null)
 					_styleClass = FindType("Style", "Resource_Style");
 				return _styleClass;
 			}
-			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			set
 			{
 				_styleClass = value;
@@ -98,14 +98,14 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static Type LayoutClass
 		{
-			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			get
 			{
 				if (_layoutClass == null)
 					_layoutClass = FindType("Layout", "Resource_Layout");
 				return _layoutClass;
 			}
-			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+			[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 			set
 			{
 				_layoutClass = value;
@@ -379,19 +379,19 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			_assembly = mainAssembly;
 		}
 
-		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] Type resourceType, string defType, Resources resource)
+		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type resourceType, string defType, Resources resource)
 		{
 #pragma warning disable CS0612 // Type or member is obsolete
 			return IdFromTitle(title, resourceType, defType, resource, Platform.GetPackageName());
 #pragma warning disable CS0612 // Type or member is obsolete
 		}
 
-		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] Type resourceType, string defType, Context context)
+		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type resourceType, string defType, Context context)
 		{
 			return IdFromTitle(title, resourceType, defType, context?.Resources, context?.PackageName);
 		}
 
-		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] Type resourceType, string defType, Resources resource, string packageName)
+		static int IdFromTitle(string title, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type resourceType, string defType, Resources resource, string packageName)
 		{
 			int id = 0;
 			if (title == null)
@@ -431,22 +431,17 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			return GetId(resourceType, name);
 		}
 
-		static int GetId([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] Type type, string memberName)
+		static int GetId([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, string memberName)
 		{
 			// This may legitimately be null in designer scenarios
 			if (type == null)
 				return 0;
 
 			object value = null;
-			var fields = type.GetFields();
-			for (int i = 0; i < fields.Length; i++)
+			var field = type.GetField(f => f.Name == memberName);
+			if (field is not null)
 			{
-				var field = fields[i];
-				if (field.Name == memberName)
-				{
-					value = field.GetValue(type);
-					break;
-				}
+				value = field.GetValue(type);
 			}
 
 			if (value == null)

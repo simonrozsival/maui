@@ -28,7 +28,7 @@ namespace Microsoft.Maui.Converters
 					var kbType = typeof(Keyboard);
 
 					string keyboard = parts[parts.Length - 1];
-					FieldInfo? field = kbType.GetFields()?.FirstOrDefault(fi => fi.IsStatic && fi.Name == keyboard);
+					FieldInfo? field = kbType.GetField(fi => fi.IsStatic && fi.Name == keyboard);
 					if (field?.GetValue(null) is Keyboard kb)
 						return kb;
 

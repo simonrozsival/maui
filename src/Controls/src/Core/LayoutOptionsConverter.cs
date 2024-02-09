@@ -48,7 +48,7 @@ namespace Microsoft.Maui.Controls
 					case "FillAndExpand":
 						return LayoutOptions.FillAndExpand;
 				}
-				FieldInfo field = typeof(LayoutOptions).GetFields().FirstOrDefault(fi => fi.IsStatic && fi.Name == strValue);
+				FieldInfo field = typeof(LayoutOptions).GetField(fi => fi.IsStatic && fi.Name == strValue);
 				if (field != null)
 					return (LayoutOptions)field.GetValue(null);
 			}
