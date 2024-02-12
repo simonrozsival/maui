@@ -7,12 +7,47 @@ using NUnit.Framework;
 
 namespace Microsoft.Maui.Controls.Xaml.UnitTests
 {
+	[Gh4215VM.ImplicitCasts]
 	public class Gh4215VM
 	{
 		public static implicit operator DateTime(Gh4215VM value) => DateTime.UtcNow;
 		public static implicit operator string(Gh4215VM value) => "foo";
 		public static implicit operator long(Gh4215VM value) => long.MaxValue;
 		public static implicit operator Rect(Gh4215VM value) => new Rect();
+
+		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type toType)
+			{
+				if (value is not Gh4215VM vm)
+				{
+					return false;
+				}
+
+				if (toType == typeof(DateTime))
+				{
+					value = (DateTime)vm;
+					return true;
+				}
+				if (toType == typeof(string))
+				{
+					value = (string)vm;
+					return true;
+				}
+				if (toType == typeof(long))
+				{
+					value = (long)vm;
+					return true;
+				}
+				if (toType == typeof(Rect))
+				{
+					value = (Rect)vm;
+					return true;
+				}
+
+				return false;
+			}
+		}
 	}
 
 	public partial class Gh4215 : ContentPage

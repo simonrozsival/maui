@@ -1407,7 +1407,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.NotEqual(-42, bindable.GetValue(prop));
 		}
 
-		[ValueConverter(typeof(CastFromStringValueConverter))]
+		[CastFromString.ImplicitCasts]
 		class CastFromString
 		{
 			public string Result { get; private set; }
@@ -1417,19 +1417,20 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				o.Result = source;
 				return o;
 			}
-		}
 
-		class CastFromStringValueConverter : IValueConverter
-		{
-			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-				=> null;
-
-			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-				=> value switch
+			private sealed class ImplicitCasts : ImplicitCastsAttribute
+			{
+				public static bool TryCastFrom(ref object value)
 				{
-					string str => (CastFromString)str,
-					_ => null,
-				};
+					if (value is string str)
+					{
+						value = (CastFromString)str;
+						return true;
+					}
+
+					return false;
+				}
+			}
 		}
 
 		[Fact]
@@ -1444,7 +1445,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Equal("foo", ((CastFromString)bindable.GetValue(prop)).Result);
 		}
 
-		[ValueConverter(typeof(CastToStringValueConverter))]
+		[CastToStringValue.ImplicitCasts]
 		class CastToString
 		{
 			string Result { get; set; }
@@ -1463,19 +1464,25 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			{
 				throw new InvalidOperationException();
 			}
-		}
 
-		class CastToStringValueConverter : IValueConverter
-		{
-			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-				=> value switch
+			private sealed class ImplicitCasts : ImplicitCastsAttribute
+			{
+				public override bool TryCastTo(ref object value, Type targetType)
 				{
-					CastToString castToString when targetType == typeof(string) => (string)castToString,
-					_ => null,
-				};
+					if (value is not CastToString castToString)
+					{
+						return false;
+					}
+					
+					if (targetType == typeof(string))
+					{
+						value = (string)castToString;
+						return true;
+					}
 
-			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-				=> null;
+					return false;
+				}
+			}
 		}
 
 		[Fact]

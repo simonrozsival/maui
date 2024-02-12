@@ -16,7 +16,7 @@ using AView = Android.Views.View;
 namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 {
 	[Obsolete]
-	[ValueConverter(typeof(PlatformValueConverter))]
+	[Platform.ImplicitCasts]
 	public class Platform : BindableObject, IPlatformLayout, INavigation
 	{
 		readonly Context _context;
@@ -860,18 +860,25 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			}
 
 		}
-	}
 
-	internal sealed class PlatformValueConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-			=> value switch
+#nullable enable
+		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type targetType)
 			{
-				Platform platform when targetType == typeof(ViewGroup) => (ViewGroup)platform,
-				_ => null,
-			};
+				if (value is not Platform platform)
+				{
+					return false;
+				}
 
-		public object? ConvertBack(object? value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-			=> null;
+				if (targetType == typeof(ViewGroup))
+				{
+					value = (ViewGroup)platform;
+					return true;
+				}
+
+				return false;
+			}
+		}
 	}
 }

@@ -229,9 +229,8 @@ namespace Microsoft.Maui.Controls
 			if (returnType.IsAssignableFrom(valueType))
 				return true;
 
-			if (value.TryConvertValue(toType: returnType, out var convertedValue))
+			if (TypeConversionExtensions.TryConvertValue(ref value, toType: returnType))
 			{
-				value = convertedValue;
 				return true;
 			}
 			if (KnownIValueConverters.TryGetValue(returnType, out IValueConverter valueConverter))

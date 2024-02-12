@@ -46,12 +46,12 @@ namespace Microsoft.Maui.Controls.Xaml
 			if (value is IWrappedValue wrapped)
 			{
 				value = wrapped.Value;
-				valueType = value.GetType();
+				valueType = wrapped.Type;
 			}
 
-			if (value.TryConvertValue(toType: propertyType, out var convertedValue))
+			if (TypeConversionExtensions.TryConvertValue(ref value, toType: propertyType))
 			{
-				return convertedValue;
+				return value;
 			}
 
 			return value;

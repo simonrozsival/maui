@@ -249,12 +249,10 @@ namespace Microsoft.Maui.Controls.Xaml
 					if ((p[i].ParameterType.IsAssignableFrom(types[i])))
 						continue;
 
-					if (!arguments[i].TryConvertValue(toType: p[i].ParameterType, out var convertedValue))
+					if (!TypeConversionExtensions.TryConvertValue(ref arguments[i], toType: p[i].ParameterType))
 					{
 						return false;
 					}
-
-					arguments[i] = convertedValue;
 				}
 				return true;
 			}

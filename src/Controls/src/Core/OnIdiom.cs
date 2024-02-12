@@ -4,7 +4,6 @@ using Microsoft.Maui.Devices;
 
 namespace Microsoft.Maui.Controls
 {
-	[ValueConverter(typeof(WrappedValueValueConverter))]
 	public class OnIdiom<T> : IWrappedValue
 	{
 		T _phone;

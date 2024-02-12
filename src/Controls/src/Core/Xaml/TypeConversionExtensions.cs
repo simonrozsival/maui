@@ -234,9 +234,9 @@ namespace Microsoft.Maui.Controls.Xaml
 			//if the value is not assignable and there's an implicit conversion, convert
 			if (value != null && !toType.IsAssignableFrom(value.GetType()))
 			{
-				if (value.TryConvertValue(toType, out var convertedValue))
+				if (TryConvertValue(ref value, toType))
 				{
-					return convertedValue;
+					return value;
 				}
 			}
 
@@ -250,13 +250,12 @@ namespace Microsoft.Maui.Controls.Xaml
 		}
 
 #nullable enable
-		internal static bool TryConvertValue(this object value, Type toType, out object? convertedValue)
+		internal static bool TryConvertValue(ref object value, Type toType)
 		{
 			Type fromType = value.GetType();
 
 			if (toType.IsAssignableFrom(fromType))
 			{
-				convertedValue = value;
 				return true;
 			}
 
@@ -266,32 +265,23 @@ namespace Microsoft.Maui.Controls.Xaml
 			// 	return value.TryConvertUsingImplicitConversionOperator(toType, out convertedValue);
 			// }
 
-			convertedValue = value.TryConvertValueOfKnownTypes(toType);
+			var convertedValue = value.TryConvertValueOfKnownTypes(toType);
 			if (convertedValue is not null)
+			{
+				value = convertedValue;
+				return true;
+			}
+
+			var converterAttribute = value.GetType().GetCustomAttribute<ImplicitCastsAttribute>();
+			if (converterAttribute is not null && converterAttribute.TryCastTo(ref value, toType))
 			{
 				return true;
 			}
 
-			ValueConverterAttribute? converterAttribute = value.GetType().GetCustomAttribute<ValueConverterAttribute>();
-			if (converterAttribute is not null)
+			converterAttribute = toType.GetCustomAttribute<ImplicitCastsAttribute>();
+			if (converterAttribute is not null && converterAttribute.TryCastFrom(ref value))
 			{
-				var converter = (IValueConverter)Activator.CreateInstance(converterAttribute.ConverterType)!; // TODO: cache the converter?
-				convertedValue = converter.Convert(value, toType, null, CultureInfo.CurrentCulture);
-				if (convertedValue is not null)
-				{
-					return true;
-				}
-			}
-
-			converterAttribute = toType.GetCustomAttribute<ValueConverterAttribute>();
-			if (converterAttribute is not null)
-			{
-				var converter = (IValueConverter)Activator.CreateInstance(converterAttribute.ConverterType)!; // TODO: cache the converter?
-				convertedValue = converter.ConvertBack(value, toType, null, CultureInfo.CurrentCulture); // TODO: is ConvertBack the method to use here? I suppose it is, but I can't find good examples in the codebase.
-				if (convertedValue is not null)
-				{
-					return true;
-				}
+				return true;
 			}
 
 			// TODO: Introduce the feature switch
@@ -306,10 +296,10 @@ namespace Microsoft.Maui.Controls.Xaml
 			// 	}
 			// }
 
-			convertedValue = null;
 			return false;
 		}
 
+		[RequiresUnreferencedCode("TODO")]
 		private static bool TryConvertUsingImplicitConversionOperator(
 			this object value,
 			Type toType,
@@ -381,14 +371,14 @@ namespace Microsoft.Maui.Controls.Xaml
 #endif
 				_ => null,
 			};
-		}
 
-		private static bool IsNumber(object input)
-			=> input is sbyte || input is byte || input is short || input is ushort || input is int || input is uint
-				|| input is long || input is ulong || input is float || input is double || input is decimal;
+			static bool IsNumber(object obj)
+				=> obj is sbyte || obj is byte || obj is short || obj is ushort || obj is int || obj is uint || obj is long || obj is ulong || obj is float || obj is double || obj is decimal;
+		}
 
 #nullable disable
 
+		[RequiresUnreferencedCode("TODO")]
 		private static MethodInfo GetImplicitConversionOperator(Type fromType, Type toType)
 			=> fromType.GetImplicitConversionOperator(fromType, toType) ?? toType.GetImplicitConversionOperator(fromType, toType);
 

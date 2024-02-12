@@ -7,7 +7,6 @@ using Microsoft.Maui.Devices;
 namespace Microsoft.Maui.Controls
 {
 	[ContentProperty("Platforms")]
-	[ValueConverter(typeof(WrappedValueValueConverter))]
 	public class OnPlatform<T> : IWrappedValue
 	{
 		public OnPlatform()

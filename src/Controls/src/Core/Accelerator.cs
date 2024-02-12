@@ -7,9 +7,8 @@ namespace Microsoft.Maui.Controls
 {
 	/// <include file="../../docs/Microsoft.Maui.Controls/Accelerator.xml" path="Type[@FullName='Microsoft.Maui.Controls.Accelerator']/Docs/*" />
 	[System.ComponentModel.TypeConverter(typeof(AcceleratorTypeConverter))]
-	[ValueConverter(typeof(AcceleratorValueConverter))]
 	[Obsolete("Use KeyboardAccelerator instead.")]
-	public class Accelerator
+	public partial class Accelerator
 	{
 		const char Separator = '+';
 		string _text;
@@ -107,21 +106,5 @@ namespace Microsoft.Maui.Controls
 		{
 			return FromString(accelerator);
 		}
-	}
-
-#nullable enable
-	internal sealed class AcceleratorValueConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-			=> null;
-
-		public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-			=> value switch
-			{
-#pragma warning disable CS0618 // 'Accelerator' is obsolete: 'Use KeyboardAccelerator instead.'
-				string accelerator => (Accelerator)accelerator,
-#pragma warning restore CS0618
-				_ => null,
-			};
 	}
 }
