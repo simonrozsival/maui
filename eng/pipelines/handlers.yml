@@ -131,8 +131,6 @@ parameters:
     default:
       - name: default
         tfm: default
-      # - name: net6
-      #   tfm: net6.0
       - name: net9
         tfm: net9.0
 
@@ -273,6 +271,11 @@ stages:
                 testRunner: VSTest
                 testResultsFiles: '$(build.artifactstagingdirectory)/**/*.trx'
                 testRunTitle: ${{ BuildPlatform.name }} sample build tests
+            - task: PublishBuildArtifacts@1
+              condition: always()
+              displayName: publish artifacts
+              inputs:
+                ArtifactName: build_net_${{ BuildPlatform.name }}_samples
 
   - stage: templates_net
     displayName: Test Templates
@@ -306,4 +309,4 @@ stages:
           enableCodeInspector: true
           apiScanEnabled: true
           apiScanSoftwareName: 'MAUI'
-          apiScanSoftwareVersionNum: $(Build.BuildNumber)
+          apiScanSoftwareVersionNum: 8.0

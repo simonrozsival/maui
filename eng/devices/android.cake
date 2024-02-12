@@ -174,6 +174,7 @@ Task("Build")
 	.WithCriteria(!string.IsNullOrEmpty(PROJECT.FullPath))
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
 	var name = System.IO.Path.GetFileNameWithoutExtension(PROJECT.FullPath);
 	var binlog = $"{BINLOG_DIR}/{name}-{CONFIGURATION}-android--{DateTime.UtcNow.ToFileTimeUtc()}.binlog";
 
@@ -494,6 +495,9 @@ void InstallApk(string testApp, string testAppPackageName, string testResultsDir
 						}
 	};
 	
+	Information("The platform version to run tests:");
+	SetEnvironmentVariable("DEVICE_SKIN", DEVICE_SKIN);
+
 	if(!string.IsNullOrEmpty(DEVICE_UDID))
 	{
 		SetEnvironmentVariable("DEVICE_UDID", DEVICE_UDID);

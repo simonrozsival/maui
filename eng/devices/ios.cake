@@ -99,13 +99,11 @@ void Cleanup()
 		return;
 	}
 	var simulatorName = "XHarness";
-	if(iosVersion.Contains("17"))
-		simulatorName = "iPhone 15";	
-	Information("Looking for simulator: {0} iosversion {1}", simulatorName, iosVersion);
+	Information("Looking for simulator: {0} ios version {1}", simulatorName, iosVersion);
 	var xharness = sims.Where(s => s.Name.Contains(simulatorName))?.ToArray();
 	if(xharness == null || xharness.Length == 0)
 	{
-		Information("No XHarness simulators found to delete.");
+		Information("No simulators with {0} found to delete.", simulatorName);
 		return;
 	}
 	foreach (var sim in xharness) {
@@ -130,6 +128,8 @@ Task("Build")
 	.WithCriteria(!string.IsNullOrEmpty(PROJECT.FullPath))
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+	
 	var name = System.IO.Path.GetFileNameWithoutExtension(PROJECT.FullPath);
 	var binlog = $"{BINLOG_DIR}/{name}-{CONFIGURATION}-ios.binlog";
 	
@@ -160,6 +160,8 @@ Task("Build")
 Task("uitest-build")
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+
 	var name = System.IO.Path.GetFileNameWithoutExtension(DEFAULT_APP_PROJECT);
 	var binlog = $"{BINLOG_DIR}/{name}-{CONFIGURATION}-ios.binlog";
 
@@ -190,6 +192,8 @@ Task("Test")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+
 	if (string.IsNullOrEmpty(TEST_APP)) {
 		if (string.IsNullOrEmpty(PROJECT.FullPath))
 			throw new Exception("If no app was specified, an app must be provided.");
@@ -239,6 +243,8 @@ Task("Test")
 				$"--app=\"{TEST_APP}\" " +
 				$"--targets=\"{TEST_DEVICE}\" " +
 				$"--output-directory=\"{TEST_RESULTS}\" " +
+				$"--timeout=01:15:00 " +
+				$"--launch-timeout=00:06:00 " +
 				xcode_args +
 				$"--verbosity=\"Debug\" ");
 			
@@ -449,11 +455,9 @@ void InstallIpa(string testApp, string testAppPackageName, string testDevice, st
 		else
 		{
 			var simulatorName = "XHarness";
-			if(iosVersionToRun.Contains("17"))
-				simulatorName = "iPhone 15";	
 			Information("Looking for simulator: {0} iosversion {1}", simulatorName, iosVersionToRun);
 			var sims = ListAppleSimulators();
-			var simXH = sims.Where(s => s.Name.Contains(simulatorName)).FirstOrDefault();
+			var simXH = sims.Where(s => s.Name.Contains(simulatorName) && s.Name.Contains(iosVersionToRun)).FirstOrDefault();
 			if(simXH == null)
 				throw new Exception("No simulator was found to run tests on.");
 
