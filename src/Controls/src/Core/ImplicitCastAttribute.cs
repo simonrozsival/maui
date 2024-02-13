@@ -4,8 +4,8 @@ using System;
 
 namespace Microsoft.Maui.Controls
 {
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
-	internal abstract class ImplicitCastsAttribute : Attribute
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)] // inherited? allow multiple?
+	internal abstract class BaseImplicitCastsAttribute : Attribute
 	{
 		public virtual bool TryCastTo(ref object value, Type targetType) => false;
 		public virtual bool TryCastFrom(ref object value) => false;
@@ -14,7 +14,7 @@ namespace Microsoft.Maui.Controls
 	[Accelerator.ImplicitCasts]
 	partial class Accelerator
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -34,7 +34,7 @@ namespace Microsoft.Maui.Controls
 	[DoubleCollection.ImplicitCasts]
 	partial class DoubleCollection
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -57,7 +57,7 @@ namespace Microsoft.Maui.Controls
 	[FileImageSource.ImplicitCasts]
 	partial class FileImageSource
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type targetType)
 			{
@@ -91,7 +91,7 @@ namespace Microsoft.Maui.Controls
 	[FormattedString.ImplicitCasts]
 	partial class FormattedString
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -109,7 +109,7 @@ namespace Microsoft.Maui.Controls
 	[ImageSource.ImplicitCasts]
 	partial class ImageSource
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -132,7 +132,7 @@ namespace Microsoft.Maui.Controls
 	[PointCollection.ImplicitCasts]
 	partial class PointCollection
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -150,7 +150,7 @@ namespace Microsoft.Maui.Controls
 	[TemplatedPage.ImplicitCasts]
 	partial class TemplatedPage
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type targetType)
 			{
@@ -183,7 +183,7 @@ namespace Microsoft.Maui.Controls
 	[Brush.ImplicitCasts]
 	partial class Brush
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type targetType)
 			{
@@ -230,7 +230,7 @@ namespace Microsoft.Maui.Controls
 	[ShellContent.ImplicitCasts]
 	partial class ShellContent
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type targetType)
 			{
@@ -264,7 +264,7 @@ namespace Microsoft.Maui.Controls
 	[ShellItem.ImplicitCasts]
 	partial class ShellItem
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -297,7 +297,7 @@ namespace Microsoft.Maui.Controls
 	[ShellNavigationState.ImplicitCasts]
 	partial class ShellNavigationState
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{
@@ -320,7 +320,7 @@ namespace Microsoft.Maui.Controls
 	[WebViewSource.ImplicitCasts]
 	partial class WebViewSource
 	{
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastFrom(ref object value)
 			{

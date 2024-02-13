@@ -862,7 +862,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 		}
 
 #nullable enable
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type targetType)
 			{
