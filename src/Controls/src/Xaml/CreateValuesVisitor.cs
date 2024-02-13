@@ -248,6 +248,11 @@ namespace Microsoft.Maui.Controls.Xaml
 				// We got into a state when there are two factories with the same method, both matching the argument types, but the return type is different.
 				// Previously, we would pick the "first one" (even though the ordering is not defined).
 				// This could be a breaking change for some apps.
+				// - Xamarin.Forms used `nodeType.GetRuntimeMethod(factoryMethod, types)` originally but it was changed
+				//   to the custom matching logic in https://github.com/xamarin/Xamarin.Forms/pull/382
+				//   - the reasoning seems to imply that `GetRuntimeMethod` (in "old" mono - 2016) matched the parameter types exactly and it didn't
+				//     allow implicit conversions:
+				//      - "allow compatible arguments for x:Factory. allow, e.g., converting to nfloat when using xaml nativeviews"
 				throw new InvalidOperationException($"Multiple methods found for {nodeType.FullName}::{factoryMethod} ({string.Join(", ", types.Select(t => t.FullName))}). Renaming the factory methods to avoid ambiguity.");
 			}
 		}
