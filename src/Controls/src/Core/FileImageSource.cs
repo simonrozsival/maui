@@ -1,5 +1,4 @@
 #nullable disable
-using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Maui.Controls

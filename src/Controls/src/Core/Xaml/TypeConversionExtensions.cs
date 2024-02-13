@@ -317,7 +317,7 @@ namespace Microsoft.Maui.Controls.Xaml
 					value = Convert.ChangeType(value, toType);
 					return true;
 				}
-				catch (Exception ex) // which exceptions to catch ??
+				catch (Exception) // which exceptions to catch ??
 				{
 					// ignore
 				}

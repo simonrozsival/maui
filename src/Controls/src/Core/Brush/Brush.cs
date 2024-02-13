@@ -1,5 +1,4 @@
 ﻿#nullable disable
-using System;
 using Microsoft.Maui.Graphics;
 using GraphicsGradientStop = Microsoft.Maui.Graphics.PaintGradientStop;
 
@@ -538,5 +537,6 @@ namespace Microsoft.Maui.Controls
 		static ImmutableBrush yellowGreen;
 		/// <summary>Gets a <see cref="SolidColorBrush"/> of the system-defined color <see cref="Colors.YellowGreen"/>.</summary>
 		public static SolidColorBrush YellowGreen => yellowGreen ??= new(Colors.YellowGreen);
+
 	}
 }
