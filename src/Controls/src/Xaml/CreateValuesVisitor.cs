@@ -232,35 +232,24 @@ namespace Microsoft.Maui.Controls.Xaml
 				return Activator.CreateInstance(nodeType, arguments);
 			}
 
-			var factoryMethod = ((string)((ValueNode)node.Properties[XmlName.xFactoryMethod]).Value);
+			string factoryMethod = ((string)((ValueNode)node.Properties[XmlName.xFactoryMethod]).Value);
+			const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
 			Type[] types = arguments == null ? Array.Empty<Type>() : arguments.Select(a => a.GetType()).ToArray();
 
-			bool isMatch(MethodInfo m)
+			try
 			{
-				if (m.Name != factoryMethod)
-					return false;
-				var p = m.GetParameters();
-				if (p.Length != types.Length)
-					return false;
-				if (!m.IsStatic)
-					return false;
-				for (var i = 0; i < p.Length; i++)
-				{
-					if ((p[i].ParameterType.IsAssignableFrom(types[i])))
-						continue;
-
-					if (!TypeConversionExtensions.TryConvertValue(ref arguments[i], toType: p[i].ParameterType))
-					{
-						return false;
-					}
-				}
-				return true;
+				var mi = nodeType.GetMethod(factoryMethod, flags, binder: null, types, modifiers: null);
+				if (mi == null)
+					throw new MissingMemberException($"No static method found for {nodeType.FullName}::{factoryMethod} ({string.Join(", ", types.Select(t => t.FullName))})");
+				return mi.Invoke(null, arguments);
 			}
-
-			var mi = nodeType.GetRuntimeMethods().FirstOrDefault(isMatch);
-			if (mi == null)
-				throw new MissingMemberException($"No static method found for {nodeType.FullName}::{factoryMethod} ({string.Join(", ", types.Select(t => t.FullName))})");
-			return mi.Invoke(null, arguments);
+			catch (AmbiguousMatchException)
+			{
+				// We got into a state when there are two factories with the same method, both matching the argument types, but the return type is different.
+				// Previously, we would pick the "first one" (even though the ordering is not defined).
+				// This could be a breaking change for some apps.
+				throw new InvalidOperationException($"Multiple methods found for {nodeType.FullName}::{factoryMethod} ({string.Join(", ", types.Select(t => t.FullName))}). Renaming the factory methods to avoid ambiguity.");
+			}
 		}
 
 		public object[] CreateArgumentsArray(IElementNode enode)
