@@ -1708,6 +1708,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 		}
 	}
 
+	[VariableDefinitionReference.ImplicitCasts]
 	class VariableDefinitionReference
 	{
 		public VariableDefinitionReference(VariableDefinition vardef)
@@ -1720,6 +1721,25 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 		public static implicit operator VariableDefinition(VariableDefinitionReference vardefref)
 		{
 			return vardefref.VariableDefinition;
+		}
+
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type targetType)
+			{
+				if (value is not VariableDefinitionReference vdr)
+				{
+					return false;
+				}
+
+				if (targetType == typeof(VariableDefinition))
+				{
+					value = (VariableDefinition)vdr;
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 }

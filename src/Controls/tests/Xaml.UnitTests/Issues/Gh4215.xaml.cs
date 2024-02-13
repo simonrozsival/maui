@@ -15,7 +15,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator long(Gh4215VM value) => long.MaxValue;
 		public static implicit operator Rect(Gh4215VM value) => new Rect();
 
-		private sealed class ImplicitCasts : ImplicitCastsAttribute
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 		{
 			public override bool TryCastTo(ref object value, Type toType)
 			{

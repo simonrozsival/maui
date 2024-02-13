@@ -1418,9 +1418,9 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				return o;
 			}
 
-			private sealed class ImplicitCasts : ImplicitCastsAttribute
+			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 			{
-				public static bool TryCastFrom(ref object value)
+				public override bool TryCastFrom(ref object value)
 				{
 					if (value is string str)
 					{
@@ -1445,7 +1445,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Equal("foo", ((CastFromString)bindable.GetValue(prop)).Result);
 		}
 
-		[CastToStringValue.ImplicitCasts]
+		[CastToString.ImplicitCasts]
 		class CastToString
 		{
 			string Result { get; set; }
@@ -1465,7 +1465,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				throw new InvalidOperationException();
 			}
 
-			private sealed class ImplicitCasts : ImplicitCastsAttribute
+			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
 			{
 				public override bool TryCastTo(ref object value, Type targetType)
 				{

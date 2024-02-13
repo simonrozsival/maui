@@ -64,11 +64,26 @@ namespace Microsoft.Maui.Controls.ControlGallery.Issues
 			}
 		}
 
+		[Item.ImplicitCasts]
 		class Item
 		{
 			public string Value { get; set; }
 
 			public static implicit operator Item(string value) => new Item { Value = value };
+
+			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+			{
+				public override bool TryCastFrom(ref object value)
+				{
+					if (value is string str)
+					{
+						value = (Item)str;
+						return true;
+					}
+
+					return false;
+				}
+			}
 		}
 	}
 }

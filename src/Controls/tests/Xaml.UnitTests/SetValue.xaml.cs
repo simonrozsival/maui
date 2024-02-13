@@ -11,11 +11,31 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 {
 	using AbsoluteLayout = Microsoft.Maui.Controls.Compatibility.AbsoluteLayout;
 
+	[ConvertibleToView.ImplicitCasts]
 	public class ConvertibleToView
 	{
 		public static implicit operator View(ConvertibleToView source)
 		{
 			return new Button();
+		}
+
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type toType)
+			{
+				if (value is not ConvertibleToView source)
+				{
+					return false;
+				}
+
+				if (toType == typeof(View))
+				{
+					value = (View)source;
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 
@@ -49,6 +69,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		}
 	}
 
+	[SV_Foo.ImplicitCasts]
 	public class SV_Foo
 	{
 		public string Value { get; set; }
@@ -60,6 +81,36 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator string(SV_Foo foo)
 		{
 			return foo.Value;
+		}
+
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		{
+			public override bool TryCastFrom(ref object value)
+			{
+				if (value is string str)
+				{
+					value = (SV_Foo)str;
+					return true;
+				}
+
+				return false;
+			}
+
+			public override bool TryCastTo(ref object value, Type toType)
+			{
+				if (value is not SV_Foo foo)
+				{
+					return false;
+				}
+
+				if (toType == typeof(string))
+				{
+					value = (string)foo;
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 

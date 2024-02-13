@@ -49,6 +49,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 	}
 
 	[System.ComponentModel.TypeConverter(typeof(Bz45299UILengthTypeConverter))]
+	[Bz45299UILength.ImplicitCasts]
 	public class Bz45299UILength
 	{
 		public static Bz45299UILength Zero => new Bz45299UILength { Value = 0 };
@@ -65,6 +66,69 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator Bz45299UILength(uint value) => Zero;
 		public static implicit operator Bz45299UILength(double value) => Zero;
 		public static implicit operator Bz45299UILength(float value) => Zero;
+
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type toType)
+			{
+				if (value is not Bz45299UILength uiLength)
+					return false;
+
+				if (toType == typeof(string))
+				{
+					value = uiLength.Value.ToString();
+					return true;
+				}
+				if (toType == typeof(double))
+				{
+					value = uiLength.Value;
+					return true;
+				}
+
+				return false;
+			}
+
+			public override bool TryCastFrom(ref object value)
+			{
+				if (value is string str)
+				{
+					value = (Bz45299UILength)str;
+					return true;
+				}
+				if (value is long l)
+				{
+					value = (Bz45299UILength)l;
+					return true;
+				}
+				if (value is ulong ul)
+				{
+					value = (Bz45299UILength)ul;
+					return true;
+				}
+				if (value is int i)
+				{
+					value = (Bz45299UILength)i;
+					return true;
+				}
+				if (value is uint ui)
+				{
+					value = (Bz45299UILength)ui;
+					return true;
+				}
+				if (value is double d)
+				{
+					value = (Bz45299UILength)d;
+					return true;
+				}
+				if (value is float f)
+				{
+					value = (Bz45299UILength)f;
+					return true;
+				}
+
+				return false;
+			}
+		}
 	}
 
 	public class Bz45299UILengthTypeConverter : TypeConverter

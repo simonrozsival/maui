@@ -51,6 +51,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		string Icon { get; }
 	}
 
+	[Gh1346FontAwesome.ImplicitCasts]
 	public sealed class Gh1346FontAwesome : IGh1346FontIcon
 	{
 		public string Icon { get; }
@@ -71,6 +72,23 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		}
 
 		public static readonly Gh1346FontAwesome SnowflakeO = new Gh1346FontAwesome('\uf2dc');
+
+		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		{
+			public override bool TryCastTo(ref object value, Type toType)
+			{
+				if (value is not Gh1346FontAwesome fontIcon)
+					return false;
+
+				if (toType == typeof(Gh1346FontIconOptions))
+				{
+					value = (Gh1346FontIconOptions)fontIcon;
+					return true;
+				}
+
+				return false;
+			}
+		}
 	}
 
 	public sealed class Gh1346FontIconOptions
