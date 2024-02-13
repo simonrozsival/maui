@@ -16,6 +16,7 @@ internal static class SourceGenHelpers
     } 
     
     // TODO use real Microsoft.Maui.Controls reference instead of the stub
+    // -> see how https://github.com/dotnet/maui/pull/20524 did it
     internal static Compilation CreateCompilation(string source)
         => CSharpCompilation.Create("compilation",
             new[] { CSharpSyntaxTree.ParseText(source), CSharpSyntaxTree.ParseText(stubs) },
