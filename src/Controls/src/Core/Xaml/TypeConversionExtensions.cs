@@ -252,11 +252,9 @@ namespace Microsoft.Maui.Controls.Xaml
 #nullable enable
 		internal static bool TryConvertValue(ref object value, Type toType)
 		{
-			// Console.WriteLine($"TryConvertValue {value} ({value?.GetType()}) -> {toType}");
 			// Unwrap OnPlatform<T> and OnIdiom<T> unless we actually want to keep the type
 			if (value is IWrappedValue wrapped && !toType.IsAssignableFrom(value.GetType()))
 			{
-				// Console.WriteLine($"unwrapping {value} -> {wrapped.Value} ({wrapped.Type})");
 				value = wrapped.Value;
 			}
 
@@ -277,7 +275,6 @@ namespace Microsoft.Maui.Controls.Xaml
 			{
 				var o = value;
 				value = Convert.ChangeType(value, toType);
-				// Console.WriteLine($"SimpleConvertTypes: {o} ({fromType}) -> {toType} -> {value} {value!.GetType()}");
 				return true;
 			}
 
@@ -315,7 +312,6 @@ namespace Microsoft.Maui.Controls.Xaml
 			// fallback for string parsing of primitive types
 			if (value is string str && toType.IsValueType && toType is IConvertible)
 			{
-				// Console.WriteLine($"IConvertible: {str} (string) -> {toType}");
 				try
 				{
 					value = Convert.ChangeType(value, toType);
@@ -324,7 +320,6 @@ namespace Microsoft.Maui.Controls.Xaml
 				catch (Exception ex) // which exceptions to catch ??
 				{
 					// ignore
-					Console.WriteLine($"Could not convert {value} ({value?.GetType()}) to {toType}: {ex}");
 				}
 			}
 
