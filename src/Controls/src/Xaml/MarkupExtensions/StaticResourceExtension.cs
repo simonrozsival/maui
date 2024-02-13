@@ -42,13 +42,6 @@ namespace Microsoft.Maui.Controls.Xaml
 			if (propertyType is null || propertyType.IsAssignableFrom(valueType))
 				return value;
 
-			//OnPlatform needs to unrwap the value first
-			if (value is IWrappedValue wrapped)
-			{
-				value = wrapped.Value;
-				valueType = wrapped.Type;
-			}
-
 			if (TypeConversionExtensions.TryConvertValue(ref value, toType: propertyType))
 			{
 				return value;

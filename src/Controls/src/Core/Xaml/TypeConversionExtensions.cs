@@ -252,10 +252,32 @@ namespace Microsoft.Maui.Controls.Xaml
 #nullable enable
 		internal static bool TryConvertValue(ref object value, Type toType)
 		{
-			Type fromType = value.GetType();
+			// Console.WriteLine($"TryConvertValue {value} ({value?.GetType()}) -> {toType}");
+			// Unwrap OnPlatform<T> and OnIdiom<T> unless we actually want to keep the type
+			if (value is IWrappedValue wrapped && !toType.IsAssignableFrom(value.GetType()))
+			{
+				// Console.WriteLine($"unwrapping {value} -> {wrapped.Value} ({wrapped.Type})");
+				value = wrapped.Value;
+			}
 
+			if (value is null)
+			{
+				return !toType.IsValueType || toType.IsGenericType && toType.GetGenericTypeDefinition() == typeof(Nullable<>);
+			}
+
+			Type fromType = value.GetType();
 			if (toType.IsAssignableFrom(fromType))
 			{
+				return true;
+			}
+
+			// Taken from BindableProperty
+			// Dont support arbitrary IConvertible by limiting which types can use this
+			if (SimpleConvertTypes.TryGetValue(fromType, out Type[]? convertibleTo) && Array.IndexOf(convertibleTo, toType) != -1)
+			{
+				var o = value;
+				value = Convert.ChangeType(value, toType);
+				// Console.WriteLine($"SimpleConvertTypes: {o} ({fromType}) -> {toType} -> {value} {value!.GetType()}");
 				return true;
 			}
 
@@ -265,23 +287,51 @@ namespace Microsoft.Maui.Controls.Xaml
 			// 	return value.TryConvertUsingImplicitConversionOperator(toType, out convertedValue);
 			// }
 
-			var convertedValue = value.TryConvertValueOfKnownTypes(toType);
+			object? convertedValue = value.TryConvertValueOfKnownTypes(toType);
 			if (convertedValue is not null)
 			{
 				value = convertedValue;
 				return true;
 			}
 
-			var converterAttribute = value.GetType().GetCustomAttribute<ImplicitCastsAttribute>();
-			if (converterAttribute is not null && converterAttribute.TryCastTo(ref value, toType))
+			var converterAttributes = fromType.GetCustomAttributes<BaseImplicitCastsAttribute>();
+			foreach (var converterAttribute in converterAttributes)
 			{
-				return true;
+				if (converterAttribute is not null && converterAttribute.TryCastTo(ref value, toType))
+				{
+					return true;
+				}
 			}
 
-			converterAttribute = toType.GetCustomAttribute<ImplicitCastsAttribute>();
-			if (converterAttribute is not null && converterAttribute.TryCastFrom(ref value))
+			converterAttributes = toType.GetCustomAttributes<BaseImplicitCastsAttribute>();
+			foreach (var converterAttribute in converterAttributes)
 			{
-				return true;
+				if (converterAttribute is not null && converterAttribute.TryCastFrom(ref value))
+				{
+					return true;
+				}
+			}
+
+			// fallback for string parsing of primitive types
+			if (value is string str && toType.IsValueType && toType is IConvertible)
+			{
+				// Console.WriteLine($"IConvertible: {str} (string) -> {toType}");
+				try
+				{
+					value = Convert.ChangeType(value, toType);
+					return true;
+				}
+				catch (Exception ex) // which exceptions to catch ??
+				{
+					// ignore
+					Console.WriteLine($"Could not convert {value} ({value?.GetType()}) to {toType}: {ex}");
+				}
+			}
+
+			// Catch any implicit conversion operators that I haven't migrated to some other mechanism
+			if (value!.TryConvertUsingImplicitConversionOperator(toType, out var x))
+			{
+				throw new Exception($"Falling back to implicit cast to convert {value} ({value?.GetType()}) to {toType} -> {x}");
 			}
 
 			// TODO: Introduce the feature switch
@@ -298,6 +348,20 @@ namespace Microsoft.Maui.Controls.Xaml
 
 			return false;
 		}
+
+		static readonly Dictionary<Type, Type[]> SimpleConvertTypes = new Dictionary<Type, Type[]>
+		{
+			{ typeof(sbyte), new[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(byte), new[] { typeof(string), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(short), new[] { typeof(string), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(ushort), new[] { typeof(string), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(int), new[] { typeof(string), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(uint), new[] { typeof(string), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(long), new[] { typeof(string), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(char), new[] { typeof(string), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+			{ typeof(float), new[] { typeof(string), typeof(double) } },
+			{ typeof(ulong), new[] { typeof(string), typeof(float), typeof(double), typeof(decimal) } },
+		};
 
 		[RequiresUnreferencedCode("TODO")]
 		private static bool TryConvertUsingImplicitConversionOperator(
