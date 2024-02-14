@@ -234,31 +234,9 @@ namespace Microsoft.Maui.Controls.Xaml
 
 			var factoryMethod = ((string)((ValueNode)node.Properties[XmlName.xFactoryMethod]).Value);
 			Type[] types = arguments == null ? Array.Empty<Type>() : arguments.Select(a => a.GetType()).ToArray();
+			const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-			bool isMatch(MethodInfo m)
-			{
-				if (m.Name != factoryMethod)
-					return false;
-				var p = m.GetParameters();
-				if (p.Length != types.Length)
-					return false;
-				if (!m.IsStatic)
-					return false;
-				for (var i = 0; i < p.Length; i++)
-				{
-					if ((p[i].ParameterType.IsAssignableFrom(types[i])))
-						continue;
-					var op_impl = p[i].ParameterType.GetImplicitConversionOperator(fromType: types[i], toType: p[i].ParameterType)
-								?? types[i].GetImplicitConversionOperator(fromType: types[i], toType: p[i].ParameterType);
-
-					if (op_impl == null)
-						return false;
-					arguments[i] = op_impl.Invoke(null, new[] { arguments[i] });
-				}
-				return true;
-			}
-
-			var mi = nodeType.GetRuntimeMethods().FirstOrDefault(isMatch);
+			var mi = nodeType.GetMethod(factoryMethod, flags, binder: null, types, modifiers: null);
 			if (mi == null)
 				throw new MissingMemberException($"No static method found for {nodeType.FullName}::{factoryMethod} ({string.Join(", ", types.Select(t => t.FullName))})");
 			return mi.Invoke(null, arguments);
