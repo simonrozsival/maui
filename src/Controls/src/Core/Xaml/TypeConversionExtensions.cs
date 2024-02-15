@@ -291,22 +291,9 @@ namespace Microsoft.Maui.Controls.Xaml
 				return true;
 			}
 
-			var converterAttributes = fromType.GetCustomAttributes<BaseImplicitCastsAttribute>();
-			foreach (var converterAttribute in converterAttributes)
+			if (ImplicitCastsConverter.Instance.TryCast(ref value, toType))
 			{
-				if (converterAttribute is not null && converterAttribute.TryCastTo(ref value, toType))
-				{
-					return true;
-				}
-			}
-
-			converterAttributes = toType.GetCustomAttributes<BaseImplicitCastsAttribute>();
-			foreach (var converterAttribute in converterAttributes)
-			{
-				if (converterAttribute is not null && converterAttribute.TryCastFrom(ref value))
-				{
-					return true;
-				}
+				return true;
 			}
 
 			// fallback for string parsing of primitive types

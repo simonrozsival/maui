@@ -15,37 +15,14 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator long(Gh4215VM value) => long.MaxValue;
 		public static implicit operator Rect(Gh4215VM value) => new Rect();
 
-		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		private sealed class ImplicitCasts : RegisteredCastsAttribute
 		{
-			public override bool TryCastTo(ref object value, Type toType)
+			protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 			{
-				if (value is not Gh4215VM vm)
-				{
-					return false;
-				}
-
-				if (toType == typeof(DateTime))
-				{
-					value = (DateTime)vm;
-					return true;
-				}
-				if (toType == typeof(string))
-				{
-					value = (string)vm;
-					return true;
-				}
-				if (toType == typeof(long))
-				{
-					value = (long)vm;
-					return true;
-				}
-				if (toType == typeof(Rect))
-				{
-					value = (Rect)vm;
-					return true;
-				}
-
-				return false;
+				collection.RegisterCast<Gh4215VM, DateTime>(static x => x);
+				collection.RegisterCast<Gh4215VM, string>(static x => x);
+				collection.RegisterCast<Gh4215VM, long>(static x => x);
+				collection.RegisterCast<Gh4215VM, Rect>(static x => x);
 			}
 		}
 	}

@@ -1418,17 +1418,11 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				return o;
 			}
 
-			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+			private sealed class ImplicitCasts : RegisteredCastsAttribute
 			{
-				public override bool TryCastFrom(ref object value)
+				protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 				{
-					if (value is string str)
-					{
-						value = (CastFromString)str;
-						return true;
-					}
-
-					return false;
+					collection.RegisterCast<string, CastFromString>(static x => x);
 				}
 			}
 		}
@@ -1465,22 +1459,11 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				throw new InvalidOperationException();
 			}
 
-			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+			private sealed class ImplicitCasts : RegisteredCastsAttribute
 			{
-				public override bool TryCastTo(ref object value, Type targetType)
+				protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 				{
-					if (value is not CastToString castToString)
-					{
-						return false;
-					}
-					
-					if (targetType == typeof(string))
-					{
-						value = (string)castToString;
-						return true;
-					}
-
-					return false;
+					collection.RegisterCast<CastToString, string>(static x => x);
 				}
 			}
 		}

@@ -71,17 +71,11 @@ namespace Microsoft.Maui.Controls.ControlGallery.Issues
 
 			public static implicit operator Item(string value) => new Item { Value = value };
 
-			private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+			private sealed class ImplicitCasts : RegisteredCastsAttribute
 			{
-				public override bool TryCastFrom(ref object value)
+				protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 				{
-					if (value is string str)
-					{
-						value = (Item)str;
-						return true;
-					}
-
-					return false;
+					collection.RegisterCast<string, Item>(static x => x);
 				}
 			}
 		}

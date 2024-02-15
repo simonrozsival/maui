@@ -67,66 +67,19 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator Bz45299UILength(double value) => Zero;
 		public static implicit operator Bz45299UILength(float value) => Zero;
 
-		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		private sealed class ImplicitCasts : RegisteredCastsAttribute
 		{
-			public override bool TryCastTo(ref object value, Type toType)
+			protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 			{
-				if (value is not Bz45299UILength uiLength)
-					return false;
-
-				if (toType == typeof(string))
-				{
-					value = uiLength.Value.ToString();
-					return true;
-				}
-				if (toType == typeof(double))
-				{
-					value = uiLength.Value;
-					return true;
-				}
-
-				return false;
-			}
-
-			public override bool TryCastFrom(ref object value)
-			{
-				if (value is string str)
-				{
-					value = (Bz45299UILength)str;
-					return true;
-				}
-				if (value is long l)
-				{
-					value = (Bz45299UILength)l;
-					return true;
-				}
-				if (value is ulong ul)
-				{
-					value = (Bz45299UILength)ul;
-					return true;
-				}
-				if (value is int i)
-				{
-					value = (Bz45299UILength)i;
-					return true;
-				}
-				if (value is uint ui)
-				{
-					value = (Bz45299UILength)ui;
-					return true;
-				}
-				if (value is double d)
-				{
-					value = (Bz45299UILength)d;
-					return true;
-				}
-				if (value is float f)
-				{
-					value = (Bz45299UILength)f;
-					return true;
-				}
-
-				return false;
+				collection.RegisterCast<Bz45299UILength, string>(static x => x);
+				collection.RegisterCast<Bz45299UILength, double>(static x => x);
+				collection.RegisterCast<string, Bz45299UILength>(static x => x);
+				collection.RegisterCast<long, Bz45299UILength>(static x => x);
+				collection.RegisterCast<ulong, Bz45299UILength>(static x => x);
+				collection.RegisterCast<int, Bz45299UILength>(static x => x);
+				collection.RegisterCast<uint, Bz45299UILength>(static x => x);
+				collection.RegisterCast<double, Bz45299UILength>(static x => x);
+				collection.RegisterCast<float, Bz45299UILength>(static x => x);
 			}
 		}
 	}

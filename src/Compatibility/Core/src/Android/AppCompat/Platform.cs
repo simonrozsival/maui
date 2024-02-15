@@ -862,22 +862,11 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 		}
 
 #nullable enable
-		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		private sealed class ImplicitCasts : RegisteredCastsAttribute
 		{
-			public override bool TryCastTo(ref object value, Type targetType)
+			protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 			{
-				if (value is not Platform platform)
-				{
-					return false;
-				}
-
-				if (targetType == typeof(ViewGroup))
-				{
-					value = (ViewGroup)platform;
-					return true;
-				}
-
-				return false;
+				collection.RegisterCast<Platform, ViewGroup>(static x => x);
 			}
 		}
 	}

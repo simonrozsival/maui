@@ -19,22 +19,11 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 			return new Button();
 		}
 
-		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		private sealed class ImplicitCasts : RegisteredCastsAttribute
 		{
-			public override bool TryCastTo(ref object value, Type toType)
+			protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 			{
-				if (value is not ConvertibleToView source)
-				{
-					return false;
-				}
-
-				if (toType == typeof(View))
-				{
-					value = (View)source;
-					return true;
-				}
-
-				return false;
+				collection.RegisterCast<ConvertibleToView, View>(static x => x);
 			}
 		}
 	}
@@ -83,33 +72,12 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 			return foo.Value;
 		}
 
-		private sealed class ImplicitCasts : BaseImplicitCastsAttribute
+		private sealed class ImplicitCasts : RegisteredCastsAttribute
 		{
-			public override bool TryCastFrom(ref object value)
+			protected internal override void RegisterCasts(ImplicitCastCollectionBuilder collection)
 			{
-				if (value is string str)
-				{
-					value = (SV_Foo)str;
-					return true;
-				}
-
-				return false;
-			}
-
-			public override bool TryCastTo(ref object value, Type toType)
-			{
-				if (value is not SV_Foo foo)
-				{
-					return false;
-				}
-
-				if (toType == typeof(string))
-				{
-					value = (string)foo;
-					return true;
-				}
-
-				return false;
+				collection.RegisterCast<string, SV_Foo>(static x => x);
+				collection.RegisterCast<SV_Foo, string>(static x => x);
 			}
 		}
 	}
