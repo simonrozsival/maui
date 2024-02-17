@@ -256,6 +256,42 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 		{
 			GenericInstanceType markupExtension;
 			IList<TypeReference> genericArguments;
+
+			if (vardefref.VariableDefinition.VariableType.FullName == "Microsoft.Maui.Controls.Xaml.ReferenceExtension")
+			{
+				var nameNode = node.Properties.TryGetValue(new XmlName("", "Name"), out var nameProperty) ? nameProperty : node.CollectionItems.FirstOrDefault();
+				var name = (nameNode as ValueNode)?.Value as string;
+
+				if (name is not null)
+				{
+					var searchedContext = context;
+					while (searchedContext is not null)
+					{
+						foreach (var (element, variable) in searchedContext.Variables)
+						{
+							if (element.Properties.TryGetValue(new XmlName("x", "Name"), out var prop)
+								&& prop is ValueNode valueNode
+								&& valueNode.Value is string variableName
+								&& variableName == name)
+							{
+								Console.WriteLine($"FOUND variable for {{x:Reference {name}}}: {variable} ({variable.VariableType})");
+								vardefref.VariableDefinition = new VariableDefinition(variable.VariableType);
+
+								yield return Instruction.Create(OpCodes.Ldloc, variable);
+								yield return Instruction.Create(OpCodes.Stloc, vardefref.VariableDefinition);
+								yield break;
+							}
+						}
+
+						searchedContext = searchedContext.ParentContext;
+					}
+
+					// if we didn't find anything, we'll just fallback to the RuntimeExtension class and lookup the 
+					// referenced item in the namescopes at runtime
+					Console.WriteLine($"FALLBACK for {{x:Reference {name}}}");
+				}
+			}
+
 			if (vardefref.VariableDefinition.VariableType.FullName == "Microsoft.Maui.Controls.Xaml.ArrayExtension" &&
 				vardefref.VariableDefinition.VariableType.ImplementsGenericInterface(context.Cache, "Microsoft.Maui.Controls.Xaml.IMarkupExtension`1",
 					out markupExtension, out genericArguments))
@@ -1635,7 +1671,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			//Fill the loadTemplate Body
 			var templateIl = loadTemplate.Body.GetILProcessor();
 			templateIl.Emit(OpCodes.Nop);
-			var templateContext = new ILContext(templateIl, loadTemplate.Body, module, parentContext.Cache, parentValues)
+			var templateContext = new ILContext(templateIl, loadTemplate.Body, module, parentContext.Cache, parentValues, parentContext)
 			{
 				Root = root,
 				XamlFilePath = parentContext.XamlFilePath,
