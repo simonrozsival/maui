@@ -264,31 +264,23 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 
 				if (name is not null)
 				{
-					var searchedContext = context;
-					while (searchedContext is not null)
+					foreach (var (element, variable) in context.Variables)
 					{
-						foreach (var (element, variable) in searchedContext.Variables)
+						if (element.Properties.TryGetValue(new XmlName("x", "Name"), out var prop)
+							&& prop is ValueNode valueNode
+							&& valueNode.Value is string variableName
+							&& variableName == name)
 						{
-							if (element.Properties.TryGetValue(new XmlName("x", "Name"), out var prop)
-								&& prop is ValueNode valueNode
-								&& valueNode.Value is string variableName
-								&& variableName == name)
-							{
-								Console.WriteLine($"FOUND variable for {{x:Reference {name}}}: {variable} ({variable.VariableType})");
-								vardefref.VariableDefinition = new VariableDefinition(variable.VariableType);
+							vardefref.VariableDefinition = new VariableDefinition(variable.VariableType);
 
-								yield return Instruction.Create(OpCodes.Ldloc, variable);
-								yield return Instruction.Create(OpCodes.Stloc, vardefref.VariableDefinition);
-								yield break;
-							}
+							yield return Instruction.Create(OpCodes.Ldloc, variable);
+							yield return Instruction.Create(OpCodes.Stloc, vardefref.VariableDefinition);
+							yield break;
 						}
-
-						searchedContext = searchedContext.ParentContext;
 					}
 
-					// if we didn't find anything, we'll just fallback to the RuntimeExtension class and lookup the 
-					// referenced item in the namescopes at runtime
-					Console.WriteLine($"FALLBACK for {{x:Reference {name}}}");
+					// If the variable isn't in the current scope, stop searching and use the lookup through
+					// namescopes as a fallback.
 				}
 			}
 
@@ -1671,7 +1663,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			//Fill the loadTemplate Body
 			var templateIl = loadTemplate.Body.GetILProcessor();
 			templateIl.Emit(OpCodes.Nop);
-			var templateContext = new ILContext(templateIl, loadTemplate.Body, module, parentContext.Cache, parentValues, parentContext)
+			var templateContext = new ILContext(templateIl, loadTemplate.Body, module, parentContext.Cache, parentValues)
 			{
 				Root = root,
 				XamlFilePath = parentContext.XamlFilePath,

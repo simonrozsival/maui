@@ -9,7 +9,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 {
 	class ILContext
 	{
-		public ILContext(ILProcessor il, MethodBody body, ModuleDefinition module, XamlCache cache, FieldDefinition parentContextValues = null, ILContext parentContext = null)
+		public ILContext(ILProcessor il, MethodBody body, ModuleDefinition module, XamlCache cache, FieldDefinition parentContextValues = null)
 		{
 			IL = il;
 			Body = body;
@@ -18,7 +18,6 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			Scopes = new Dictionary<INode, Tuple<VariableDefinition, IList<string>>>();
 			TypeExtensions = new Dictionary<INode, TypeReference>();
 			ParentContextValues = parentContextValues;
-			ParentContext = parentContext;
 			Module = module;
 			Cache = cache;
 		}
@@ -34,9 +33,6 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 		public Dictionary<INode, TypeReference> TypeExtensions { get; }
 
 		public FieldDefinition ParentContextValues { get; private set; }
-
-		public ILContext ParentContext { get; private set; }
-
 		public object Root { get; set; } //FieldDefinition or VariableDefinition
 
 		public ILProcessor IL { get; private set; }
