@@ -21,42 +21,59 @@ internal class DiagnosticFactory
             classDeclaration.Identifier.Text);
 
    public static Diagnostic QueryPropertyDoesNotExist(AttributeData attribute)
-        => CreateAttributePropertyNameDiagnostic(
+        => CreateAttributeDiagnostic(
             attribute,
             "MAUIG2002",
             "Query property does not exist",
             "The query property '{0}' does not exist on the target class.",
-            DiagnosticSeverity.Error);
+            DiagnosticSeverity.Error,
+            GetPropertyName(attribute));
 
     public static Diagnostic QueryPropertyDoesNotHaveSetter(AttributeData attribute)
-        => CreateAttributePropertyNameDiagnostic(
+        => CreateAttributeDiagnostic(
             attribute,
             "MAUIG2003",
             "Query property does not have a setter",
             "The query property '{0}' does not have a setter.",
-            DiagnosticSeverity.Error);
+            DiagnosticSeverity.Error,
+            GetPropertyName(attribute));
 
     public static Diagnostic QueryPropertyAlreadyUsed(AttributeData attribute)
-        => CreateAttributePropertyNameDiagnostic(
+        => CreateAttributeDiagnostic(
             attribute,
             "MAUIG2004",
             "Query property already used",
             "The property '{0}' has already been used in a different QueryPropertyAttribute on the target class.",
-            DiagnosticSeverity.Warning);
+            DiagnosticSeverity.Warning,
+            GetPropertyName(attribute));
 
-    private static Diagnostic CreateAttributePropertyNameDiagnostic(
+    public static Diagnostic InvalidPropertyNameOrQueryId(AttributeData attribute)
+        => CreateAttributeDiagnostic(
+            attribute,
+            "MAUIG2005",
+            "Invalid query ID",
+            "The query ID '{0}' or property name '{1}' is not valid.",
+            DiagnosticSeverity.Warning,
+            GetQueryId(attribute),
+            GetPropertyName(attribute));
+
+    private static Diagnostic CreateAttributeDiagnostic(
         AttributeData attribute,
         string id,
         string title,
         string message,
-        DiagnosticSeverity severity)
+        DiagnosticSeverity severity,
+        params string[] parameters)
     {
-        var location = attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(); // TODO: is this the right location?
-        var propertyName = attribute.ConstructorArguments[1].Value?.ToString();
-
-        return Diagnostic.Create(
-            new DiagnosticDescriptor(id, title, message, "SourceGeneration", severity, isEnabledByDefault: true),
-            location,
-            propertyName);
+        var location = attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation();
+        var propertyName = attribute.ConstructorArguments[0].Value?.ToString();
+        var descriptor = new DiagnosticDescriptor(id, title, message, "SourceGeneration", severity, isEnabledByDefault: true);
+        return Diagnostic.Create(descriptor, location, parameters);
     }
+
+    private static string GetPropertyName(AttributeData attribute) => GetConstructorArgument(attribute, position: 0);
+    private static string GetQueryId(AttributeData attribute) => GetConstructorArgument(attribute, position: 1);
+
+    private static string GetConstructorArgument(AttributeData attribute, int position)
+        => attribute.ConstructorArguments[position].Value?.ToString() ?? string.Empty;
 }

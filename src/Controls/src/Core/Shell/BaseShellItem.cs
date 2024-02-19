@@ -540,4 +540,12 @@ namespace Microsoft.Maui.Controls
 	{
 		void ApplyQueryAttributes(IDictionary<string, object> query);
 	}
+
+#pragma warning disable RS0016
+	// TODO naming? IQueryPropertySetter?
+	public interface IQueryPropertyAttributable
+	{
+		void SetQueryProperties(IDictionary<string, object> query, IDictionary<string, object> oldQuery);
+	}
+#pragma warning restore RS0016
 }
