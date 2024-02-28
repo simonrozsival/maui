@@ -11,11 +11,27 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 {
 	using AbsoluteLayout = Microsoft.Maui.Controls.Compatibility.AbsoluteLayout;
 
+	[TypeConverter(typeof(ConvertibleToViewTypeConverter))]
 	public class ConvertibleToView
 	{
 		public static implicit operator View(ConvertibleToView source)
 		{
 			return new Button();
+		}
+
+		private sealed class ConvertibleToViewTypeConverter : TypeConverter
+		{
+			public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+				=> destinationType == typeof(View);
+			public override object ConvertTo(ITypeDescriptorContext context, CultureInfo cultureInfo, object value, Type destinationType)
+				=> value switch
+				{
+					ConvertibleToView convertibleValue when destinationType == typeof(View) => (View)convertibleValue,
+					_ => throw new NotSupportedException(),
+				};
+
+			public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => false;
+			public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value) => throw new NotSupportedException();
 		}
 	}
 
@@ -49,6 +65,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		}
 	}
 
+	[TypeConverter(typeof(SV_FooTypeConveter))]
 	public class SV_Foo
 	{
 		public string Value { get; set; }
@@ -60,6 +77,27 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 		public static implicit operator string(SV_Foo foo)
 		{
 			return foo.Value;
+		}
+
+		private sealed class SV_FooTypeConveter : TypeConverter
+		{
+			public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+				=> destinationType == typeof(SV_Foo);
+			public override object ConvertTo(ITypeDescriptorContext context, CultureInfo cultureInfo, object value, Type destinationType)
+				=> value switch
+				{
+					string str when destinationType == typeof(SV_Foo) => (SV_Foo)str,
+					_ => throw new NotSupportedException(),
+				};
+
+			public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+				=> sourceType == typeof(string);
+			public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+				=> value switch
+				{
+					string str => (SV_Foo)str,
+					_ => throw new NotSupportedException(),
+				};
 		}
 	}
 

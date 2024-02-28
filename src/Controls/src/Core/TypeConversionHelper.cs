@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Xaml;
+using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Hosting;
 
 namespace Microsoft.Maui.Controls
@@ -129,12 +131,13 @@ namespace Microsoft.Maui.Controls
 				// If we reach this point, it means that the implicit cast operator exists, but we are not allowed to use it. This can happen for example in debug builds
 				// when the app is not trimmed. This is the best effort to help developers catch the cases where they are missing type converters during development.
 				// Unforutnately, we cannot just add a build warning at this moment.
-				Application.Current?.FindMauiContext()?.CreateLogger<TypeConversionHelper>().LogWarning(
-					$"It is not possible to convert value of type {value.GetType()} to {targetType} via an implicit cast " +
+				var valueType = value.GetType();
+				Application.Current?.FindMauiContext()?.CreateLogger(nameof(TypeConversionHelper))?.LogWarning(
+					"It is not possible to convert value of type {valueType} to {targetType} via an implicit cast " +
 					"because this feature is disabled. You should add a type converter that will implement this conversion and attach it to either of " +
 					"these types using the [TypeConverter] attribute or using the ConfigureTypeConversions method on MauiAppBuilder. Alternatively, you " +
 					"can enable this feature by setting the MauiImplicitCastOperatorsUsageViaReflectionSupport MSBuild property to true in your project file. " +
-					"Note: this feature is not compatible with trimming and with NativeAOT.");
+					"Note: this feature is not compatible with trimming and with NativeAOT.", valueType, targetType);
 			}
 		}
 	}
