@@ -5,8 +5,7 @@ using System.ComponentModel;
 
 namespace Microsoft.Maui.Hosting
 {
-	// TODO make this public
-	internal static class TypeConversionAppBuilderExtensions
+	public static class TypeConversionAppBuilderExtensions
 	{
 		internal static Dictionary<Type, TypeConverter> TypeConverters = new();
 
@@ -43,8 +42,7 @@ namespace Microsoft.Maui.Hosting
 		}
 	}
 
-	// TODO make this public
-	internal interface ITypeConversionBuilder
+	public interface ITypeConversionBuilder
 	{
 		ITypeConversionBuilder AddTypeConverter<T, TConverter>() where TConverter : TypeConverter, new();
 		ITypeConversionBuilder AddTypeConverter<T>(Func<TypeConverter> createConverter);
