@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using Microsoft.Maui.Controls.Xaml;
 using Microsoft.Maui.Devices;
@@ -6,7 +7,7 @@ using Microsoft.Maui.Devices;
 namespace Microsoft.Maui.Controls
 {
 	[ContentProperty("Platforms")]
-	public class OnPlatform<T>
+	public class OnPlatform<T> : IOnPlatform
 	{
 		public OnPlatform()
 		{
@@ -54,6 +55,15 @@ namespace Microsoft.Maui.Controls
 
 			return onPlatform.hasDefault ? onPlatform.@default : default(T);
 		}
+
+		object IOnPlatform.Value => (T)this;
+		Type IOnPlatform.ValueType => typeof(T);
+	}
+
+	internal interface IOnPlatform
+	{
+		object Value { get; }
+		Type ValueType { get; }
 	}
 
 	/// <include file="../../docs/Microsoft.Maui.Controls/On.xml" path="Type[@FullName='Microsoft.Maui.Controls.On']/Docs/*" />

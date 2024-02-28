@@ -248,12 +248,11 @@ namespace Microsoft.Maui.Controls.Xaml
 				{
 					if ((p[i].ParameterType.IsAssignableFrom(types[i])))
 						continue;
-					var op_impl = p[i].ParameterType.GetImplicitConversionOperator(fromType: types[i], toType: p[i].ParameterType)
-								?? types[i].GetImplicitConversionOperator(fromType: types[i], toType: p[i].ParameterType);
 
-					if (op_impl == null)
+					if (!TypeConversionHelper.TryConvert(ref arguments[i], p[i].ParameterType))
+					{
 						return false;
-					arguments[i] = op_impl.Invoke(null, new[] { arguments[i] });
+					}
 				}
 				return true;
 			}
