@@ -17,6 +17,7 @@ namespace Microsoft.Maui
 		private const bool IsXamlRuntimeParsingSupportedByDefault = true;
 		private const bool IsIVisualAssemblyScanningEnabledByDefault = false;
 		private const bool IsQueryPropertyAttributeSupportedByDefault = true;
+		private const bool IsCssStylingEnabledByDefault = true;
 
 		internal static bool IsXamlRuntimeParsingSupported
 			=> AppContext.TryGetSwitch("Microsoft.Maui.RuntimeFeature.IsXamlRuntimeParsingSupported", out bool isEnabled)
@@ -37,5 +38,10 @@ namespace Microsoft.Maui
 			AppContext.TryGetSwitch("Microsoft.Maui.RuntimeFeature.IsQueryPropertyAttributeSupported", out bool isSupported)
 				? isSupported
 				: IsQueryPropertyAttributeSupportedByDefault;
+
+		internal static bool IsCssStylingEnabled =>
+			AppContext.TryGetSwitch("Microsoft.Maui.RuntimeFeature.IsCssStylingEnabled", out bool isEnabled)
+				? isEnabled
+				: IsCssStylingEnabledByDefault;
 	}
 }
