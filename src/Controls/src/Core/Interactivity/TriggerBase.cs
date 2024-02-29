@@ -11,6 +11,12 @@ namespace Microsoft.Maui.Controls
 	{
 		bool _isSealed;
 
+		// If the condition flips many times in a short period of time, assume that it's an infinite loop
+		int _loopCounter;
+		DateTimeOffset? _previousConditionChange;
+		static readonly int s_loopCountThreshold = 20;
+		static readonly TimeSpan s_durationThreshold = TimeSpan.FromMilliseconds(100);
+
 		//each trigger is different
 		static int count = 1;
 
@@ -50,6 +56,9 @@ namespace Microsoft.Maui.Controls
 				OnSeal();
 			}
 		}
+
+		// TODO make public
+		internal bool Throttle { get; set; } = true;
 
 		/// <include file="../../../docs/Microsoft.Maui.Controls/TriggerBase.xml" path="//Member[@MemberName='TargetType']/Docs/*" />
 		public Type TargetType { get; }
@@ -104,6 +113,26 @@ namespace Microsoft.Maui.Controls
 
 		void OnConditionChanged(BindableObject bindable, bool oldValue, bool newValue)
 		{
+			if (Throttle)
+			{
+				var now = DateTimeOffset.UtcNow;
+				if (!_previousConditionChange.HasValue || now - _previousConditionChange.Value > s_durationThreshold)
+				{
+					Console.WriteLine($"resetting, previous _loopCoutner={_loopCounter}");
+					_previousConditionChange = now;
+					_loopCounter = 1;
+				}
+				else if (++_loopCounter > s_loopCountThreshold)
+				{
+					// We've counted more than `s_loopCountThreshold` flip within `s_durationThreshold`.
+					// It's unlikely that this is user interaction.
+					// Force unapply the setters to break the infinite loop.
+					newValue = false;
+					Console.WriteLine($"Throttling...");
+					// TODO should this throw?
+				}
+			}
+
 			if (newValue)
 			{
 				foreach (TriggerAction action in EnterActions)
