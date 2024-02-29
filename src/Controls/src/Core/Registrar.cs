@@ -320,20 +320,181 @@ namespace Microsoft.Maui.Controls.Internals
 		static Dictionary<string, IList<StylePropertyAttribute>> LoadStyleSheets()
 		{
 			var properties = new Dictionary<string, IList<StylePropertyAttribute>>(StringComparer.Ordinal);
-			if (DisableCSS)
+			if (DisableCSS) // TODO this could be a feature-switch for better trimming
 				return properties;
-			var assembly = typeof(StylePropertyAttribute).Assembly;
-			var styleAttributes = assembly.GetCustomAttributesSafe(typeof(StylePropertyAttribute));
-			var stylePropertiesLength = styleAttributes?.Length ?? 0;
-			for (var i = 0; i < stylePropertiesLength; i++)
+
+			if (!RuntimeFeature.IsCssStylingEnabled)
 			{
-				var attribute = (StylePropertyAttribute)styleAttributes[i];
-				if (properties.TryGetValue(attribute.CssPropertyName, out var attrList))
-					attrList.Add(attribute);
-				else
-					properties[attribute.CssPropertyName] = new List<StylePropertyAttribute> { attribute };
+				throw new InvalidOperationException("CSS styling is disabled."); // TODO exception message
 			}
-			return properties;
+
+			return new(StringComparer.Ordinal)
+			{
+				["background-color"] = new List<StylePropertyAttribute> { new("background-color", typeof(VisualElement), nameof(VisualElement.BackgroundColorProperty)) },
+				["background"] = new List<StylePropertyAttribute> { new("background", typeof(VisualElement), nameof(VisualElement.BackgroundProperty)) },
+				["background-image"] = new List<StylePropertyAttribute> { new("background-image", typeof(Page), nameof(Page.BackgroundImageSourceProperty)) },
+				["border-color"] = new List<StylePropertyAttribute> { new("border-color", typeof(IBorderElement), nameof(BorderElement.BorderColorProperty)) },
+				["border-radius"] = new List<StylePropertyAttribute>
+				{
+					new("border-radius", typeof(ICornerElement), nameof(CornerElement.CornerRadiusProperty)),
+					new("border-radius", typeof(Button), nameof(Button.CornerRadiusProperty)),
+					new("border-radius", typeof(Frame), nameof(Frame.CornerRadiusProperty)),
+					new("border-radius", typeof(ImageButton), nameof(BorderElement.CornerRadiusProperty)),
+				},
+				["border-width"] = new List<StylePropertyAttribute> { new("border-width", typeof(IBorderElement), nameof(BorderElement.BorderWidthProperty)) },
+				["color"] = new List<StylePropertyAttribute>
+				{
+					new("color", typeof(IColorElement), nameof(ColorElement.ColorProperty)) { Inherited = true },
+					new("color", typeof(ITextElement), nameof(TextElement.TextColorProperty)) { Inherited = true },
+					new("color", typeof(ProgressBar), nameof(ProgressBar.ProgressColorProperty)),
+					new("color", typeof(Switch), nameof(Switch.OnColorProperty)),
+				},
+				["text-transform"] = new List<StylePropertyAttribute> { new("text-transform", typeof(ITextElement), nameof(TextElement.TextTransformProperty)) { Inherited = true } },
+				["column-gap"] = new List<StylePropertyAttribute>
+				{
+					new("column-gap", typeof(Grid), nameof(Grid.ColumnSpacingProperty)),
+					// new("column-gap", typeof(CGrid), nameof(CGrid.ColumnSpacingProperty)),
+				},
+				["direction"] = new List<StylePropertyAttribute> { new("direction", typeof(VisualElement), nameof(VisualElement.FlowDirectionProperty)) { Inherited = true } },
+				["font-family"] = new List<StylePropertyAttribute> { new("font-family", typeof(IFontElement), nameof(FontElement.FontFamilyProperty)) { Inherited = true } },
+				["font-size"] = new List<StylePropertyAttribute> { new("font-size", typeof(IFontElement), nameof(FontElement.FontSizeProperty)) { Inherited = true } },
+				["font-style"] = new List<StylePropertyAttribute> { new("font-style", typeof(IFontElement), nameof(FontElement.FontAttributesProperty)) { Inherited = true } },
+				["height"] = new List<StylePropertyAttribute> { new("height", typeof(VisualElement), nameof(VisualElement.HeightRequestProperty)) },
+				["margin"] = new List<StylePropertyAttribute> { new("margin", typeof(View), nameof(View.MarginProperty)) },
+				["margin-left"] = new List<StylePropertyAttribute> { new("margin-left", typeof(View), nameof(View.MarginLeftProperty)) },
+				["margin-top"] = new List<StylePropertyAttribute> { new("margin-top", typeof(View), nameof(View.MarginTopProperty)) },
+				["margin-right"] = new List<StylePropertyAttribute> { new("margin-right", typeof(View), nameof(View.MarginRightProperty)) },
+				["margin-bottom"] = new List<StylePropertyAttribute> { new("margin-bottom", typeof(View), nameof(View.MarginBottomProperty)) },
+				["max-lines"] = new List<StylePropertyAttribute> { new("max-lines", typeof(Label), nameof(Label.MaxLinesProperty)) },
+				["min-height"] = new List<StylePropertyAttribute> { new("min-height", typeof(VisualElement), nameof(VisualElement.MinimumHeightRequestProperty)) },
+				["min-width"] = new List<StylePropertyAttribute> { new("min-width", typeof(VisualElement), nameof(VisualElement.MinimumWidthRequestProperty)) },
+				["opacity"] = new List<StylePropertyAttribute> { new("opacity", typeof(VisualElement), nameof(VisualElement.OpacityProperty)) },
+				["padding"] = new List<StylePropertyAttribute> { new("padding", typeof(IPaddingElement), nameof(PaddingElement.PaddingProperty)) },
+				["padding-left"] = new List<StylePropertyAttribute> { new("padding-left", typeof(IPaddingElement), nameof(PaddingElement.PaddingLeftProperty)) { PropertyOwnerType = typeof(PaddingElement) } },
+				["padding-top"] = new List<StylePropertyAttribute> { new("padding-top", typeof(IPaddingElement), nameof(PaddingElement.PaddingTopProperty)) { PropertyOwnerType = typeof(PaddingElement) } },
+				["padding-right"] = new List<StylePropertyAttribute> { new("padding-right", typeof(IPaddingElement), nameof(PaddingElement.PaddingRightProperty)) { PropertyOwnerType = typeof(PaddingElement) } },
+				["padding-bottom"] = new List<StylePropertyAttribute> { new("padding-bottom", typeof(IPaddingElement), nameof(PaddingElement.PaddingBottomProperty)) { PropertyOwnerType = typeof(PaddingElement) } },
+				["row-gap"] = new List<StylePropertyAttribute>
+				{
+					new("row-gap", typeof(Grid), nameof(Grid.RowSpacingProperty)),
+					// new("row-gap", typeof(CGrid), nameof(CGrid.RowSpacingProperty)),
+				},
+				["text-align"] = new List<StylePropertyAttribute> { new("text-align", typeof(ITextAlignmentElement), nameof(TextAlignmentElement.HorizontalTextAlignmentProperty)) { Inherited = true } },
+				["text-decoration"] = new List<StylePropertyAttribute> { new("text-decoration", typeof(IDecorableTextElement), nameof(DecorableTextElement.TextDecorationsProperty)) },
+				["transform"] = new List<StylePropertyAttribute> { new("transform", typeof(VisualElement), nameof(VisualElement.TransformProperty)) },
+				["transform-origin"] = new List<StylePropertyAttribute> { new("transform-origin", typeof(VisualElement), nameof(VisualElement.TransformOriginProperty)) },
+				["vertical-align"] = new List<StylePropertyAttribute> { new("vertical-align", typeof(ITextAlignmentElement), nameof(TextAlignmentElement.VerticalTextAlignmentProperty)) },
+				["visibility"] = new List<StylePropertyAttribute> { new("visibility", typeof(VisualElement), nameof(VisualElement.IsVisibleProperty)) { Inherited = true } },
+				["width"] = new List<StylePropertyAttribute> { new("width", typeof(VisualElement), nameof(VisualElement.WidthRequestProperty)) },
+				["letter-spacing"] = new List<StylePropertyAttribute> { new("letter-spacing", typeof(ITextElement), nameof(TextElement.CharacterSpacingProperty)) { Inherited = true } },
+				["line-height"] = new List<StylePropertyAttribute> { new("line-height", typeof(ILineHeightElement), nameof(LineHeightElement.LineHeightProperty)) { Inherited = true } },
+
+				// flex
+				// TODO how does compatibility flex get loaded?
+				["align-content"] = new List<StylePropertyAttribute>
+				{
+					new("align-content", typeof(FlexLayout), nameof(FlexLayout.AlignContentProperty)),
+					// new("align-content", typeof(CFlexLayout), nameof(CFlexLayout.AlignContentProperty)),
+				},
+				["align-items"] = new List<StylePropertyAttribute>
+				{
+					new("align-items", typeof(FlexLayout), nameof(FlexLayout.AlignItemsProperty)),
+					// new("align-items", typeof(CFlexLayout), nameof(CFlexLayout.AlignItemsProperty)),
+				},
+				["align-self"] = new List<StylePropertyAttribute>
+				{
+					new("align-self", typeof(VisualElement), nameof(FlexLayout.AlignSelfProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("align-self", typeof(VisualElement), nameof(CFlexLayout.AlignSelfProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["flex-direction"] = new List<StylePropertyAttribute>
+				{
+					new("flex-direction", typeof(FlexLayout), nameof(FlexLayout.DirectionProperty)),
+					// new("flex-direction", typeof(CFlexLayout), nameof(CFlexLayout.DirectionProperty)),
+				},
+				["flex-basis"] = new List<StylePropertyAttribute>
+				{
+					new("flex-basis", typeof(VisualElement), nameof(FlexLayout.BasisProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("flex-basis", typeof(VisualElement), nameof(CFlexLayout.BasisProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["flex-grow"] = new List<StylePropertyAttribute>
+				{
+					new("flex-grow", typeof(VisualElement), nameof(FlexLayout.GrowProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("flex-grow", typeof(VisualElement), nameof(CFlexLayout.GrowProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["flex-shrink"] = new List<StylePropertyAttribute>
+				{
+					new("flex-shrink", typeof(VisualElement), nameof(FlexLayout.ShrinkProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("flex-shrink", typeof(VisualElement), nameof(CFlexLayout.ShrinkProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["flex-wrap"] = new List<StylePropertyAttribute>
+				{
+					new("flex-wrap", typeof(VisualElement), nameof(FlexLayout.WrapProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("flex-wrap", typeof(VisualElement), nameof(CFlexLayout.WrapProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["justify-content"] = new List<StylePropertyAttribute>
+				{
+					new("justify-content", typeof(FlexLayout), nameof(FlexLayout.JustifyContentProperty)),
+					// new("justify-content", typeof(CFlexLayout), nameof(CFlexLayout.JustifyContentProperty)),
+				},
+				["order"] = new List<StylePropertyAttribute>
+				{
+					new("order", typeof(VisualElement), nameof(FlexLayout.OrderProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+					// new("order", typeof(VisualElement), nameof(CFlexLayout.OrderProperty)) { PropertyOwnerType = typeof(CFlexLayout) },
+				},
+				["position"] = new List<StylePropertyAttribute>
+				{
+					new("position", typeof(FlexLayout), nameof(FlexLayout.PositionProperty)),
+					// new("position", typeof(CFlexLayout), nameof(CFlexLayout.PositionProperty)),
+				},
+
+				//xf specific
+				["-maui-placeholder"] = new List<StylePropertyAttribute> { new("-maui-placeholder", typeof(IPlaceholderElement), nameof(PlaceholderElement.PlaceholderProperty)) },
+				["-maui-placeholder-color"] = new List<StylePropertyAttribute> { new("-maui-placeholder-color", typeof(IPlaceholderElement), nameof(PlaceholderElement.PlaceholderColorProperty)) },
+				["-maui-max-length"] = new List<StylePropertyAttribute> { new("-maui-max-length", typeof(InputView), nameof(InputView.MaxLengthProperty)) },
+				["-maui-bar-background-color"] = new List<StylePropertyAttribute> { new("-maui-bar-background-color", typeof(IBarElement), nameof(BarElement.BarBackgroundColorProperty)) },
+				["-maui-bar-text-color"] = new List<StylePropertyAttribute> { new("-maui-bar-text-color", typeof(IBarElement), nameof(BarElement.BarTextColorProperty)) },
+				["-maui-orientation"] = new List<StylePropertyAttribute>
+				{
+					new("-maui-orientation", typeof(ScrollView), nameof(ScrollView.OrientationProperty)),
+					new("-maui-orientation", typeof(StackLayout), nameof(StackLayout.OrientationProperty)),
+					// TODO ezhart 2021-07-16 When we create the new composed StackLayout, we'll need to ensure we have this enabled 
+					// new("-maui-orientation", typeof(StackLayout), nameof(StackLayout.OrientationProperty)),
+				},
+				["-maui-horizontal-scroll-bar-visibility"] = new List<StylePropertyAttribute> { new("-maui-horizontal-scroll-bar-visibility", typeof(ScrollView), nameof(ScrollView.HorizontalScrollBarVisibilityProperty)) },
+				["-maui-vertical-scroll-bar-visibility"] = new List<StylePropertyAttribute> { new("-maui-vertical-scroll-bar-visibility", typeof(ScrollView), nameof(ScrollView.VerticalScrollBarVisibilityProperty)) },
+				["-maui-min-track-color"] = new List<StylePropertyAttribute> { new("-maui-min-track-color", typeof(Slider), nameof(Slider.MinimumTrackColorProperty)) },
+				["-maui-max-track-color"] = new List<StylePropertyAttribute> { new("-maui-max-track-color", typeof(Slider), nameof(Slider.MaximumTrackColorProperty)) },
+				["-maui-thumb-color"] = new List<StylePropertyAttribute>
+				{
+					new("-maui-thumb-color", typeof(Slider), nameof(Slider.ThumbColorProperty)),
+					new("-maui-thumb-color", typeof(Switch), nameof(Switch.ThumbColorProperty)),
+				},
+				["-maui-spacing"] = new List<StylePropertyAttribute>
+				{
+					new("-maui-spacing", typeof(StackLayout), nameof(StackLayout.SpacingProperty)),
+					// TODO ezhart 2021-07-16 When we fix #1634, we'll need to enable this so the CSS applies 
+					// new("-maui-spacing", typeof(StackLayout), nameof(StackLayout.SpacingProperty)),
+				},
+				["-maui-visual"] = new List<StylePropertyAttribute> { new("-maui-visual", typeof(VisualElement), nameof(VisualElement.VisualProperty)) },
+				["-maui-vertical-text-alignment"] = new List<StylePropertyAttribute> { new("-maui-vertical-text-alignment", typeof(Label), nameof(TextAlignmentElement.VerticalTextAlignmentProperty)) },
+
+				//shell
+				["-maui-flyout-background"] = new List<StylePropertyAttribute> { new("-maui-flyout-background", typeof(Shell), nameof(Shell.FlyoutBackgroundColorProperty)) },
+				["-maui-shell-background"] = new List<StylePropertyAttribute> { new("-maui-shell-background", typeof(Element), nameof(Shell.BackgroundColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-disabled"] = new List<StylePropertyAttribute> { new("-maui-shell-disabled", typeof(Element), nameof(Shell.DisabledColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-foreground"] = new List<StylePropertyAttribute> { new("-maui-shell-foreground", typeof(Element), nameof(Shell.ForegroundColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-tabbar-background"] = new List<StylePropertyAttribute> { new("-maui-shell-tabbar-background", typeof(Element), nameof(Shell.TabBarBackgroundColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-tabbar-disabled"] = new List<StylePropertyAttribute> { new("-maui-shell-tabbar-disabled", typeof(Element), nameof(Shell.TabBarDisabledColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-tabbar-foreground"] = new List<StylePropertyAttribute> { new("-maui-shell-tabbar-foreground", typeof(Element), nameof(Shell.TabBarForegroundColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-tabbar-title"] = new List<StylePropertyAttribute> { new("-maui-shell-tabbar-title", typeof(Element), nameof(Shell.TabBarTitleColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-tabbar-unselected"] = new List<StylePropertyAttribute> { new("-maui-shell-tabbar-unselected", typeof(Element), nameof(Shell.TabBarUnselectedColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-title"] = new List<StylePropertyAttribute> { new("-maui-shell-title", typeof(Element), nameof(Shell.TitleColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+				["-maui-shell-unselected"] = new List<StylePropertyAttribute> { new("-maui-shell-unselected", typeof(Element), nameof(Shell.UnselectedColorProperty)) { PropertyOwnerType = typeof(Shell) } },
+
+				// //xf specific
+				// ["-maui-spacing"] = new List<StylePropertyAttribute> { new("-maui-spacing", typeof(CStackLayout), nameof(CStackLayout.SpacingProperty)) },
+				// ["-maui-orientation"] = new List<StylePropertyAttribute> { new("-maui-orientation", typeof(CStackLayout), nameof(CStackLayout.OrientationProperty)) },
+			};
 		}
 
 		internal static void RegisterEffects(Assembly[] assemblies)
