@@ -7,7 +7,7 @@ using Microsoft.Maui.Devices;
 namespace Microsoft.Maui.Controls
 {
 	[ContentProperty("Platforms")]
-	public class OnPlatform<T> : IOnPlatform
+	public class OnPlatform<T> : IWrappedValue
 	{
 		public OnPlatform()
 		{
@@ -56,11 +56,11 @@ namespace Microsoft.Maui.Controls
 			return onPlatform.hasDefault ? onPlatform.@default : default(T);
 		}
 
-		object IOnPlatform.Value => (T)this;
-		Type IOnPlatform.ValueType => typeof(T);
+		object IWrappedValue.Value => (T)this;
+		Type IWrappedValue.ValueType => typeof(T);
 	}
 
-	internal interface IOnPlatform
+	internal interface IWrappedValue
 	{
 		object Value { get; }
 		Type ValueType { get; }

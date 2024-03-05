@@ -44,7 +44,7 @@ namespace Microsoft.Maui.Controls.Xaml
 				return value;
 
 			//OnPlatform might need unwrapping
-			if (valueType is IOnPlatform onPlatform)
+			if (valueType is IWrappedValue onPlatform)
 			{
 				value = onPlatform.Value;
 				valueType = onPlatform.ValueType;

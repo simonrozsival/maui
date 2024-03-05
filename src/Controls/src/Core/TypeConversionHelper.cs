@@ -16,6 +16,12 @@ namespace Microsoft.Maui.Controls
 	{
 		internal static bool TryConvert(ref object value, Type targetType)
 		{
+			if (value is IWrappedValue wrapped && targetType.IsAssignableFrom(wrapped.ValueType))
+			{
+				value = wrapped.Value;
+				return true;
+			}
+
 			Type valueType = value.GetType();
 
 			if (TryGetTypeConverter(valueType, out var converter) && converter is not null && converter.CanConvertTo(targetType))
