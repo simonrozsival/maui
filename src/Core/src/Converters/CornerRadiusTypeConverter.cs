@@ -8,18 +8,21 @@ namespace Microsoft.Maui.Converters
 	public class CornerRadiusTypeConverter : TypeConverter
 	{
 		public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
-			=> sourceType == typeof(string) || sourceType == typeof(double);
+		{
+			Console.WriteLine($"CornerRadiusTypeConverter.CanConvertFrom({sourceType}) -> {Convert.GetTypeCode(sourceType)}, {IsImplicitlyConvertibleToDouble(sourceType)}");
+			return sourceType == typeof(string) || IsImplicitlyConvertibleToDouble(sourceType);
+		}
 
 		public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
 			=> destinationType == typeof(string);
 
 		public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object? value)
 		{
-			if (value is double d)
+			if (TryConvertToDouble(value, out double d))
 			{
 				return (CornerRadius)d;
 			}
-			
+
 			// IMPORTANT! Update CornerRadiusDesignTypeConverter.IsValid if making changes here
 			var strValue = value?.ToString();
 
@@ -77,6 +80,21 @@ namespace Microsoft.Maui.Converters
 			return $"{cr.TopLeft.ToString(CultureInfo.InvariantCulture)}, {cr.TopRight.ToString(CultureInfo.InvariantCulture)}, " +
 				$"{cr.BottomLeft.ToString(CultureInfo.InvariantCulture)}, {cr.BottomRight.ToString(CultureInfo.InvariantCulture)}";
 
+		}
+
+		private static bool IsImplicitlyConvertibleToDouble(Type type)
+			=> type == typeof(double) || type == typeof(float) || || type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) || type == typeof(short) || type == typeof(ushort) || type == typeof(byte) || type == typeof(sbyte) || type == typeof(char);
+
+		private static bool TryConvertToDouble(object? value, out double result)
+		{
+			if (value is not null && IsConvertibleToDouble(value.GetType()))
+			{
+				result = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+				return true;
+			}
+
+			result = 0;
+			return false;
 		}
 	}
 }

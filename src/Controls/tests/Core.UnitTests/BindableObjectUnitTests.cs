@@ -1430,8 +1430,8 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 						_ => throw new NotSupportedException(),
 					};
 
-				public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => false;
-				public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value) => throw new NotSupportedException();
+				public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => false;
+				public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType) => throw new NotSupportedException();
 			}
 		}
 
@@ -1467,7 +1467,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 				throw new InvalidOperationException();
 			}
 
-			private sealed class CastToStringTypeConverterTypeConverter : TypeConverter
+			private sealed class CastToStringTypeConverter : TypeConverter
 			{
 				public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => false;
 				public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) => throw new NotSupportedException();

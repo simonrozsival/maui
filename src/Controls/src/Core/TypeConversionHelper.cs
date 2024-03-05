@@ -16,29 +16,41 @@ namespace Microsoft.Maui.Controls
 	{
 		internal static bool TryConvert(ref object value, Type targetType)
 		{
-			if (value is IWrappedValue wrapped && targetType.IsAssignableFrom(wrapped.ValueType))
+			object? inputValue = value;
+			Type valueType = inputValue.GetType();
+
+			if (value is IWrappedValue wrapped)
 			{
-				value = wrapped.Value;
+				inputValue = wrapped.Value;
+				valueType = wrapped.ValueType;
+			}
+
+			if (targetType.IsAssignableFrom(valueType))
+			{
+				value = inputValue!;
 				return true;
 			}
 
-			Type valueType = value.GetType();
+			if (inputValue is null)
+			{
+				return false;
+			}
 
 			if (TryGetTypeConverter(valueType, out var converter) && converter is not null && converter.CanConvertTo(targetType))
 			{
-				value = converter.ConvertTo(value, targetType) ?? throw new InvalidOperationException($"The {converter.GetType()} returned null when converting {valueType} to {targetType}");
+				value = converter.ConvertTo(inputValue, targetType) ?? throw new InvalidOperationException($"The {converter.GetType()} returned null when converting {valueType} to {targetType}");
 				return true;
 			}
 
 			if (TryGetTypeConverter(targetType, out converter) && converter is not null && converter.CanConvertFrom(valueType))
 			{
-				value = converter.ConvertFrom(value) ?? throw new InvalidOperationException($"The {converter.GetType()} returned null when converting from {valueType}");
+				value = converter.ConvertFrom(inputValue) ?? throw new InvalidOperationException($"The {converter.GetType()} returned null when converting from {valueType}");
 				return true;
 			}
 
 			if (RuntimeFeature.IsImplicitCastOperatorsUsageViaReflectionSupported)
 			{
-				if (TryConvertUsingImplicitCastOperator(value, targetType, out var convertedValue))
+				if (TryConvertUsingImplicitCastOperator(inputValue, targetType, out var convertedValue))
 				{
 					value = convertedValue;
 					return true;
@@ -46,7 +58,7 @@ namespace Microsoft.Maui.Controls
 			}
 			else
 			{
-				WarnIfImplicitOperatorIsAvailable(value, targetType);
+				WarnIfImplicitOperatorIsAvailable(inputValue, targetType);
 			}
 
 			return false;

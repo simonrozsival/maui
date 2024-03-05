@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using Microsoft.Maui.Controls.Core.UnitTests;
 using Microsoft.Maui.Dispatching;
@@ -19,7 +21,7 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 			return new Button();
 		}
 
-		private sealed class ConvertibleToViewTypeConverter : TypeConverter
+		internal sealed class ConvertibleToViewTypeConverter : TypeConverter
 		{
 			public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
 				=> destinationType == typeof(View);
@@ -79,16 +81,20 @@ namespace Microsoft.Maui.Controls.Xaml.UnitTests
 			return foo.Value;
 		}
 
-		private sealed class SV_FooTypeConveter : TypeConverter
+		internal sealed class SV_FooTypeConveter : TypeConverter
 		{
 			public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-				=> destinationType == typeof(SV_Foo);
+				=> destinationType == typeof(string);
 			public override object ConvertTo(ITypeDescriptorContext context, CultureInfo cultureInfo, object value, Type destinationType)
-				=> value switch
+			{
+				if (value is SV_Foo foo)
 				{
-					string str when destinationType == typeof(SV_Foo) => (SV_Foo)str,
-					_ => throw new NotSupportedException(),
-				};
+					if (destinationType == typeof(string))
+						return (string)foo;
+				}
+
+				throw new NotSupportedException();
+			}
 
 			public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
 				=> sourceType == typeof(string);
