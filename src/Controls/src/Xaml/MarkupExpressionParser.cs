@@ -32,10 +32,12 @@
 //
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Microsoft.Maui.Controls.Xaml
 {
+	[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
 	abstract class MarkupExpressionParser
 	{
 		protected struct Property

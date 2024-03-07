@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Xml;
@@ -13,6 +14,8 @@ namespace Microsoft.Maui.Controls.Xaml
 		 typeof(IValueConverterProvider),
 		 typeof(IXmlLineInfoProvider),
 		 typeof(IConverterOptions)])]
+	// TODO: We need to compile this extension to make it trim compatible
+	[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
 	public class OnIdiomExtension : IMarkupExtension
 	{
 		// See Device.Idiom

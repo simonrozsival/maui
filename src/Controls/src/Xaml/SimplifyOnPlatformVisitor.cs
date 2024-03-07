@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 #nullable disable
 
 namespace Microsoft.Maui.Controls.Xaml
 {
+	[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#if !NETSTANDARD
+	[RequiresDynamicCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#endif
 	class SimplifyOnPlatformVisitor : IXamlNodeVisitor
 	{
 		public SimplifyOnPlatformVisitor(string targetFramework)

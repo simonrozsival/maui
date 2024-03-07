@@ -1,11 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Maui.Controls.Xaml
 {
 	[ContentProperty(nameof(Items))]
 	[AcceptEmptyServiceProvider]
+	// TODO: We need to compile array extension otherwise apps with x:Array will see AOT warnings coming from MAUI
+	// - https://github.com/dotnet/maui/issues/20745
+#if !NETSTANDARD
+	[RequiresDynamicCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#endif
 	public class ArrayExtension : IMarkupExtension<Array>
 	{
 		public ArrayExtension()

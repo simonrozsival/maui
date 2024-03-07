@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -8,6 +9,10 @@ namespace Microsoft.Maui.Controls.Xaml
 {
 	class ResourcesLoader : IResourcesLoader
 	{
+		[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#if !NETSTANDARD
+		[RequiresDynamicCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#endif
 		public T CreateFromResource<T>(string resourcePath, Assembly assembly, IXmlLineInfo lineInfo) where T : new()
 		{
 			var rd = new T();

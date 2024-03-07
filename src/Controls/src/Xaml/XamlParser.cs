@@ -38,6 +38,10 @@ using Microsoft.Maui.Devices;
 
 namespace Microsoft.Maui.Controls.Xaml
 {
+	[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#if !NETSTANDARD
+	[RequiresDynamicCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
+#endif
 	static partial class XamlParser
 	{
 		public static void ParseXaml(RootNode rootNode, XmlReader reader)
@@ -368,7 +372,6 @@ namespace Microsoft.Maui.Controls.Xaml
 			return GetElementTypeCore(xmlType, xmlInfo, currentAssembly, out exception);
 		}
 
-		[RequiresUnreferencedCode(TrimmerConstants.XamlRuntimeParsingNotSupportedWarning)]
 		private static Type GetElementTypeCore(XmlType xmlType, IXmlLineInfo xmlInfo, Assembly currentAssembly,
 			out XamlParseException exception)
 		{
