@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.Maui.Controls.ShellSourceGen;
+namespace Microsoft.Maui.Controls.BindingSourceGen;
 
 internal class DiagnosticFactory
 {

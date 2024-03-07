@@ -11,7 +11,7 @@ internal static class SourceGenHelpers
     internal static GeneratorDriverRunResult Run(string source)
     {
         var inputCompilation = CreateCompilation(source);
-        var driver = CSharpGeneratorDriver.Create(new BindingSourceGen());
+        var driver = CSharpGeneratorDriver.Create(new BindingSourceGenerator());
         return driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out _, out _).GetRunResult();
     } 
 
