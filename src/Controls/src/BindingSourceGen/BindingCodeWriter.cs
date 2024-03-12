@@ -2,13 +2,14 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 
 namespace Microsoft.Maui.Controls.BindingSourceGen;
 
-public sealed class BindingSourceWriter
+public sealed class BindingCodeWriter
 {
-	public static string GeneratedCodeAttribute => $"[GeneratedCodeAttribute(\"{typeof(BindingSourceWriter).Assembly.FullName}\", \"{typeof(BindingSourceWriter).Assembly.GetName().Version}\")]";
+	public static string GeneratedCodeAttribute => $"[GeneratedCodeAttribute(\"{typeof(BindingCodeWriter).Assembly.FullName}\", \"{typeof(BindingCodeWriter).Assembly.GetName().Version}\")]";
 
 	public string GenerateCode() => $$"""
 		//------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ public sealed class BindingSourceWriter
 
 		public BidningInterceptorCodeBuilder(int indent = 0)
 		{
-			_stringWriter = new StringWriter();
+			_stringWriter = new StringWriter(CultureInfo.InvariantCulture);
 			_indentedTextWriter = new IndentedTextWriter(_stringWriter, "\t") { Indent = indent };
 		}
 

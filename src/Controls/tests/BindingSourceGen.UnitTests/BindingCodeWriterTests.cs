@@ -4,12 +4,12 @@ using Xunit;
 
 namespace BindingSourceGen.UnitTests;
 
-public class BindingSourceWriterTests
+public class BindingCodeWriterTests
 {
     [Fact]
     public void BuildsWholeDocument()
     {
-        var codeWriter = new BindingSourceWriter();
+        var codeWriter = new BindingCodeWriter();
         codeWriter.AddBinding(new Binding(
             Id: 1,
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
@@ -35,7 +35,7 @@ public class BindingSourceWriterTests
             {
                 using System;
 
-                {{BindingSourceWriter.GeneratedCodeAttribute}}
+                {{BindingCodeWriter.GeneratedCodeAttribute}}
                 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
                 file sealed class InterceptsLocationAttribute(string filePath, int line, int column) : Attribute
                 {
@@ -49,11 +49,11 @@ public class BindingSourceWriterTests
                 using System.Runtime.CompilerServices;
                 using Microsoft.Maui.Controls.Internal;
 
-                {{BindingSourceWriter.GeneratedCodeAttribute}}
+                {{BindingCodeWriter.GeneratedCodeAttribute}}
                 file static class GeneratedBindableObjectExtensions
                 {
             
-                    {{BindingSourceWriter.GeneratedCodeAttribute}}
+                    {{BindingCodeWriter.GeneratedCodeAttribute}}
                     [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
                     public static void SetBinding1(
                         this BindableObject bindableObject,
@@ -103,7 +103,7 @@ public class BindingSourceWriterTests
     [Fact]
     public void CorrectlyFormatsSimpleBinding()
     {
-        var codeBuilder = new BindingSourceWriter.BidningInterceptorCodeBuilder();
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(new Binding(
             Id: 1,
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
@@ -115,7 +115,7 @@ public class BindingSourceWriterTests
         var code = codeBuilder.ToString();
         AssertCodeIsEqual(
             $$"""
-            {{BindingSourceWriter.GeneratedCodeAttribute}}
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
             [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
             public static void SetBinding1(
                 this BindableObject bindableObject,
@@ -163,7 +163,7 @@ public class BindingSourceWriterTests
     [Fact]
     public void CorrectlyFormatsBindingWithoutAnyNullablesInPath()
     {
-        var codeBuilder = new BindingSourceWriter.BidningInterceptorCodeBuilder();
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(new Binding(
             Id: 1,
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
@@ -175,7 +175,7 @@ public class BindingSourceWriterTests
         var code = codeBuilder.ToString();
         AssertCodeIsEqual(
             $$"""
-            {{BindingSourceWriter.GeneratedCodeAttribute}}
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
             [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
             public static void SetBinding1(
                 this BindableObject bindableObject,
@@ -219,7 +219,7 @@ public class BindingSourceWriterTests
     [Fact]
     public void CorrectlyFormatsBindingWithoutSetter()
     {
-        var codeBuilder = new BindingSourceWriter.BidningInterceptorCodeBuilder();
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(new Binding(
             Id: 1,
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
@@ -231,7 +231,7 @@ public class BindingSourceWriterTests
         var code = codeBuilder.ToString();
         AssertCodeIsEqual(
             $$"""
-            {{BindingSourceWriter.GeneratedCodeAttribute}}
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
             [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
             public static void SetBinding1(
                 this BindableObject bindableObject,
@@ -273,7 +273,7 @@ public class BindingSourceWriterTests
     [Fact]
     public void CorrectlyFormatsBindingWithIndexers()
     {
-        var codeBuilder = new BindingSourceWriter.BidningInterceptorCodeBuilder();
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(new Binding(
             Id: 1,
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
@@ -289,7 +289,7 @@ public class BindingSourceWriterTests
         var code = codeBuilder.ToString();
         AssertCodeIsEqual(
             $$"""
-            {{BindingSourceWriter.GeneratedCodeAttribute}}
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
             [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
             public static void SetBinding1(
                 this BindableObject bindableObject,
