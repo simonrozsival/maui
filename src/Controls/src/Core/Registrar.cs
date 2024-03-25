@@ -322,8 +322,105 @@ namespace Microsoft.Maui.Controls.Internals
 			var properties = new Dictionary<string, IList<StylePropertyAttribute>>(StringComparer.Ordinal);
 			if (DisableCSS)
 				return properties;
-			var assembly = typeof(StylePropertyAttribute).Assembly;
-			var styleAttributes = assembly.GetCustomAttributesSafe(typeof(StylePropertyAttribute));
+			var styleAttributes = new StylePropertyAttribute[]
+			{
+				new("background-color", typeof(VisualElement), nameof(VisualElement.BackgroundColorProperty)),
+				new("background-image", typeof(Page), nameof(Page.BackgroundImageSourceProperty)),
+				new("background", typeof(VisualElement), nameof(VisualElement.BackgroundProperty)),
+				new("border-color", typeof(IBorderElement), nameof(BorderElement.BorderColorProperty)),
+				new("border-radius", typeof(Button), nameof(Button.CornerRadiusProperty)),
+				new("border-radius", typeof(Frame), nameof(Frame.CornerRadiusProperty)),
+				new("border-radius", typeof(ICornerElement), nameof(CornerElement.CornerRadiusProperty)),
+				new("border-radius", typeof(ImageButton), nameof(BorderElement.CornerRadiusProperty)),
+				new("border-width", typeof(IBorderElement), nameof(BorderElement.BorderWidthProperty)),
+				new("color", typeof(IColorElement), nameof(ColorElement.ColorProperty)) { Inherited = true },
+				new("color", typeof(ITextElement), nameof(TextElement.TextColorProperty)) { Inherited = true },
+				new("color", typeof(ProgressBar), nameof(ProgressBar.ProgressColorProperty)),
+				new("color", typeof(Switch), nameof(Switch.OnColorProperty)),
+				new("column-gap", typeof(Grid), nameof(Grid.ColumnSpacingProperty)),
+				new("direction", typeof(VisualElement), nameof(VisualElement.FlowDirectionProperty)) { Inherited = true },
+				new("font-family", typeof(IFontElement), nameof(FontElement.FontFamilyProperty)) { Inherited = true },
+				new("font-size", typeof(IFontElement), nameof(FontElement.FontSizeProperty)) { Inherited = true },
+				new("font-style", typeof(IFontElement), nameof(FontElement.FontAttributesProperty)) { Inherited = true },
+				new("height", typeof(VisualElement), nameof(VisualElement.HeightRequestProperty)),
+				new("letter-spacing", typeof(ITextElement), nameof(TextElement.CharacterSpacingProperty)) { Inherited = true },
+				new("line-height", typeof(ILineHeightElement), nameof(LineHeightElement.LineHeightProperty)) { Inherited = true },
+				new("margin-bottom", typeof(View), nameof(View.MarginBottomProperty)),
+				new("margin-left", typeof(View), nameof(View.MarginLeftProperty)),
+				new("margin-right", typeof(View), nameof(View.MarginRightProperty)),
+				new("margin-top", typeof(View), nameof(View.MarginTopProperty)),
+				new("margin", typeof(View), nameof(View.MarginProperty)),
+				new("max-lines", typeof(Label), nameof(Label.MaxLinesProperty)),
+				new("min-height", typeof(VisualElement), nameof(VisualElement.MinimumHeightRequestProperty)),
+				new("min-width", typeof(VisualElement), nameof(VisualElement.MinimumWidthRequestProperty)),
+				new("opacity", typeof(VisualElement), nameof(VisualElement.OpacityProperty)),
+				new("padding-bottom", typeof(IPaddingElement), nameof(PaddingElement.PaddingBottomProperty)) { PropertyOwnerType = typeof(PaddingElement) },
+				new("padding-left", typeof(IPaddingElement), nameof(PaddingElement.PaddingLeftProperty)) { PropertyOwnerType = typeof(PaddingElement) },
+				new("padding-right", typeof(IPaddingElement), nameof(PaddingElement.PaddingRightProperty)) { PropertyOwnerType = typeof(PaddingElement) },
+				new("padding-top", typeof(IPaddingElement), nameof(PaddingElement.PaddingTopProperty)) { PropertyOwnerType = typeof(PaddingElement) },
+				new("padding", typeof(IPaddingElement), nameof(PaddingElement.PaddingProperty)),
+				new("row-gap", typeof(Grid), nameof(Grid.RowSpacingProperty)),
+				new("text-align", typeof(ITextAlignmentElement), nameof(TextAlignmentElement.HorizontalTextAlignmentProperty)) { Inherited = true },
+				new("text-decoration", typeof(IDecorableTextElement), nameof(DecorableTextElement.TextDecorationsProperty)),
+				new("text-transform", typeof(ITextElement), nameof(TextElement.TextTransformProperty)) { Inherited = true },
+				new("transform-origin", typeof(VisualElement), nameof(VisualElement.TransformOriginProperty)),
+				new("transform", typeof(VisualElement), nameof(VisualElement.TransformProperty)),
+				new("vertical-align", typeof(ITextAlignmentElement), nameof(TextAlignmentElement.VerticalTextAlignmentProperty)),
+				new("visibility", typeof(VisualElement), nameof(VisualElement.IsVisibleProperty)) { Inherited = true },
+				new("width", typeof(VisualElement), nameof(VisualElement.WidthRequestProperty)),
+
+				//flex
+				new("align-content", typeof(FlexLayout), nameof(FlexLayout.AlignContentProperty)),
+				new("align-items", typeof(FlexLayout), nameof(FlexLayout.AlignItemsProperty)),
+				new("align-self", typeof(VisualElement), nameof(FlexLayout.AlignSelfProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("flex-basis", typeof(VisualElement), nameof(FlexLayout.BasisProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("flex-direction", typeof(FlexLayout), nameof(FlexLayout.DirectionProperty)),
+				new("flex-grow", typeof(VisualElement), nameof(FlexLayout.GrowProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("flex-shrink", typeof(VisualElement), nameof(FlexLayout.ShrinkProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("flex-wrap", typeof(VisualElement), nameof(FlexLayout.WrapProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("justify-content", typeof(FlexLayout), nameof(FlexLayout.JustifyContentProperty)),
+				new("order", typeof(VisualElement), nameof(FlexLayout.OrderProperty)) { PropertyOwnerType = typeof(FlexLayout) },
+				new("position", typeof(FlexLayout), nameof(FlexLayout.PositionProperty)),
+
+				//xf specific
+				new("-maui-bar-background-color", typeof(IBarElement), nameof(BarElement.BarBackgroundColorProperty)),
+				new("-maui-bar-text-color", typeof(IBarElement), nameof(BarElement.BarTextColorProperty)),
+				new("-maui-horizontal-scroll-bar-visibility", typeof(ScrollView), nameof(ScrollView.HorizontalScrollBarVisibilityProperty)),
+				new("-maui-max-length", typeof(InputView), nameof(InputView.MaxLengthProperty)),
+				new("-maui-max-track-color", typeof(Slider), nameof(Slider.MaximumTrackColorProperty)),
+				new("-maui-min-track-color", typeof(Slider), nameof(Slider.MinimumTrackColorProperty)),
+				new("-maui-orientation", typeof(ScrollView), nameof(ScrollView.OrientationProperty)),
+				new("-maui-orientation", typeof(StackLayout), nameof(StackLayout.OrientationProperty)),
+				new("-maui-placeholder-color", typeof(IPlaceholderElement), nameof(PlaceholderElement.PlaceholderColorProperty)),
+				new("-maui-placeholder", typeof(IPlaceholderElement), nameof(PlaceholderElement.PlaceholderProperty)),
+				new("-maui-spacing", typeof(StackLayout), nameof(StackLayout.SpacingProperty)),
+
+				// TODO ezhart 2021-07-16 When we fix #1634, we'll need to enable this so the CSS applies 
+				// new("-maui-spacing", typeof(StackLayout), nameof(StackLayout.SpacingProperty)),
+
+				// TODO ezhart 2021-07-16 When we create the new composed StackLayout, we'll need to ensure we have this enabled 
+				// new("-maui-orientation", typeof(StackLayout), nameof(StackLayout.OrientationProperty)),
+
+				new("-maui-thumb-color", typeof(Slider), nameof(Slider.ThumbColorProperty)),
+				new("-maui-thumb-color", typeof(Switch), nameof(Switch.ThumbColorProperty)),
+				new("-maui-vertical-scroll-bar-visibility", typeof(ScrollView), nameof(ScrollView.VerticalScrollBarVisibilityProperty)),
+				new("-maui-vertical-text-alignment", typeof(Label), nameof(TextAlignmentElement.VerticalTextAlignmentProperty)),
+				new("-maui-visual", typeof(VisualElement), nameof(VisualElement.VisualProperty)),
+
+				//shell
+				new("-maui-flyout-background", typeof(Shell), nameof(Shell.FlyoutBackgroundColorProperty)),
+				new("-maui-shell-background", typeof(Element), nameof(Shell.BackgroundColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-disabled", typeof(Element), nameof(Shell.DisabledColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-foreground", typeof(Element), nameof(Shell.ForegroundColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-tabbar-background", typeof(Element), nameof(Shell.TabBarBackgroundColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-tabbar-disabled", typeof(Element), nameof(Shell.TabBarDisabledColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-tabbar-foreground", typeof(Element), nameof(Shell.TabBarForegroundColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-tabbar-title", typeof(Element), nameof(Shell.TabBarTitleColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-tabbar-unselected", typeof(Element), nameof(Shell.TabBarUnselectedColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-title", typeof(Element), nameof(Shell.TitleColorProperty)) { PropertyOwnerType = typeof(Shell) },
+				new("-maui-shell-unselected", typeof(Element), nameof(Shell.UnselectedColorProperty)) { PropertyOwnerType = typeof(Shell) },
+			};
+
 			var stylePropertiesLength = styleAttributes?.Length ?? 0;
 			for (var i = 0; i < stylePropertiesLength; i++)
 			{
