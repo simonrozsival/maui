@@ -23,6 +23,11 @@ namespace Microsoft.Maui.Controls.StyleSheets
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static StyleSheet FromResource(string resourcePath, Assembly assembly, IXmlLineInfo lineInfo = null)
 		{
+			if (!RuntimeFeature.IsCssSupported)
+			{
+				throw new InvalidOperationException(TrimmerConstants.CssNotSupportedWarning);
+			}
+
 			var styleSheet = new StyleSheet();
 			var resString = DependencyService.Get<IResourcesLoader>().GetResource(resourcePath, assembly, styleSheet, lineInfo);
 			using (var textReader = new StringReader(resString))
@@ -36,6 +41,11 @@ namespace Microsoft.Maui.Controls.StyleSheets
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static StyleSheet FromString(string stylesheet)
 		{
+			if (!RuntimeFeature.IsCssSupported)
+			{
+				throw new InvalidOperationException(TrimmerConstants.CssNotSupportedWarning);
+			}
+
 			if (stylesheet == null)
 				throw new ArgumentNullException(nameof(stylesheet));
 			using (var reader = new StringReader(stylesheet))
@@ -45,6 +55,11 @@ namespace Microsoft.Maui.Controls.StyleSheets
 		/// <include file="../../../docs/Microsoft.Maui.Controls.StyleSheets/StyleSheet.xml" path="//Member[@MemberName='FromReader']/Docs/*" />
 		public static StyleSheet FromReader(TextReader reader)
 		{
+			if (!RuntimeFeature.IsCssSupported)
+			{
+				throw new InvalidOperationException(TrimmerConstants.CssNotSupportedWarning);
+			}
+
 			if (reader == null)
 				throw new ArgumentNullException(nameof(reader));
 

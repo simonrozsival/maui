@@ -13,4 +13,6 @@ class TrimmerConstants
 
 	internal const string QueryPropertyAttributeWarning = "Using QueryPropertyAttribute is not trimming friendly and might not work correctly. Implement the IQueryAttributable interface instead.";
 	internal const string QueryPropertyDocsUrl = "https://learn.microsoft.com/dotnet/maui/fundamentals/shell/navigation#process-navigation-data-using-a-single-method";
+
+	internal const string CssNotSupportedWarning = "CSS is not supported. To enable CSS styling, set the MauiCssSupport MSBuild property to true in your project file.";
 }
