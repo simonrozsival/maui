@@ -9,6 +9,7 @@ Certain features of MAUI can be enabled or disabled using feature switches. The 
 | MauiShellSearchResultsRendererDisplayMemberNameSupported | Microsoft.Maui.RuntimeFeature.IsShellSearchResultsRendererDisplayMemberNameSupported | When disabled, it is necessary to always set `ItemTemplate` of any `SearchHandler`. Displaying search results through `DisplayMemberName` will not work. |
 | MauiQueryPropertyAttributeSupport | Microsoft.Maui.RuntimeFeature.IsQueryPropertyAttributeSupported | When disabled, the `[QueryProperty(...)]` attributes won't be used to set values to properties when navigating. |
 | MauiImplicitCastOperatorsUsageViaReflectionSupport | Microsoft.Maui.RuntimeFeature.IsImplicitCastOperatorsUsageViaReflectionSupported | When disabled, MAUI won't look for implicit cast operators when converting values from one type to another. This feature is not trim-compatible. |
+| MauiCssSupport | Microsoft.Maui.RuntimeFeature.IsCssSupported | When disabled, CSS is not applied. |
 
 ## MauiXamlRuntimeParsingSupport
 
@@ -86,3 +87,7 @@ class CustomerConverter : TypeConverter
 ```
 
 _Note: Prefer using the `TypeConverterAttribute` as it can help the trimmer achieve better binary size in certain scenarios._
+
+## MauiCssSupport
+
+CSS is supported by default. When disabled, CSS styling will not work as expected. Including CSS files in the project or loading CSS from string will throw a runtime exception.

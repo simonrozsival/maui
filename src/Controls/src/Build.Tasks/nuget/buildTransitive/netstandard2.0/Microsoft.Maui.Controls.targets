@@ -214,6 +214,9 @@
       <MauiQueryPropertyAttributeSupport Condition="'$(MauiQueryPropertyAttributeSupport)' == '' and '$(PublishAot)' == 'true'">false</MauiQueryPropertyAttributeSupport>
       <MauiImplicitCastOperatorsUsageViaReflectionSupport Condition="'$(MauiImplicitCastOperatorsUsageViaReflectionSupport)' == '' and '$(PublishAot)' == 'true'">false</MauiImplicitCastOperatorsUsageViaReflectionSupport>
     </PropertyGroup>
+    <PropertyGroup>
+      <MauiCssSupport Condition="'$(MauiCssSupport)' == ''">true</MauiCssSupport>
+    </PropertyGroup>
     <ItemGroup>
       <RuntimeHostConfigurationOption Include="Microsoft.Maui.RuntimeFeature.IsXamlRuntimeParsingSupported"
                                       Condition="'$(MauiXamlRuntimeParsingSupport)' != ''"
@@ -234,6 +237,10 @@
       <RuntimeHostConfigurationOption Include="Microsoft.Maui.RuntimeFeature.IsImplicitCastOperatorsUsageViaReflectionSupported"
                                       Condition="'$(MauiImplicitCastOperatorsUsageViaReflectionSupport)' != ''"
                                       Value="$(MauiImplicitCastOperatorsUsageViaReflectionSupport)"
+                                      Trim="true" />
+      <RuntimeHostConfigurationOption Include="Microsoft.Maui.RuntimeFeature.IsCssSupported"
+                                      Condition="'$(MauiCssSupport)' != ''"
+                                      Value="$(MauiCssSupport)"
                                       Trim="true" />
     </ItemGroup>
   </Target>

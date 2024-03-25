@@ -321,7 +321,15 @@ namespace Microsoft.Maui.Controls.Internals
 		{
 			var properties = new Dictionary<string, IList<StylePropertyAttribute>>(StringComparer.Ordinal);
 			if (DisableCSS)
+			{
 				return properties;
+			}
+
+			if (!RuntimeFeature.IsCssSupported)
+			{
+				throw new InvalidOperationException("CSS is not supported. To enable it, set the MauiCssSupport MSBuild property to true in your project file.");
+			}
+
 			var styleAttributes = new StylePropertyAttribute[]
 			{
 				new("background-color", typeof(VisualElement), nameof(VisualElement.BackgroundColorProperty)),
