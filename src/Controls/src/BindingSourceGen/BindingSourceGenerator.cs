@@ -1,14 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Maui.Controls.BindingSourceGen;
 
@@ -19,27 +11,28 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	// Diagnostics
 	// Edge cases
 	// Optimizations
+	// Add diagnostic when lack of usings prevents code from determining the return type of lambda.
+	// Do not process Binding(..., string);
+
 	static int _idCounter = 0;
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		var bindingsWithDiagnostics = context.SyntaxProvider.CreateSyntaxProvider(
 			predicate: static (node, _) => IsSetBindingMethod(node),
 			transform: static (ctx, t) => GetBindingForGeneration(ctx, t)
-		).Where(static binding => binding != null)
-		.WithTrackingName("Syntax");
+		)
+		.Where(static binding => binding != null)
+		.Select(static (binding, t) => binding!)
+		.WithTrackingName("BindingsWithDiagnostics")
+		.Collect();
 
-		var collectedBindings = bindingsWithDiagnostics.Collect();
-
-		context.RegisterSourceOutput(collectedBindings, (spc, bindings) =>
+		context.RegisterSourceOutput(bindingsWithDiagnostics, (spc, bindings) =>
 		{
 			var codeWriter = new BindingCodeWriter();
 
 			foreach (var binding in bindings)
 			{
-				if (binding != null) // TODO: Optimize
-				{
-					codeWriter.AddBinding(binding);
-				}
+				codeWriter.AddBinding(binding);
 			}
 
 			spc.AddSource("GeneratedBindableObjectExtensions.g.cs", codeWriter.GenerateCode());
@@ -104,34 +97,22 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var outputTypeIsGenericParameter = outputType.Kind == SymbolKind.TypeParameter;
 
 		var parts = new List<PathPart>();
-		var types = new List<string>();
-		ParsePath(lambda.Body, context, parts, types);
-
-
-		// Convert to string
-		var pathasString = string.Join("<>", parts.Select(p => p.MemberName));
-		var typesAsString = string.Join("<>", types);
-
+		ParsePath(lambda.Body, context, parts);
 
 		return new Binding(
 			Id: ++_idCounter,
 			Location: sourceCodeLocation,
 			SourceType: new TypeName(inputTypeGlobalPath, IsNullable(inputType), inputTypeIsGenericParameter),
 			PropertyType: new TypeName(outputTypeGlobalPath, IsNullable(outputType), outputTypeIsGenericParameter),
-			Path: [.. parts],
+			Path: parts.ToArray(),
 			GenerateSetter: true //TODO: Implement
 		);
 	}
 
-	static void ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts, List<string> types)
+	static void ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts)
 	{
-		if (expressionSyntax is null)
-		{
-			return;
-		}
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
-			types.Add("identifier");
 			var member = identifier.Identifier.Text;
 			var typeInfo = context.SemanticModel.GetTypeInfo(identifier).Type;
 			if (typeInfo == null)
@@ -140,26 +121,21 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			}; // TODO
 			var isNullable = IsNullable(typeInfo);
 			parts.Add(new PathPart(member, isNullable));
-			return;
 		}
-
-		if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
+		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
 		{
-			types.Add("memberAccess");
 			var member = memberAccess.Name.Identifier.Text;
 			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
 			if (typeInfo == null)
 			{
 				return;
 			};
-			ParsePath(memberAccess.Expression, context, parts, types); //TODO: Nullable
+			ParsePath(memberAccess.Expression, context, parts); //TODO: Nullable
 			parts.Add(new PathPart(member, false));
 			return;
 		}
-
-		if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
+		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
 		{
-			types.Add("elementAccess");
 			var member = elementAccess.Expression.ToString();
 			var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
 			if (typeInfo == null)
@@ -167,29 +143,27 @@ public class BindingSourceGenerator : IIncrementalGenerator
 				return;
 			}; // TODO
 			parts.Add(new PathPart(member, false, elementAccess.ArgumentList.Arguments[0].Expression)); //TODO: Nullable
-			ParsePath(elementAccess.Expression, context, parts, types);
+			ParsePath(elementAccess.Expression, context, parts);
+		}
+		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
+		{
+			ParsePath(conditionalAccess.Expression, context, parts);
+			ParsePath(conditionalAccess.WhenNotNull, context, parts);
 			return;
 		}
-
-		if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
+		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
-			ParsePath(conditionalAccess.Expression, context, parts, types);
-			types.Add("conditionalAccess");
-			ParsePath(conditionalAccess.WhenNotNull, context, parts, types);
-			return;
-		}
-
-		if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
-		{
-			types.Add("memberBinding");
 			var member = memberBinding.Name.Identifier.Text;
 			parts.Add(new PathPart(member, false)); //TODO: Nullable
 			return;
 		}
-
+		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
+		{
+			ParsePath(parenthesized.Expression, context, parts);
+			return;
+		}
 		else
 		{
-			types.Add(expressionSyntax.GetType().Name);
 			return;
 		}
 	}
