@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,16 +10,17 @@ internal static class SourceGenHelpers
     internal static GeneratorDriverRunResult Run(string source)
     {
         var inputCompilation = CreateCompilation(source);
-        var driver = CSharpGeneratorDriver.Create(new BindingSourceGenerator());
+        var generator = new BindingSourceGenerator();
+        var sourceGenerator = generator.AsSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create([sourceGenerator], driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true));
         return driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out _, out _).GetRunResult();
     } 
-
     internal static Compilation CreateCompilation(string source)
         => CSharpCompilation.Create("compilation",
-            new[] { CSharpSyntaxTree.ParseText(source) },
-            new[]
-            {
+            [CSharpSyntaxTree.ParseText(source)],
+            [
                 MetadataReference.CreateFromFile(typeof(Microsoft.Maui.Controls.BindableObject).GetTypeInfo().Assembly.Location),
-            },
+                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+            ],
             new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 }
