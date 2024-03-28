@@ -1,7 +1,6 @@
 using System.Reflection;
 
 using Microsoft.CodeAnalysis;
-using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Microsoft.Maui.Controls.BindingSourceGen;
