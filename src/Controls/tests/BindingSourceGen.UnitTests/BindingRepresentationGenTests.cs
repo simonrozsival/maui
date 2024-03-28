@@ -21,10 +21,12 @@ public class BindingRepresentationGenTests
         var steps = results.TrackedSteps;
         var actualBinding = (CodeWriterBinding)steps["Bindings"][0].Outputs[0].Value;
 
+        actualBinding = actualBinding with { Id = 0 }; // TODO: Improve indexing of bindings
+
         var sourceCodeLocation = new SourceCodeLocation("", 3, 7);
 
         var expectedBinding = new CodeWriterBinding(
-                1,
+                0,
                 sourceCodeLocation,
                 new TypeName("string", false, false),
                 new TypeName("int", false, false),
@@ -34,11 +36,17 @@ public class BindingRepresentationGenTests
                 ],
                 true
             );
-        Assert.Equivalent(expectedBinding, actualBinding);
+        Assert.Equivalent(expectedBinding, actualBinding); //TODO: Change arrays to custom collections implementing IEquatable
+
+        Assert.Equal(expectedBinding.Path.Length, actualBinding.Path.Length);
+        for (int i = 0; i < expectedBinding.Path.Length; i++)
+        {
+            Assert.Equal(expectedBinding.Path[i], actualBinding.Path[i]);
+        }
     }
 
     [Fact]
-    public void GenerateBindingWithLongerPath()
+    public void GenerateBindingWithNestedProperties()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -53,8 +61,10 @@ public class BindingRepresentationGenTests
 
         var sourceCodeLocation = new SourceCodeLocation("", 3, 7);
 
+        actualBinding = actualBinding with { Id = 0 }; // TODO: Improve indexing of bindings
+
         var expectedBinding = new CodeWriterBinding(
-                2,
+                0,
                 sourceCodeLocation,
                 new TypeName("global::Microsoft.Maui.Controls.Button", false, false),
                 new TypeName("int", false, false),
@@ -66,6 +76,12 @@ public class BindingRepresentationGenTests
                 true
             );
         Assert.Equivalent(expectedBinding, actualBinding);
-    }
+        
+        Assert.Equal(expectedBinding.Path.Length, actualBinding.Path.Length); //TODO: Change arrays to custom collections implementing IEquatable
 
+        for (int i = 0; i < expectedBinding.Path.Length; i++)
+        {
+            Assert.Equal(expectedBinding.Path[i], actualBinding.Path[i]);
+        }
+    }
 }

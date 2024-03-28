@@ -95,7 +95,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 				DiagnosticsDescriptors.SuboptimalSetBindingOverload, method!.GetLocation()));
 			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
 		}
-	
+
 		var argumentList = invocation.ArgumentList.Arguments;
 		var getter = argumentList[1].Expression;
 
@@ -133,14 +133,14 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		);
 
 		var parts = new List<PathPart>();
-		ParsePath(lambda.Body, context, parts);
+		var correctlyParsed = ParsePath(lambda.Body, context, parts);
 
-		if (parts.Count == 0)
+		if (!correctlyParsed)
 		{
 			diagnostics.Add(Diagnostic.Create(
 				DiagnosticsDescriptors.UnableToResolvePath, lambda.Body.GetLocation(), lambda.Body.ToString()));
 		}
-		
+
 		var codeWriterBinding = new CodeWriterBinding(
 			Id: ++_idCounter,
 			Location: sourceCodeLocation,
@@ -152,7 +152,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
 
-	static void ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts)
+	static bool ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts)
 	{
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
@@ -160,10 +160,11 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(identifier).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			}; // TODO
 			var isNullable = IsNullable(typeInfo);
 			parts.Add(new PathPart(member, isNullable));
+			return true;
 		}
 		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
 		{
@@ -171,11 +172,14 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			};
-			ParsePath(memberAccess.Expression, context, parts); //TODO: Nullable
+			if (!ParsePath(memberAccess.Expression, context, parts))
+			{
+				return false;
+			}
 			parts.Add(new PathPart(member, false));
-			return;
+			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
 		{
@@ -183,31 +187,33 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			}; // TODO
 			parts.Add(new PathPart(member, false, elementAccess.ArgumentList.Arguments[0].Expression)); //TODO: Nullable
-			ParsePath(elementAccess.Expression, context, parts);
+			return ParsePath(elementAccess.Expression, context, parts);
 		}
 		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
 		{
-			ParsePath(conditionalAccess.Expression, context, parts);
+			return ParsePath(conditionalAccess.Expression, context, parts) &&
 			ParsePath(conditionalAccess.WhenNotNull, context, parts);
-			return;
 		}
 		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
 			var member = memberBinding.Name.Identifier.Text;
 			parts.Add(new PathPart(member, false)); //TODO: Nullable
-			return;
+			return true;
 		}
 		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
 		{
-			ParsePath(parenthesized.Expression, context, parts);
-			return;
+			return ParsePath(parenthesized.Expression, context, parts);
+		}
+		else if (expressionSyntax is InvocationExpressionSyntax)
+		{
+			return false;
 		}
 		else
 		{
-			return;
+			return false;
 		}
 	}
 }

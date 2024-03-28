@@ -50,4 +50,22 @@ public class DiagnosticsTests
         Assert.Single(result.Diagnostics);
         Assert.Equal("BSG0004", result.Diagnostics[0].Id);
     }
+
+    [Fact]
+    public void ReportsUnableToResolvePathWhenUsingMethodCall()
+    {
+        var source = """
+            using Microsoft.Maui.Controls;
+
+            double GetRotation(Button b) => b.Rotation;
+
+            var label = new Label();
+            label.SetBinding(Label.RotationProperty, (Button b) => GetRotation(b));
+            """;
+
+        var result = SourceGenHelpers.Run(source);
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("BSG0001", result.Diagnostics[0].Id);
+    }
 }
