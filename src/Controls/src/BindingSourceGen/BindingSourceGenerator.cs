@@ -115,9 +115,9 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
 		}
 
-		var lambdaSymbol = context.SemanticModel.GetSymbolInfo(lambda, cancellationToken: t).Symbol as IMethodSymbol;
+		var lambdaSymbol = context.SemanticModel.GetSymbolInfo(lambda, cancellationToken: t).Symbol as IMethodSymbol ?? throw new Exception("Unable to resolve lambda symbol");
 
-		var inputType = lambdaSymbol!.Parameters[0].Type;
+		var inputType = lambdaSymbol.Parameters[0].Type;
 		var inputTypeGlobalPath = inputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
 		var outputType = lambdaSymbol.ReturnType;
