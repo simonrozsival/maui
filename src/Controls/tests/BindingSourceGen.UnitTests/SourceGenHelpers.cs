@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Microsoft.Maui.Controls.BindingSourceGen;
 using System.Runtime.Loader;
+using Xunit;
 
 internal static class SourceGenHelpers
 {
@@ -12,6 +13,9 @@ internal static class SourceGenHelpers
     {
         var results = Run(source).Results.Single();
         var steps = results.TrackedSteps;
+
+        Assert.Empty(results.Diagnostics);
+
         return (CodeWriterBinding)steps["Bindings"][0].Outputs[0].Value;
     }
 

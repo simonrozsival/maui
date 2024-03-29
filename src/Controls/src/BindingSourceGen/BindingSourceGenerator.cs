@@ -132,7 +132,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		);
 		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
-	static bool ParsePathNullableEnabled(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts, bool IsNodeNullable = false)
+	static bool ParsePathNullableEnabled(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts, bool isNodeNullable = false, object? index = null)
 	{
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
@@ -142,7 +142,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}; // TODO
-			parts.Add(new PathPart(member, IsNodeNullable));
+			parts.Add(new PathPart(member, isNodeNullable, index));
 			return true;
 		}
 		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
@@ -157,29 +157,36 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}
-			parts.Add(new PathPart(member, IsNodeNullable));
+			parts.Add(new PathPart(member, isNodeNullable, index));
 			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
 		{
-			var member = elementAccess.Expression.ToString();
 			var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
 			if (typeInfo == null)
 			{
 				return false;
 			}; // TODO
-			parts.Add(new PathPart(member, IsNodeNullable, elementAccess.ArgumentList.Arguments[0].Expression));
-			return ParsePathNullableEnabled(elementAccess.Expression, context, parts);
+
+			var argumentList = elementAccess.ArgumentList.Arguments;
+			if (argumentList.Count != 1)
+			{
+				return false;
+			}
+			var indexExpression = argumentList[0].Expression;
+			var indexValue = context.SemanticModel.GetConstantValue(indexExpression).Value;
+
+			return ParsePathNullableEnabled(elementAccess.Expression, context, parts, index: indexValue);
 		}
 		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
 		{
-			return ParsePathNullableEnabled(conditionalAccess.Expression, context, parts, true) &&
+			return ParsePathNullableEnabled(conditionalAccess.Expression, context, parts, isNodeNullable: true) &&
 			ParsePathNullableEnabled(conditionalAccess.WhenNotNull, context, parts);
 		}
 		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
 			var member = memberBinding.Name.Identifier.Text;
-			parts.Add(new PathPart(member, IsNodeNullable));
+			parts.Add(new PathPart(member, isNodeNullable, index));
 			return true;
 		}
 		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
