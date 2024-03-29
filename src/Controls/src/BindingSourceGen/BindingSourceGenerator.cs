@@ -21,12 +21,25 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			predicate: static (node, _) => IsSetBindingMethod(node),
 			transform: static (ctx, t) => GetBindingForGeneration(ctx, t)
 		)
-		.Where(static binding => binding != null)
-		.Select(static (binding, t) => binding!)
-		.WithTrackingName("BindingsWithDiagnostics")
-		.Collect();
+		.WithTrackingName("BindingsWithDiagnostics");
 
-		context.RegisterSourceOutput(bindingsWithDiagnostics, (spc, bindings) =>
+
+		context.RegisterSourceOutput(bindingsWithDiagnostics, (spc, bindingWithDiagnostic) =>
+		{
+			foreach (var diagnostic in bindingWithDiagnostic.Diagnostics)
+			{
+				spc.ReportDiagnostic(diagnostic);
+			}
+		});
+
+		var bindings = bindingsWithDiagnostics
+			.Where(static binding => binding.Diagnostics.Length == 0 && binding.Binding != null)
+			.Select(static (binding, t) => binding.Binding!)
+			.WithTrackingName("Bindings")
+			.Collect();
+
+
+		context.RegisterSourceOutput(bindings, (spc, bindings) =>
 		{
 			var codeWriter = new BindingCodeWriter();
 
@@ -59,47 +72,76 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		return false;
 	}
 
-	static Binding? GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
+	static BindingDiagnosticsWrapper GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
 	{
+		var diagnostics = new List<Diagnostic>();
 		var invocation = (InvocationExpressionSyntax)context.Node;
 
-		var method = invocation.Expression as MemberAccessExpressionSyntax;
+		var method = (MemberAccessExpressionSyntax)invocation.Expression;
 
+		var methodSymbolInfo = context.SemanticModel.GetSymbolInfo(method, cancellationToken: t);
 
-		var sourceCodeLocation = new SourceCodeLocation(
-			context.Node.SyntaxTree.FilePath,
-			method!.Name.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-			method!.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
-		);
+		if (methodSymbolInfo.Symbol is not IMethodSymbol methodSymbol) //TODO: Do we need this check?
+		{
+			diagnostics.Add(Diagnostic.Create(
+				DiagnosticsDescriptors.UnableToResolvePath, method.GetLocation()));
+			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
+		}
+
+		// Check whether we are using correct overload
+		if (methodSymbol.Parameters.Length < 2 || methodSymbol.Parameters[1].Type.Name != "Func")
+		{
+			diagnostics.Add(Diagnostic.Create(
+				DiagnosticsDescriptors.SuboptimalSetBindingOverload, method.GetLocation()));
+			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
+		}
 
 		var argumentList = invocation.ArgumentList.Arguments;
 		var getter = argumentList[1].Expression;
 
-
+		//Check if getter is a lambda
 		if (getter is not LambdaExpressionSyntax lambda)
 		{
-			return null; // TODO: Optimize
+			diagnostics.Add(Diagnostic.Create(
+				DiagnosticsDescriptors.GetterIsNotLambda, getter.GetLocation()));
+			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
 		}
 
-
-		if (context.SemanticModel.GetSymbolInfo(lambda).Symbol is not IMethodSymbol symbol)
+		//Check if lambda body is an expression
+		if (lambda.Body is not ExpressionSyntax)
 		{
-			return null;
-		}; // TODO
+			diagnostics.Add(Diagnostic.Create(
+				DiagnosticsDescriptors.GetterLambdaBodyIsNotExpression, lambda.Body.GetLocation()));
+			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
+		}
 
-		var inputType = symbol.Parameters[0].Type;
+		var lambdaSymbol = context.SemanticModel.GetSymbolInfo(lambda, cancellationToken: t).Symbol as IMethodSymbol ?? throw new Exception("Unable to resolve lambda symbol");
+
+		var inputType = lambdaSymbol.Parameters[0].Type;
 		var inputTypeGlobalPath = inputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-		var outputType = symbol.ReturnType;
-		var outputTypeGlobalPath = symbol.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+		var outputType = lambdaSymbol.ReturnType;
+		var outputTypeGlobalPath = lambdaSymbol.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
 		var inputTypeIsGenericParameter = inputType.Kind == SymbolKind.TypeParameter;
 		var outputTypeIsGenericParameter = outputType.Kind == SymbolKind.TypeParameter;
 
-		var parts = new List<PathPart>();
-		ParsePath(lambda.Body, context, parts);
+		var sourceCodeLocation = new SourceCodeLocation(
+			context.Node.SyntaxTree.FilePath,
+			method.Name.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
+			method.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
+		);
 
-		return new Binding(
+		var parts = new List<PathPart>();
+		var correctlyParsed = ParsePath(lambda.Body, context, parts);
+
+		if (!correctlyParsed)
+		{
+			diagnostics.Add(Diagnostic.Create(
+				DiagnosticsDescriptors.UnableToResolvePath, lambda.Body.GetLocation(), lambda.Body.ToString()));
+		}
+
+		var codeWriterBinding = new CodeWriterBinding(
 			Id: ++_idCounter,
 			Location: sourceCodeLocation,
 			SourceType: new TypeName(inputTypeGlobalPath, IsNullable(inputType), inputTypeIsGenericParameter),
@@ -107,9 +149,10 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			Path: parts.ToArray(),
 			GenerateSetter: true //TODO: Implement
 		);
+		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
 
-	static void ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts)
+	static bool ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts)
 	{
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
@@ -117,10 +160,11 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(identifier).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			}; // TODO
 			var isNullable = IsNullable(typeInfo);
 			parts.Add(new PathPart(member, isNullable));
+			return true;
 		}
 		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
 		{
@@ -128,11 +172,14 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			};
-			ParsePath(memberAccess.Expression, context, parts); //TODO: Nullable
+			if (!ParsePath(memberAccess.Expression, context, parts))
+			{
+				return false;
+			}
 			parts.Add(new PathPart(member, false));
-			return;
+			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
 		{
@@ -140,36 +187,42 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
 			if (typeInfo == null)
 			{
-				return;
+				return false;
 			}; // TODO
 			parts.Add(new PathPart(member, false, elementAccess.ArgumentList.Arguments[0].Expression)); //TODO: Nullable
-			ParsePath(elementAccess.Expression, context, parts);
+			return ParsePath(elementAccess.Expression, context, parts);
 		}
 		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
 		{
-			ParsePath(conditionalAccess.Expression, context, parts);
+			return ParsePath(conditionalAccess.Expression, context, parts) &&
 			ParsePath(conditionalAccess.WhenNotNull, context, parts);
-			return;
 		}
 		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
 			var member = memberBinding.Name.Identifier.Text;
 			parts.Add(new PathPart(member, false)); //TODO: Nullable
-			return;
+			return true;
 		}
 		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
 		{
-			ParsePath(parenthesized.Expression, context, parts);
-			return;
+			return ParsePath(parenthesized.Expression, context, parts);
+		}
+		else if (expressionSyntax is InvocationExpressionSyntax)
+		{
+			return false;
 		}
 		else
 		{
-			return;
+			return false;
 		}
 	}
 }
 
-public sealed record Binding(
+public sealed record BindingDiagnosticsWrapper(
+	CodeWriterBinding? Binding,
+	Diagnostic[] Diagnostics);
+
+public sealed record CodeWriterBinding(
 	int Id,
 	SourceCodeLocation Location,
 	TypeName SourceType,
