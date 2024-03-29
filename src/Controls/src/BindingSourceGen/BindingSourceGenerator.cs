@@ -77,14 +77,14 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var diagnostics = new List<Diagnostic>();
 		var invocation = (InvocationExpressionSyntax)context.Node;
 
-		var method = invocation.Expression as MemberAccessExpressionSyntax;
+		var method = (MemberAccessExpressionSyntax)invocation.Expression;
 
-		var methodSymbolInfo = context.SemanticModel.GetSymbolInfo(method!, cancellationToken: t);
+		var methodSymbolInfo = context.SemanticModel.GetSymbolInfo(method, cancellationToken: t);
 
 		if (methodSymbolInfo.Symbol is not IMethodSymbol methodSymbol) //TODO: Do we need this check?
 		{
 			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.UnableToResolvePath, method!.GetLocation()));
+				DiagnosticsDescriptors.UnableToResolvePath, method.GetLocation()));
 			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
 		}
 
@@ -92,7 +92,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		if (methodSymbol.Parameters.Length < 2 || methodSymbol.Parameters[1].Type.Name != "Func")
 		{
 			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.SuboptimalSetBindingOverload, method!.GetLocation()));
+				DiagnosticsDescriptors.SuboptimalSetBindingOverload, method.GetLocation()));
 			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
 		}
 
@@ -128,8 +128,8 @@ public class BindingSourceGenerator : IIncrementalGenerator
 
 		var sourceCodeLocation = new SourceCodeLocation(
 			context.Node.SyntaxTree.FilePath,
-			method!.Name.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-			method!.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
+			method.Name.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
+			method.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
 		);
 
 		var parts = new List<PathPart>();
