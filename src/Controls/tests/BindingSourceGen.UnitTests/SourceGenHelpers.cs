@@ -8,6 +8,13 @@ using System.Runtime.Loader;
 
 internal static class SourceGenHelpers
 {
+    internal static CodeWriterBinding GetBinding(string source)
+    {
+        var results = Run(source).Results.Single();
+        var steps = results.TrackedSteps;
+        return (CodeWriterBinding)steps["Bindings"][0].Outputs[0].Value;
+    }
+
     internal static GeneratorDriverRunResult Run(string source)
     {
         var inputCompilation = CreateCompilation(source);
