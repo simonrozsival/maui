@@ -44,5 +44,6 @@ internal static class SourceGenHelpers
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName("System.Runtime")).Location),
             ],
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication)
+            .WithNullableContextOptions(NullableContextOptions.Enable));
 }

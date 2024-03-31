@@ -63,7 +63,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWithNullableElementInPath()
+    public void GenerateBindingWithNullableReferenceElementInPathWhenNullableEnabled()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -98,7 +98,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWithNullableSource()
+    public void GenerateBindingWithNullableReferenceSourceWhenNullableEnabled()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -123,11 +123,42 @@ public class BindingRepresentationGenTests
         //TODO: Change arrays to custom collections implementing IEquatable
         Assert.Equal(expectedBinding.Path, actualBinding.Path);
         Assert.Equivalent(expectedBinding, actualBinding, strict: true);
-
     }
 
     [Fact]
-    public void GenerateBindingWithNullableSourceAndNullableElementInPath()
+    public void GenerateBindingWithNullableValueTypeWhenNullableEnabled()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Value);
+
+        class Foo
+        {
+            public int? Value { get; set; }
+        }
+        """;
+
+        var actualBinding = SourceGenHelpers.GetBinding(source) with { Id = 0 }; // TODO: Improve indexing of bindings
+        var expectedBinding = new CodeWriterBinding(
+                0,
+                new SourceCodeLocation("", 3, 7),
+                new TypeName("global::Foo", false, false),
+                new TypeName("int", true, false),
+                [
+                    new PathPart("f", false),
+                    new PathPart("Value", true),
+                ],
+                true
+            );
+
+        //TODO: Change arrays to custom collections implementing IEquatable
+        Assert.Equal(expectedBinding.Path, actualBinding.Path);
+        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+    }
+
+    [Fact]
+    public void GenerateBindingWithNullableSourceReferenceAndNullableReferenceElementInPathWhenNullableEnabled()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -155,6 +186,73 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
+    public void GenerateBindingWithNullableReferenceTypesWhenNullableDisabled()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        #nullable disable
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Bar.Length);
+
+        class Foo
+        {
+            public string Bar { get; set; }
+        }
+        """;
+
+        var actualBinding = SourceGenHelpers.GetBinding(source) with { Id = 0 };
+        var expectedBinding = new CodeWriterBinding(
+                0,
+                new SourceCodeLocation("", 4, 7),
+                new TypeName("global::Foo", true, false),
+                new TypeName("int", false, false), // Should it be false?
+                [
+                    new PathPart("f", true),
+                    new PathPart("Bar", true),
+                    new PathPart("Length", false),
+                ],
+                true
+            );
+
+        //TODO: Change arrays to custom collections implementing IEquatable
+        Assert.Equal(expectedBinding.Path, actualBinding.Path);
+        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+    }
+
+    [Fact]
+    public void GenerateBindingWithNullableValueTypeWhenNullableDisabled()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        #nullable disable
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Value);
+
+        class Foo
+        {
+            public int? Value { get; set; }
+        }
+        """;
+
+        var actualBinding = SourceGenHelpers.GetBinding(source) with { Id = 0 };
+        var expectedBinding = new CodeWriterBinding(
+                0,
+                new SourceCodeLocation("", 4, 7),
+                new TypeName("global::Foo", true, false),
+                new TypeName("int", true, false),
+                [
+                    new PathPart("f", true),
+                    new PathPart("Value", true),
+                ],
+                true
+            );
+
+        //TODO: Change arrays to custom collections implementing IEquatable
+        Assert.Equal(expectedBinding.Path, actualBinding.Path);
+        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+    }
+
+    [Fact]
     public void GenerateBindingWhenBindingContainsIntegerIndexing()
     {
         var source = """
@@ -164,7 +262,7 @@ public class BindingRepresentationGenTests
 
         class Foo
         {
-            public string[] Items { get; set; }
+            public string[] Items { get; set; } = { "Item1" };
         }
         """;
 
@@ -188,7 +286,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWhenBindingContainsStringIndexing()
+    public void GenerateBindingWhenGetterContainsStringIndexing()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -198,7 +296,7 @@ public class BindingRepresentationGenTests
 
         class Foo
         {
-            public Dictionary<string, string> Items { get; set; }
+            public Dictionary<string, string> Items { get; set; } = new();
         }
         """;
 
@@ -215,6 +313,7 @@ public class BindingRepresentationGenTests
                 ],
                 true
             );
+
         //TODO: Change arrays to custom collections implementing IEquatable
         Assert.Equal(expectedBinding.Path, actualBinding.Path);
         Assert.Equivalent(expectedBinding, actualBinding, strict: true);

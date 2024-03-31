@@ -8,11 +8,8 @@ namespace Microsoft.Maui.Controls.BindingSourceGen;
 public class BindingSourceGenerator : IIncrementalGenerator
 {
 	// TODO:
-	// Diagnostics
 	// Edge cases
 	// Optimizations
-	// Add diagnostic when lack of usings prevents code from determining the return type of lambda.
-	// Do not process Binding(..., string);
 
 	static int _idCounter = 0;
 	public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -109,12 +106,11 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			method.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
 		);
 
-		var nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
-		var nullableEnabled = nullableContext == NullableContext.Enabled; // If nullable is enabled than we can use simplified ParsePath;
-
+		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
+		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
 
 		var parts = new List<PathPart>();
-		var correctlyParsed = ParsePathNullableEnabled(lambda.Body, context, parts);
+		var correctlyParsed = ParsePath(lambda.Body, enabledNullable, context, parts);
 
 		if (!correctlyParsed)
 		{
@@ -125,14 +121,14 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var codeWriterBinding = new CodeWriterBinding(
 			Id: ++_idCounter,
 			Location: sourceCodeLocation,
-			SourceType: CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type),
-			PropertyType: CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType),
+			SourceType: CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type, enabledNullable),
+			PropertyType: CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable),
 			Path: parts.ToArray(),
 			GenerateSetter: true //TODO: Implement
 		);
 		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
-	static bool ParsePathNullableEnabled(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<PathPart> parts, bool isNodeNullable = false, object? index = null)
+	static bool ParsePath(CSharpSyntaxNode? expressionSyntax, bool enabledNullable, GeneratorSyntaxContext context, List<PathPart> parts, bool isNodeNullable = false, object? index = null)
 	{
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
@@ -142,22 +138,31 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}; // TODO
-			parts.Add(new PathPart(member, isNodeNullable, index));
+			if (!enabledNullable && typeInfo.IsReferenceType)
+			{
+				isNodeNullable = true;
+			}
+
+			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo), index));
 			return true;
 		}
 		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
 		{
 			var member = memberAccess.Name.Identifier.Text;
-			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
+			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Name).Type;
 			if (typeInfo == null)
 			{
 				return false;
 			};
-			if (!ParsePathNullableEnabled(memberAccess.Expression, context, parts))
+			if (!ParsePath(memberAccess.Expression, enabledNullable, context, parts))
 			{
 				return false;
 			}
-			parts.Add(new PathPart(member, isNodeNullable, index));
+			if (!enabledNullable && typeInfo.IsReferenceType)
+			{
+				isNodeNullable = true;
+			}
+			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo), index));
 			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
@@ -167,7 +172,6 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}; // TODO
-
 			var argumentList = elementAccess.ArgumentList.Arguments;
 			if (argumentList.Count != 1)
 			{
@@ -176,12 +180,12 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			var indexExpression = argumentList[0].Expression;
 			var indexValue = context.SemanticModel.GetConstantValue(indexExpression).Value;
 
-			return ParsePathNullableEnabled(elementAccess.Expression, context, parts, index: indexValue);
+			return ParsePath(elementAccess.Expression, enabledNullable, context, parts, index: indexValue);
 		}
 		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
 		{
-			return ParsePathNullableEnabled(conditionalAccess.Expression, context, parts, isNodeNullable: true) &&
-			ParsePathNullableEnabled(conditionalAccess.WhenNotNull, context, parts);
+			return ParsePath(conditionalAccess.Expression, enabledNullable, context, parts, isNodeNullable: true) &&
+			ParsePath(conditionalAccess.WhenNotNull, enabledNullable, context, parts);
 		}
 		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
@@ -191,7 +195,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		}
 		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
 		{
-			return ParsePathNullableEnabled(parenthesized.Expression, context, parts);
+			return ParsePath(parenthesized.Expression, enabledNullable, context, parts);
 		}
 		else if (expressionSyntax is InvocationExpressionSyntax)
 		{
@@ -203,9 +207,16 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		}
 	}
 
-	internal static TypeName CreateTypeNameFromITypeSymbol(ITypeSymbol typeSymbol)
+	internal static bool IsTypeNullable(ITypeSymbol typeInfo)
 	{
-		var (isNullable, name) = GetNullabilityAndName(typeSymbol);
+		return typeInfo is INamedTypeSymbol namedTypeSymbol
+			&& namedTypeSymbol.IsGenericType
+			&& namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T;
+	}
+
+	internal static TypeName CreateTypeNameFromITypeSymbol(ITypeSymbol typeSymbol, bool enabledNullable)
+	{
+		var (isNullable, name) = GetNullabilityAndName(typeSymbol, enabledNullable);
 		return new TypeName(
 			GlobalName: name,
 			IsNullable: isNullable,
@@ -213,18 +224,16 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		);
 	}
 
-	static (bool, string) GetNullabilityAndName(ITypeSymbol typeSymbol)
+	static (bool, string) GetNullabilityAndName(ITypeSymbol typeSymbol, bool enabledNullable)
 	{
-		if (typeSymbol.IsReferenceType && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
+		if (typeSymbol.IsReferenceType && (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated || !enabledNullable))
 		{
 			return (true, typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 		}
 
-		if (typeSymbol is INamedTypeSymbol namedTypeSymbol &&
-			namedTypeSymbol.IsGenericType &&
-			namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+		if (IsTypeNullable(typeSymbol))
 		{
-			var type = namedTypeSymbol.TypeArguments[0];
+			var type = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
 			return (true, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 		}
 
