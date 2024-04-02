@@ -132,18 +132,6 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	{
 		if (expressionSyntax is IdentifierNameSyntax identifier)
 		{
-			var member = identifier.Identifier.Text;
-			var typeInfo = context.SemanticModel.GetTypeInfo(identifier).Type;
-			if (typeInfo == null)
-			{
-				return false;
-			}; // TODO
-			if (!enabledNullable && typeInfo.IsReferenceType)
-			{
-				isNodeNullable = true;
-			}
-
-			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo), index));
 			return true;
 		}
 		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
@@ -158,11 +146,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}
-			if (!enabledNullable && typeInfo.IsReferenceType)
-			{
-				isNodeNullable = true;
-			}
-			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo), index));
+			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo, enabledNullable), index));
 			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
@@ -207,8 +191,13 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		}
 	}
 
-	internal static bool IsTypeNullable(ITypeSymbol typeInfo)
+	internal static bool IsTypeNullable(ITypeSymbol typeInfo, bool enabledNullable)
 	{
+		if (!enabledNullable && typeInfo.IsReferenceType)
+		{
+			return true;
+		}
+
 		return typeInfo is INamedTypeSymbol namedTypeSymbol
 			&& namedTypeSymbol.IsGenericType
 			&& namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T;
@@ -231,7 +220,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			return (true, typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 		}
 
-		if (IsTypeNullable(typeSymbol))
+		if (IsTypeNullable(typeSymbol, enabledNullable))
 		{
 			var type = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
 			return (true, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));

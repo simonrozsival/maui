@@ -23,7 +23,6 @@ public class BindingRepresentationGenTests
                 new TypeName("string", false, false),
                 new TypeName("int", false, false),
                 [
-                    new PathPart("s", false),
                     new PathPart("Length", false),
                 ],
                 true
@@ -50,7 +49,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Microsoft.Maui.Controls.Button", false, false),
                 new TypeName("int", false, false),
                 [
-                    new PathPart("b", false),
                     new PathPart("Text", false),
                     new PathPart("Length", false),
                 ],
@@ -83,7 +81,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Foo", false, false),
                 new TypeName("int", true, false),
                 [
-                    new PathPart("f", false),
                     new PathPart("Button", true),
                     new PathPart("Text", false),
                     new PathPart("Length", false),
@@ -113,7 +110,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Microsoft.Maui.Controls.Button", true, false),
                 new TypeName("int", true, false),
                 [
-                    new PathPart("b", true),
                     new PathPart("Text", false),
                     new PathPart("Length", false),
                 ],
@@ -146,7 +142,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Foo", false, false),
                 new TypeName("int", true, false),
                 [
-                    new PathPart("f", false),
                     new PathPart("Value", true),
                 ],
                 true
@@ -173,7 +168,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Microsoft.Maui.Controls.Button", true, false),
                 new TypeName("int", true, false),
                 [
-                    new PathPart("b", true),
                     new PathPart("Text", true),
                     new PathPart("Length", false),
                 ],
@@ -205,9 +199,8 @@ public class BindingRepresentationGenTests
                 0,
                 new SourceCodeLocation("", 4, 7),
                 new TypeName("global::Foo", true, false),
-                new TypeName("int", false, false), // Should it be false?
+                new TypeName("int", false, false),
                 [
-                    new PathPart("f", true),
                     new PathPart("Bar", true),
                     new PathPart("Length", false),
                 ],
@@ -241,7 +234,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Foo", true, false),
                 new TypeName("int", true, false),
                 [
-                    new PathPart("f", true),
                     new PathPart("Value", true),
                 ],
                 true
@@ -273,7 +265,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Foo", false, false),
                 new TypeName("int", false, false),
                 [
-                    new PathPart("f", false),
                     new PathPart("Items", false, 0),
                     new PathPart("Length", false),
                 ],
@@ -307,7 +298,6 @@ public class BindingRepresentationGenTests
                 new TypeName("global::Foo", false, false),
                 new TypeName("int", false, false),
                 [
-                    new PathPart("f", false),
                     new PathPart("Items", false, "key"),
                     new PathPart("Length", false),
                 ],
