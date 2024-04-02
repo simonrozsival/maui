@@ -331,6 +331,34 @@ public class BindingCodeWriterTests
     }
 
     [Fact]
+    public void CorrectlyFormatsSimpleCast()
+    {
+        var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
+            variableName: "source",
+            path: [
+                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new PathPart("B", IsNullable: false),
+            ],
+            depth: 2);
+
+        Assert.Equal("(source.A as X)?.B", generatedCode);
+    }
+
+    [Fact]
+    public void CorrectlyFormatsSimpleCastOfValueTypes()
+    {
+        var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
+            variableName: "source",
+            path: [
+                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new PathPart("B", IsNullable: false),
+            ],
+            depth: 2);
+
+        Assert.Equal("(source.A as X?)?.B", generatedCode);
+    }
+
+    [Fact]
     public void CorrectlyFormatsBindingWithCasts()
     {
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
@@ -339,9 +367,10 @@ public class BindingCodeWriterTests
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new PathPart("A", IsNullable: true, CastTo: new TypeName("global::X.Y", IsNullable: false, IsGenericParameter: false)),
-                new PathPart("B", IsNullable: true, CastTo: new TypeName("global::Z", IsNullable: true, IsGenericParameter: false)),
-                new PathPart("C", IsNullable: true, CastTo: new TypeName("int", IsNullable: false, IsGenericParameter: false)),
+                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new PathPart("B", IsNullable: true, CastTo: new TypeName("Y", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new PathPart("C", IsNullable: false, CastTo: new TypeName("Z", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new PathPart("D", IsNullable: false),
             ],
             GenerateSetter: true));
 
@@ -366,17 +395,18 @@ public class BindingCodeWriterTests
                     getter: static source => (getter(source), true),
                     setter: static (source, value) => 
                     {
-                        if (((source.A as global::X.Y)?.B as global::Z) is null)
+                        if (((source.A as X)?.B as Y)?.C as Z? is null)
                         {
                             return;
                         }
-                        ((source.A as global::X.Y).B as global::Z).C = value;
+                        ((Z?)((Y)((X)source.A).B).C).D = value;
                     },
                     handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]
                     {
                         new(static source => source, "A"),
-                        new(static source => (source.A as global::X.Y), "B"),
-                        new(static source => ((source.A as global::X.Y)?.B as global::Z), "C"),
+                        new(static source => source.A as X, "B"),
+                        new(static source => (source.A as X)?.B as Y, "C"),
+                        new(static source => ((source.A as X)?.B as Y)?.C as Z?, "D"),
                     })
                 {
                     Mode = mode,
@@ -396,6 +426,8 @@ public class BindingCodeWriterTests
 
     private static void AssertCodeIsEqual(string expectedCode, string actualCode)
     {
+        Console.WriteLine(actualCode);
+        
         var expectedLines = SplitCode(expectedCode);
         var actualLines = SplitCode(actualCode);
 

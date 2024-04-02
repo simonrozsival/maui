@@ -241,7 +241,11 @@ public sealed record CodeWriterBinding(
 
 public sealed record SourceCodeLocation(string FilePath, int Line, int Column);
 
-public sealed record TypeName(string GlobalName, bool IsNullable, bool IsGenericParameter)
+public sealed record TypeName(
+	string GlobalName,
+	bool IsNullable = false,
+	bool IsGenericParameter = false,
+	bool IsValueType = false) // TODO: require setting this explicitly
 {
 	public override string ToString()
 		=> IsNullable
