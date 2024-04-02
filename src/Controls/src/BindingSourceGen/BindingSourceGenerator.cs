@@ -144,7 +144,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			{
 				return false;
 			}
-			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo, enabledNullable), index));
+			parts.Add(new PathPart(member, isNodeNullable || IsTypeNullable(typeInfo, enabledNullable), Index: index));
 			return true;
 		}
 		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
@@ -172,7 +172,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
 		{
 			var member = memberBinding.Name.Identifier.Text;
-			parts.Add(new PathPart(member, isNodeNullable, index));
+			parts.Add(new PathPart(member, isNodeNullable, Index: index));
 			return true;
 		}
 		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
@@ -249,7 +249,11 @@ public sealed record TypeName(string GlobalName, bool IsNullable, bool IsGeneric
 			: GlobalName;
 }
 
-public sealed record PathPart(string Member, bool IsNullable, object? Index = null)
+public sealed record PathPart(
+	string Member,
+	bool IsNullable,
+	TypeName? CastTo = null,
+	object? Index = null)
 {
 	public string MemberName
 		=> Index is not null

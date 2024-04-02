@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.Maui.Controls.BindingSourceGen;
 
@@ -177,8 +178,8 @@ public sealed class BindingCodeWriter
 
 			if (anyPartIsNullable)
 			{
-				Append("if (source");
-				AppendPathAccess(path, path.Length - 1);
+				Append("if (");
+				AppendPathAccess("source", path, depth: path.Length - 1);
 				AppendLine(" is null)");
 				AppendLines(
 					"""
@@ -189,10 +190,10 @@ public sealed class BindingCodeWriter
 					""");
 			}
 
-			Append("source");
-			foreach (var part in path)
+			AppendPathAccess("source", path, depth: path.Length - 1, withConditionalAccess: false);
+			if (path.Length > 1)
 			{
-				Append(part.PartGetter);
+				Append(path[path.Length - 1].PartGetter);
 			}
 
 			AppendLine(" = value;");
@@ -209,8 +210,8 @@ public sealed class BindingCodeWriter
 			Indent();
 			for (int i = 0; i < path.Length; i++)
 			{
-				Append("new(static source => source");
-				AppendPathAccess(path, depth: i);
+				Append("new(static source => ");
+				AppendPathAccess("source", path, depth: i);
 				AppendLine($", \"{path[i].MemberName}\"),");
 			}
 			Unindent();
@@ -218,26 +219,42 @@ public sealed class BindingCodeWriter
 			Append('}');
 		}
 
-		private void AppendPathAccess(PathPart[] path, int depth)
+		private void AppendPathAccess(string variableName, PathPart[] path, int depth, bool withConditionalAccess = true)
 		{
 			Debug.Assert(depth >= 0, "Depth must be greater than 0");
 			Debug.Assert(depth <= path.Length, "Depth must be less than path length");
 
-			if (depth == 0)
-			{
-				return;
-			}
+			var sb = new StringBuilder();
+			sb.Append(variableName);
 
-			for (int i = 0; i < depth - 1; i++)
+			var previousMemberIsNullable = false;
+
+			for (int i = 0; i < depth; i++)
 			{
-				Append(path[i].PartGetter);
-				if (path[i].IsNullable)
+				if (withConditionalAccess && previousMemberIsNullable)
 				{
-					Append('?');
+					sb.Append('?');
 				}
+
+				var part = path[i];
+
+				if (part.CastTo is TypeName castTo)
+				{
+					sb.Insert(0, '(');
+					sb.Append(part.PartGetter);
+					sb.Append($" as ");
+					sb.Append(castTo.GlobalName);
+					sb.Append(')');
+				}
+				else
+				{
+					sb.Append(part.PartGetter);
+				}
+
+				previousMemberIsNullable = part.IsNullable;
 			}
 
-			Append(path[depth - 1].PartGetter);
+			Append(sb.ToString());
 		}
 
 		public void Dispose()

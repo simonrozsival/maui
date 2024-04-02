@@ -330,6 +330,70 @@ public class BindingCodeWriterTests
             code);
     }
 
+    [Fact]
+    public void CorrectlyFormatsBindingWithCasts()
+    {
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
+        codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
+            Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            Path: [
+                new PathPart("A", IsNullable: true, CastTo: new TypeName("global::X.Y", IsNullable: false, IsGenericParameter: false)),
+                new PathPart("B", IsNullable: true, CastTo: new TypeName("global::Z", IsNullable: true, IsGenericParameter: false)),
+                new PathPart("C", IsNullable: true, CastTo: new TypeName("int", IsNullable: false, IsGenericParameter: false)),
+            ],
+            GenerateSetter: true));
+
+        var code = codeBuilder.ToString();
+        AssertCodeIsEqual(
+            $$"""
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
+            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            public static void SetBinding1(
+                this BindableObject bindableObject,
+                BindableProperty bidnableProperty,
+                Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass> getter,
+                BindingMode mode = BindingMode.Default,
+                IValueConverter? converter = null,
+                object? converterParameter = null,
+                string? stringFormat = null,
+                object? source = null,
+                object? fallbackValue = null,
+                object? targetNullValue = null)
+            {
+                var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
+                    getter: static source => (getter(source), true),
+                    setter: static (source, value) => 
+                    {
+                        if (((source.A as global::X.Y)?.B as global::Z) is null)
+                        {
+                            return;
+                        }
+                        ((source.A as global::X.Y).B as global::Z).C = value;
+                    },
+                    handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]
+                    {
+                        new(static source => source, "A"),
+                        new(static source => (source.A as global::X.Y), "B"),
+                        new(static source => ((source.A as global::X.Y)?.B as global::Z), "C"),
+                    })
+                {
+                    Mode = mode,
+                    Converter = converter,
+                    ConverterParameter = converterParameter,
+                    StringFormat = stringFormat,
+                    Source = source,
+                    FallbackValue = fallbackValue,
+                    TargetNullValue = targetNullValue
+                };
+
+                bindableObject.SetBinding(bidnableProperty, binding);
+            }
+            """,
+            code);
+    }
+
     private static void AssertCodeIsEqual(string expectedCode, string actualCode)
     {
         var expectedLines = SplitCode(expectedCode);
