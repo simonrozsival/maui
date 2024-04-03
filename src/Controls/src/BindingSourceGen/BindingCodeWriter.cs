@@ -245,7 +245,7 @@ public sealed class BindingCodeWriter
 				var part = path[i];
 				previousPartCasts = false;
 
-				if (part.CastTo is TypeName castTo)
+				if (part is Cast { TargetType: var castTo })
 				{
 					// TODO: casting to value types will break the left-hand side of assignments
 					// should we report a diagnostic if the customer attempts to do this?
@@ -303,7 +303,7 @@ public sealed class BindingCodeWriter
 				var part = path[i];
 				previousPartCasts = false;
 
-				if (part.CastTo is TypeName castTo)
+				if (part is Cast { TargetType: var castTo })
 				{
 					sb.Append(part.PartGetter);
 					sb.Append(" as ");

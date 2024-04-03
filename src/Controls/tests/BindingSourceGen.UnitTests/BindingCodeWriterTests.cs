@@ -352,7 +352,7 @@ public class BindingCodeWriterTests
         var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
             variableName: "source",
             path: [
-                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new Cast(new MemberAccess("A", IsNullable: true), TargetType: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
                 new MemberAccess("B", IsNullable: false),
             ],
             depth: 2);
@@ -366,7 +366,7 @@ public class BindingCodeWriterTests
         var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
             variableName: "source",
             path: [
-                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new Cast(new MemberAccess("A", IsNullable: true), TargetType: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
                 new MemberAccess("B", IsNullable: false),
             ],
             depth: 2);
@@ -383,9 +383,9 @@ public class BindingCodeWriterTests
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
-                new MemberAccess("B", IsNullable: true, CastTo: new TypeName("Y", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
-                new MemberAccess("C", IsNullable: false, CastTo: new TypeName("Z", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new Cast(new MemberAccess("A", IsNullable: true), TargetType: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new Cast(new MemberAccess("B", IsNullable: true), TargetType: new TypeName("Y", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new Cast(new MemberAccess("C", IsNullable: false), TargetType: new TypeName("Z", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
                 new MemberAccess("D", IsNullable: false),
             ],
             GenerateSetter: true));

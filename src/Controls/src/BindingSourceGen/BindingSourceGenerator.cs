@@ -264,13 +264,13 @@ public sealed record TypeName(
 			: GlobalName;
 }
 
-public sealed record MemberAccess(string MemberName, bool IsNullable, TypeName? CastTo = null) : IPathPart
+public sealed record MemberAccess(string MemberName, bool IsNullable) : IPathPart
 {
 	public string PropertyName => MemberName;
 	public string PartGetter => $".{MemberName}";
 }
 
-public sealed record IndexAccess(string DefaultMemberName, object Index, bool IsNullable, TypeName? CastTo = null) : IPathPart
+public sealed record IndexAccess(string DefaultMemberName, object Index, bool IsNullable) : IPathPart
 {
 	public string PropertyName => $"{DefaultMemberName}[{Index}]";
 	public string PartGetter => $"[{IndexString}]";
@@ -281,10 +281,16 @@ public sealed record IndexAccess(string DefaultMemberName, object Index, bool Is
 	};
 }
 
+public sealed record Cast(IPathPart Part, TypeName TargetType) : IPathPart
+{
+	public string PropertyName => Part.PropertyName;
+	public bool IsNullable => Part.IsNullable;
+	public string PartGetter => Part.PartGetter;
+}
+
 public interface IPathPart
 {
 	public string PropertyName { get; }
 	public bool IsNullable { get; }
-	public TypeName? CastTo { get; }
 	public string PartGetter { get; }
 }
