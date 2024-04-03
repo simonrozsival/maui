@@ -27,6 +27,7 @@ using IPlatformViewHandler = Microsoft.Maui.IViewHandler;
 using PlatformWindow = System.Object;
 using PlatformApplication = System.Object;
 #endif
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Maui.Platform
 {
@@ -67,36 +68,37 @@ namespace Microsoft.Maui.Platform
 			if (handler?.MauiContext != null && handler.MauiContext != context)
 				handler = null;
 
-
-			// TODO Clean up this handler create. Handlers should probably create through the 
-			// DI.Ext Service provider. We just register them all as transient? possibly?
-			if (handler == null)
-			{
-				var viewType = view.GetType();
-				try
-				{
-					if (handlersWithConstructors.Contains(viewType))
-						handler = viewType.CreateTypeWithInjection(context);
-					else
-						handler = context.Handlers.GetHandler(viewType);
-				}
-				catch (MissingMethodException)
-				{
-					handler = viewType.CreateTypeWithInjection(context);
-					if (handler != null)
-						handlersWithConstructors.Add(view.GetType());
-				}
-			}
-
-			if (handler == null)
-				throw new HandlerNotFoundException(view);
-
+			handler ??= view.CreateElementHandler(context) ?? throw new HandlerNotFoundException(view);
 			handler.SetMauiContext(context);
 
 			view.Handler = handler;
 
 			if (handler.VirtualView != view)
 				handler.SetVirtualView(view);
+
+			return handler;
+		}
+
+		// TODO Clean up this handler create. Handlers should probably create through the 
+		// DI.Ext Service provider. We just register them all as transient? possibly?
+		internal static IElementHandler? CreateElementHandlerFallback(this IElement view, IMauiContext context)
+		{
+			IElementHandler? handler = null;
+			var viewType = view.GetType();
+
+			try
+			{
+				if (handlersWithConstructors.Contains(viewType))
+					handler = viewType.CreateTypeWithInjection(context);
+				else
+					handler = context.Handlers.GetHandler(viewType);
+			}
+			catch (MissingMethodException)
+			{
+				handler = viewType.CreateTypeWithInjection(context);
+				if (handler != null)
+					handlersWithConstructors.Add(view.GetType());
+			}
 
 			return handler;
 		}
@@ -145,11 +147,7 @@ namespace Microsoft.Maui.Platform
 			if (handler?.MauiContext != null && handler.MauiContext != context)
 				handler = null;
 
-			if (handler == null)
-				handler = context.Handlers.GetHandler(element.GetType());
-
-			if (handler == null)
-				throw new Exception($"Handler not found for window {element}.");
+			handler ??= element.CreateElementHandler(context) ?? throw new Exception($"Handler not found for window {element}.");
 
 			handler.SetMauiContext(context);
 
