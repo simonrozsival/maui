@@ -14,7 +14,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: true), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: true)],
+            Path: [
+                new MemberAccess("A", IsNullable: true),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: true),
+            ],
             GenerateSetter: true));
 
         var code = codeWriter.GenerateCode();
@@ -107,7 +111,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: true), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: true)],
+            Path: [
+                new MemberAccess("A", IsNullable: true),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: true),
+            ],
             GenerateSetter: true));
 
         var code = codeBuilder.ToString();
@@ -166,7 +174,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: false), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: false)],
+            Path: [
+                new MemberAccess("A", IsNullable: false),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: false),
+            ],
             GenerateSetter: true));
 
         var code = codeBuilder.ToString();
@@ -221,7 +233,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: false), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: false)],
+            Path: [
+                new MemberAccess("A", IsNullable: false),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: false),
+            ],
             GenerateSetter: false));
 
         var code = codeBuilder.ToString();
@@ -275,9 +291,9 @@ public class BindingCodeWriterTests
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new PathPart("Item", IsNullable: true, Index: 12),
-                new PathPart("Indexer", IsNullable: false, Index: "Abc"),
-                new PathPart("Item", IsNullable: false, Index: 0)
+                new IndexAccess("Item", IsNullable: true, Index: 12),
+                new IndexAccess("Indexer", IsNullable: false, Index: "Abc"),
+                new IndexAccess("Item", IsNullable: false, Index: 0)
             ],
             GenerateSetter: true));
 
@@ -313,6 +329,72 @@ public class BindingCodeWriterTests
                         new(static source => source, "Item[12]"),
                         new(static source => source[12], "Indexer[Abc]"),
                         new(static source => source[12]?["Abc"], "Item[0]"),
+                    })
+                {
+                    Mode = mode,
+                    Converter = converter,
+                    ConverterParameter = converterParameter,
+                    StringFormat = stringFormat,
+                    Source = source,
+                    FallbackValue = fallbackValue,
+                    TargetNullValue = targetNullValue
+                };
+
+                bindableObject.SetBinding(bidnableProperty, binding);
+            }
+            """,
+            code);
+    }
+
+    [Fact]
+    public void CorrectlyFormatsBindingWithMemberAccessAndIndexAccess()
+    {
+        var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
+        codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
+            Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            Path: [
+                new MemberAccess("Model", IsNullable: false),
+                new IndexAccess("Item", IsNullable: true, Index: "Name"),
+                new MemberAccess("Letters", IsNullable: false),
+                new IndexAccess("Item", IsNullable: false, Index: 0)
+            ],
+            GenerateSetter: true));
+
+        var code = codeBuilder.ToString();
+        AssertCodeIsEqual(
+            $$"""
+            {{BindingCodeWriter.GeneratedCodeAttribute}}
+            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            public static void SetBinding1(
+                this BindableObject bindableObject,
+                BindableProperty bidnableProperty,
+                Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass> getter,
+                BindingMode mode = BindingMode.Default,
+                IValueConverter? converter = null,
+                object? converterParameter = null,
+                string? stringFormat = null,
+                object? source = null,
+                object? fallbackValue = null,
+                object? targetNullValue = null)
+            {
+                var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
+                    getter: static source => (getter(source), true),
+                    setter: static (source, value) => 
+                    {
+                        if (source.Model["Name"]?.Letters is null)
+                        {
+                            return;
+                        }
+                        source.Model["Name"].Letters[0] = value;
+                    },
+                    handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]
+                    {
+                        new(static source => source, "Model"),
+                        new(static source => source.Model, "Item[Name]"),
+                        new(static source => source.Model["Name"], "Letters"),
+                        new(static source => source.Model["Name"]?.Letters, "Item[0]"),
                     })
                 {
                     Mode = mode,
