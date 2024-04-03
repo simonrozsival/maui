@@ -78,5 +78,10 @@ namespace Microsoft.Maui.Controls
 			Handler?.UpdateValue(propertyName);
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
+#pragma warning disable RS0016
+		public IElementHandler CreateElementHandler(IMauiContext context) => new ToolbarHandler();
+		public Type GetElementHandlerType(IMauiContext context) => typeof(ToolbarHandler);
+#pragma warning restore RS0016
 	}
 }

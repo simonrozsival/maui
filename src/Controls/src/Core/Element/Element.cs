@@ -963,6 +963,20 @@ namespace Microsoft.Maui.Controls
 			set => SetHandler(value);
 		}
 
+#pragma warning disable RS0016
+		public virtual IElementHandler CreateElementHandler(IMauiContext context)
+		{
+			context.CreateLogger<Element>()?.LogWarning($"Element {GetType()} does not have its own handler factory.");
+			return this.CreateElementHandlerFallback(context);
+		}
+
+		public virtual Type GetElementHandlerType(IMauiContext context)
+		{
+			context.CreateLogger<Element>()?.LogWarning($"Element {GetType()} does not have its own handler factory.");
+			return context.Handlers.GetHandlerType(GetType());
+		}
+#pragma warning restore RS0016
+
 		/// <summary>Raised whenever the element's handler starts to change.</summary>
 		public event EventHandler<HandlerChangingEventArgs> HandlerChanging;
 
