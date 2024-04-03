@@ -17,6 +17,24 @@ namespace Microsoft.Maui.Controls
 	{
 		const double DefaultSpacing = 10;
 
+		private static bool remapped = false;
+
+#pragma warning disable RS0016
+		public override IElementHandler CreateElementHandler(IMauiContext context)
+		{
+			// TODO does this need to be threadsafe?
+			if (!remapped)
+			{
+				RemapForControls();
+				remapped = true;
+			}
+
+			return new ButtonHandler();
+		}
+
+		public override Type GetElementHandlerType(IMauiContext context) => typeof(ButtonHandler);
+#pragma warning restore RS0016
+
 		/// <summary>
 		/// The backing store for the <see cref="Command" /> bindable property.
 		/// </summary>
