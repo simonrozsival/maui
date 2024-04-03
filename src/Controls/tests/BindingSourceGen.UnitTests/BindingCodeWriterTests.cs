@@ -14,7 +14,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: true), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: true)],
+            Path: [
+                new MemberAccess("A", IsNullable: true),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: true),
+            ],
             GenerateSetter: true));
 
         var code = codeWriter.GenerateCode();
@@ -107,7 +111,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: true), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: true)],
+            Path: [
+                new MemberAccess("A", IsNullable: true),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: true),
+            ],
             GenerateSetter: true));
 
         var code = codeBuilder.ToString();
@@ -166,7 +174,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: false), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: false)],
+            Path: [
+                new MemberAccess("A", IsNullable: false),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: false),
+            ],
             GenerateSetter: true));
 
         var code = codeBuilder.ToString();
@@ -221,7 +233,11 @@ public class BindingCodeWriterTests
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
-            Path: [new PathPart("A", IsNullable: false), new PathPart("B", IsNullable: false), new PathPart("C", IsNullable: false)],
+            Path: [
+                new MemberAccess("A", IsNullable: false),
+                new MemberAccess("B", IsNullable: false),
+                new MemberAccess("C", IsNullable: false),
+            ],
             GenerateSetter: false));
 
         var code = codeBuilder.ToString();
@@ -275,9 +291,9 @@ public class BindingCodeWriterTests
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new PathPart("Item", IsNullable: true, Index: 12),
-                new PathPart("Indexer", IsNullable: false, Index: "Abc"),
-                new PathPart("Item", IsNullable: false, Index: 0)
+                new IndexAccess("Item", IsNullable: true, Index: 12),
+                new IndexAccess("Indexer", IsNullable: false, Index: "Abc"),
+                new IndexAccess("Item", IsNullable: false, Index: 0)
             ],
             GenerateSetter: true));
 
@@ -336,8 +352,8 @@ public class BindingCodeWriterTests
         var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
             variableName: "source",
             path: [
-                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
-                new PathPart("B", IsNullable: false),
+                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new MemberAccess("B", IsNullable: false),
             ],
             depth: 2);
 
@@ -350,8 +366,8 @@ public class BindingCodeWriterTests
         var generatedCode = BindingCodeWriter.BidningInterceptorCodeBuilder.GenerateConditionalPathAccess(
             variableName: "source",
             path: [
-                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
-                new PathPart("B", IsNullable: false),
+                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new MemberAccess("B", IsNullable: false),
             ],
             depth: 2);
 
@@ -367,10 +383,10 @@ public class BindingCodeWriterTests
             SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new PathPart("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
-                new PathPart("B", IsNullable: true, CastTo: new TypeName("Y", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
-                new PathPart("C", IsNullable: false, CastTo: new TypeName("Z", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
-                new PathPart("D", IsNullable: false),
+                new MemberAccess("A", IsNullable: true, CastTo: new TypeName("X", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new MemberAccess("B", IsNullable: true, CastTo: new TypeName("Y", IsNullable: false, IsGenericParameter: false, IsValueType: false)),
+                new MemberAccess("C", IsNullable: false, CastTo: new TypeName("Z", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new MemberAccess("D", IsNullable: false),
             ],
             GenerateSetter: true));
 

@@ -164,7 +164,7 @@ public sealed class BindingCodeWriter
 			AppendLine($"[InterceptsLocationAttribute(@\"{location.FilePath}\", {location.Line}, {location.Column})]");
 		}
 
-		private void AppendSetterAction(PathPart[] path)
+		private void AppendSetterAction(IPathPart[] path)
 		{
 			AppendLine("static (source, value) => ");
 			AppendLine('{');
@@ -197,7 +197,7 @@ public sealed class BindingCodeWriter
 			Append('}');
 		}
 
-		private void AppendHandlersArray(TypeName sourceType, PathPart[] path)
+		private void AppendHandlersArray(TypeName sourceType, IPathPart[] path)
 		{
 			AppendLine($"new Tuple<Func<{sourceType}, object?>, string>[]");
 			AppendLine('{');
@@ -207,14 +207,14 @@ public sealed class BindingCodeWriter
 			{
 				Append("new(static source => ");
 				Append(GenerateConditionalPathAccess("source", path, depth: i));
-				AppendLine($", \"{path[i].MemberName}\"),");
+				AppendLine($", \"{path[i].PropertyName}\"),");
 			}
 			Unindent();
 
 			Append('}');
 		}
 
-		public static string GenerateUnconditionalPathAccess(string variableName, PathPart[] path, int depth)
+		public static string GenerateUnconditionalPathAccess(string variableName, IPathPart[] path, int depth)
 		{
 			Debug.Assert(depth >= 0, "Depth must be greater than 0");
 			Debug.Assert(depth <= path.Length, "Depth must be less than path length");
@@ -274,7 +274,7 @@ public sealed class BindingCodeWriter
 			return sb.ToString();
 		}
 
-		public static string GenerateConditionalPathAccess(string variableName, PathPart[] path, int depth)
+		public static string GenerateConditionalPathAccess(string variableName, IPathPart[] path, int depth)
 		{
 			Debug.Assert(depth >= 0, "Depth must be greater than 0");
 			Debug.Assert(depth <= path.Length, "Depth must be less than path length");
