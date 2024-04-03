@@ -442,8 +442,6 @@ public class BindingCodeWriterTests
 
     private static void AssertCodeIsEqual(string expectedCode, string actualCode)
     {
-        Console.WriteLine(actualCode);
-        
         var expectedLines = SplitCode(expectedCode);
         var actualLines = SplitCode(actualCode);
 
