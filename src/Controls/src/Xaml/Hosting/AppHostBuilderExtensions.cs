@@ -67,7 +67,6 @@ namespace Microsoft.Maui.Controls.Hosting
 			handlersCollection.AddHandler<Application, ApplicationHandler>();
 			handlersCollection.AddHandler<ActivityIndicator, ActivityIndicatorHandler>();
 			handlersCollection.AddHandler<BoxView, BoxViewHandler>();
-			handlersCollection.AddHandler<Button, ButtonHandler>();
 			handlersCollection.AddHandler<CheckBox, CheckBoxHandler>();
 			handlersCollection.AddHandler<DatePicker, DatePickerHandler>();
 			handlersCollection.AddHandler<Editor, EditorHandler>();
@@ -232,7 +231,6 @@ namespace Microsoft.Maui.Controls.Hosting
 			Application.RemapForControls();
 			VisualElement.RemapForControls();
 			Label.RemapForControls();
-			Button.RemapForControls();
 			CheckBox.RemapForControls();
 			DatePicker.RemapForControls();
 			RadioButton.RemapForControls();
