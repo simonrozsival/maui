@@ -12,12 +12,12 @@ public class BindingCodeWriterTests
         var codeWriter = new BindingCodeWriter();
         codeWriter.AddBinding(new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: [
-                new MemberAccess("A", IsNullable: true),
-                new MemberAccess("B", IsNullable: false),
-                new MemberAccess("C", IsNullable: true),
+                new ConditionalAccess(new MemberAccess("A")),
+                new MemberAccess("B"),
+                new ConditionalAccess(new MemberAccess("C")),
             ],
             GenerateSetter: true));
 
@@ -109,12 +109,12 @@ public class BindingCodeWriterTests
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: [
-                new MemberAccess("A", IsNullable: true),
-                new MemberAccess("B", IsNullable: false),
-                new MemberAccess("C", IsNullable: true),
+                new ConditionalAccess(new MemberAccess("A")),
+                new MemberAccess("B"),
+                new ConditionalAccess(new MemberAccess("C")),
             ],
             GenerateSetter: true));
 
@@ -172,12 +172,12 @@ public class BindingCodeWriterTests
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: [
-                new MemberAccess("A", IsNullable: false),
-                new MemberAccess("B", IsNullable: false),
-                new MemberAccess("C", IsNullable: false),
+                new MemberAccess("A"),
+                new MemberAccess("B"),
+                new MemberAccess("C"),
             ],
             GenerateSetter: true));
 
@@ -231,12 +231,12 @@ public class BindingCodeWriterTests
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false, IsValueType: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false, IsValueType: false),
             Path: [
-                new MemberAccess("A", IsNullable: false),
-                new MemberAccess("B", IsNullable: false),
-                new MemberAccess("C", IsNullable: false),
+                new MemberAccess("A"),
+                new MemberAccess("B"),
+                new MemberAccess("C"),
             ],
             GenerateSetter: false));
 
@@ -288,12 +288,12 @@ public class BindingCodeWriterTests
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new IndexAccess("Item", IsNullable: true, Index: 12),
-                new IndexAccess("Indexer", IsNullable: false, Index: "Abc"),
-                new IndexAccess("Item", IsNullable: false, Index: 0)
+                new ConditionalAccess(new IndexAccess("Item", new NumericIndex(12))),
+                new IndexAccess("Indexer", new StringIndex("Abc")),
+                new IndexAccess("Item", new NumericIndex(0)),
             ],
             GenerateSetter: true));
 
@@ -347,18 +347,63 @@ public class BindingCodeWriterTests
     }
 
     [Fact]
-    public void CorrectlyFormatsBindingWithMemberAccessAndIndexAccess()
+    public void CorrectlyFormatsSimpleCast()
+    {
+        var accessExpressionBuilder = new AccessExpressionBuilder();
+        var generatedCode = accessExpressionBuilder.BuildExpression(
+            variableName: "source",
+            path: [
+                new ConditionalAccess(new Cast(new MemberAccess("A"), TargetType: new TypeDescription("X", IsNullable: false, IsGenericParameter: false, IsValueType: false))),
+                new MemberAccess("B"),
+            ]);
+
+        Assert.Equal("(source.A as X)?.B", generatedCode);
+    }
+
+    [Fact]
+    public void CorrectlyFormatsSimpleCastOfNonNullableValueTypes()
+    {
+        var accessExpressionBuilder = new AccessExpressionBuilder();
+        var generatedCode = accessExpressionBuilder.BuildExpression(
+            variableName: "source",
+            path: [
+                new ConditionalAccess(new Cast(new MemberAccess("A"), TargetType: new TypeDescription("X", IsNullable: false, IsGenericParameter: false, IsValueType: true))),
+                new MemberAccess("B"),
+            ]);
+
+        Assert.Equal("(source.A as X?)?.B", generatedCode);
+    }
+
+    [Fact]
+    public void CorrectlyFormatsSimpleCastOfNullableValueTypes()
+    {
+        var accessExpressionBuilder = new AccessExpressionBuilder();
+        var generatedCode = accessExpressionBuilder.BuildExpression(
+            variableName: "source",
+            path: [
+                new ConditionalAccess(new Cast(new MemberAccess("A"), TargetType: new TypeDescription("X", IsNullable: true, IsGenericParameter: false, IsValueType: true))),
+                new MemberAccess("B"),
+            ]);
+
+        Assert.Equal("(source.A as X?)?.B", generatedCode);
+    }
+
+    // TODO: access to a limitted depth
+    // TODO: unsafe access
+
+    [Fact]
+    public void CorrectlyFormatsBindingWithCasts()
     {
         var codeBuilder = new BindingCodeWriter.BidningInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new CodeWriterBinding(
             Location: new SourceCodeLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
-            SourceType: new TypeName("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
-            PropertyType: new TypeName("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
+            SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
+            PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: [
-                new MemberAccess("Model", IsNullable: false),
-                new IndexAccess("Item", IsNullable: true, Index: "Name"),
-                new MemberAccess("Letters", IsNullable: false),
-                new IndexAccess("Item", IsNullable: false, Index: 0)
+                new ConditionalAccess(new Cast(new MemberAccess("A"), TargetType: new TypeDescription("X", IsValueType: false, IsNullable: false, IsGenericParameter: false))),
+                new ConditionalAccess(new Cast(new MemberAccess("B"), TargetType: new TypeDescription("Y", IsValueType: false, IsNullable: false, IsGenericParameter: false))),
+                new Cast(new MemberAccess("C"), TargetType: new TypeDescription("Z", IsValueType: true, IsNullable: false, IsGenericParameter: false)),
+                new MemberAccess("D"),
             ],
             GenerateSetter: true));
 
@@ -383,18 +428,18 @@ public class BindingCodeWriterTests
                     getter: static source => (getter(source), true),
                     setter: static (source, value) => 
                     {
-                        if (source.Model["Name"]?.Letters is null)
+                        if (((source.A as X)?.B as Y)?.C as Z? is null)
                         {
                             return;
                         }
-                        source.Model["Name"].Letters[0] = value;
+                        ((Z?)((Y)((X)source.A).B).C).D = value;
                     },
                     handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]
                     {
-                        new(static source => source, "Model"),
-                        new(static source => source.Model, "Item[Name]"),
-                        new(static source => source.Model["Name"], "Letters"),
-                        new(static source => source.Model["Name"]?.Letters, "Item[0]"),
+                        new(static source => source, "A"),
+                        new(static source => source.A as X, "B"),
+                        new(static source => (source.A as X)?.B as Y, "C"),
+                        new(static source => ((source.A as X)?.B as Y)?.C as Z?, "D"),
                     })
                 {
                     Mode = mode,

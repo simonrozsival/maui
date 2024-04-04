@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.Maui.Controls.BindingSourceGen;
 
@@ -71,6 +72,7 @@ public sealed class BindingCodeWriter
 	{
 		private StringWriter _stringWriter;
 		private IndentedTextWriter _indentedTextWriter;
+		private AccessExpressionBuilder _accessExpressionBuilder = new();
 
 		public override string ToString()
 		{
@@ -169,17 +171,11 @@ public sealed class BindingCodeWriter
 			AppendLine('{');
 			Indent();
 
-			bool anyPartIsNullable = false;
-			foreach (var part in path)
+			if (path.Any(part => part is ConditionalAccess))
 			{
-				anyPartIsNullable |= part.IsNullable;
-			}
-
-			if (anyPartIsNullable)
-			{
-				Append("if (source");
-				AppendPathAccess(path, path.Length - 1);
-				AppendLine(" is null)");
+				Append("if (");
+				Append(_accessExpressionBuilder.BuildExpression("source", path, depth: path.Length - 1));
+				AppendLine($" is null)");
 				AppendLines(
 					"""
 					{
@@ -189,19 +185,14 @@ public sealed class BindingCodeWriter
 					""");
 			}
 
-			Append("source");
-			foreach (var part in path)
-			{
-				Append(part.PartGetter(withNullableAnnotation: false));
-			}
-
+			Append(_accessExpressionBuilder.BuildExpression("source", path, unsafeAccess: true));
 			AppendLine(" = value;");
 
 			Unindent();
 			Append('}');
 		}
 
-		private void AppendHandlersArray(TypeName sourceType, IPathPart[] path)
+		private void AppendHandlersArray(TypeDescription sourceType, IPathPart[] path)
 		{
 			AppendLine($"new Tuple<Func<{sourceType}, object?>, string>[]");
 			AppendLine('{');
@@ -209,31 +200,13 @@ public sealed class BindingCodeWriter
 			Indent();
 			for (int i = 0; i < path.Length; i++)
 			{
-				Append("new(static source => source");
-				AppendPathAccess(path, depth: i);
+				Append("new(static source => ");
+				Append(_accessExpressionBuilder.BuildExpression("source", path, depth: i));
 				AppendLine($", \"{path[i].PropertyName}\"),");
 			}
 			Unindent();
 
 			Append('}');
-		}
-
-		private void AppendPathAccess(IPathPart[] path, int depth)
-		{
-			Debug.Assert(depth >= 0, "Depth must be greater than 0");
-			Debug.Assert(depth <= path.Length, "Depth must be less than path length");
-
-			if (depth == 0)
-			{
-				return;
-			}
-
-			for (int i = 0; i < depth - 1; i++)
-			{
-				Append(path[i].PartGetter(withNullableAnnotation: true));
-			}
-
-			Append(path[depth - 1].PartGetter(withNullableAnnotation: false));
 		}
 
 		public void Dispose()
