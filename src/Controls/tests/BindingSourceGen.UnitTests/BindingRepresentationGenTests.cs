@@ -26,9 +26,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -51,9 +49,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -82,9 +78,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
 
     }
 
@@ -108,9 +102,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -137,9 +129,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -162,9 +152,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact(Skip = "Require checking path for elements that can be null")]
@@ -192,9 +180,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: true
             );
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -223,9 +209,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -253,9 +237,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -284,9 +266,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -316,9 +296,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: true);
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact(Skip = "Requires checking path for casts")]
@@ -348,9 +326,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: true
             );
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -386,9 +362,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: true
             );
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -424,9 +398,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: true
             );
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -457,9 +429,7 @@ public class BindingRepresentationGenTests
             );
 
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 
     [Fact]
@@ -495,8 +465,6 @@ public class BindingRepresentationGenTests
                 GenerateSetter: true
             );
 
-        //TODO: Change arrays to custom collections implementing IEquatable
-        Assert.Equal(expectedBinding.Path, actualBinding.Path);
-        Assert.Equivalent(expectedBinding, actualBinding, strict: true);
+        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
 }
