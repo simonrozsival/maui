@@ -37,11 +37,22 @@ public class BindingCodeWriterTests
             namespace System.Runtime.CompilerServices
             {
                 using System;
+                using System.CodeDom.Compiler;
 
                 {{BindingCodeWriter.GeneratedCodeAttribute}}
                 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-                file sealed class InterceptsLocationAttribute(string filePath, int line, int column) : Attribute
+                file sealed class InterceptsLocationAttribute : Attribute
                 {
+                    public InterceptsLocationAttribute(string filePath, int line, int column)
+                    {
+                        FilePath = filePath;
+                        Line = line;
+                        Column = column;
+                    }
+            
+                    public string FilePath { get; }
+                    public int Line { get; }
+                    public int Column { get; }
                 }
             }
 
@@ -50,7 +61,7 @@ public class BindingCodeWriterTests
                 using System;
                 using System.CodeDom.Compiler;
                 using System.Runtime.CompilerServices;
-                using Microsoft.Maui.Controls.Internal;
+                using Microsoft.Maui.Controls.Internals;
 
                 {{BindingCodeWriter.GeneratedCodeAttribute}}
                 file static class GeneratedBindableObjectExtensions

@@ -44,8 +44,8 @@ internal static class SourceGenHelpers
 
         var result = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out Compilation compilation, out ImmutableArray<Diagnostic> diagnostics).GetRunResult();
         
-        Console.WriteLine("Generated code:");
-        Console.Write(result.Results.Single().GeneratedSources.Single().SourceText.ToString());
+        // Console.WriteLine("Generated code:");
+        // Console.Write(result.Results.Single().GeneratedSources.Single().SourceText.ToString());
         
         var generatedCodeDiagnostic = compilation.GetDiagnostics();
         if (generatedCodeDiagnostic.Any())

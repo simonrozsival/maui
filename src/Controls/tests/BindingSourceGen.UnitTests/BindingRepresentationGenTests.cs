@@ -18,13 +18,13 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("string"),
                 new TypeDescription("int", IsValueType: true),
                 [
                     new MemberAccess("Length"),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -40,14 +40,14 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new MemberAccess("Text"),
                     new ConditionalAccess(new MemberAccess("Length")),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -68,7 +68,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
@@ -76,7 +76,7 @@ public class BindingRepresentationGenTests
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
 
@@ -93,14 +93,14 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -121,13 +121,13 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new MemberAccess("Value"),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -143,14 +143,14 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -171,13 +171,13 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("string", IsNullable: true),
                 [
                     new MemberAccess("Value"),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
@@ -200,14 +200,14 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 4, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new ConditionalAccess(new MemberAccess("Bar")),
                     new ConditionalAccess(new MemberAccess("Length")),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -229,13 +229,13 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 4, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
                     new MemberAccess("Value"),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -256,7 +256,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true),
                 [
@@ -264,7 +264,7 @@ public class BindingRepresentationGenTests
                     new IndexAccess("Item", new NumericIndex(0)),
                     new MemberAccess("Length"),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -286,7 +286,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 4, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true),
                 [
@@ -294,7 +294,7 @@ public class BindingRepresentationGenTests
                     new IndexAccess("Item", new StringIndex("key")),
                     new MemberAccess("Length"),
                 ],
-                GenerateSetter: true);
+                GenerateSetter: false);
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
     }
@@ -315,7 +315,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("string", IsNullable: true), // May be hard
                 [
@@ -323,7 +323,7 @@ public class BindingRepresentationGenTests
                         new MemberAccess("Value"),
                         new TypeDescription("string")),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
@@ -339,7 +339,7 @@ public class BindingRepresentationGenTests
 
         public class Foo
         {
-            public object C { get; set; }
+            public object C { get; set; } = new C();
         }
 
         class C
@@ -350,7 +350,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 [
@@ -359,7 +359,7 @@ public class BindingRepresentationGenTests
                         new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
@@ -386,7 +386,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
                 [
@@ -395,7 +395,7 @@ public class BindingRepresentationGenTests
                         new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
@@ -411,13 +411,13 @@ public class BindingRepresentationGenTests
 
         class Foo
         {
-            public double Value { get; set; }
+            public int Value { get; set; }
         }
         """;
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
                 [
@@ -425,7 +425,7 @@ public class BindingRepresentationGenTests
                         new MemberAccess("Value"),
                         new TypeDescription("int", IsNullable: true, IsValueType: true)),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
 
@@ -453,7 +453,7 @@ public class BindingRepresentationGenTests
 
         var actualBinding = SourceGenHelpers.GetBinding(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation("", 3, 7),
+                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
                 [
@@ -462,7 +462,7 @@ public class BindingRepresentationGenTests
                         new TypeDescription("global::C", IsNullable: true, IsValueType: true)),
                     new ConditionalAccess(new MemberAccess("X")),
                 ],
-                GenerateSetter: true
+                GenerateSetter: false
             );
 
         AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
