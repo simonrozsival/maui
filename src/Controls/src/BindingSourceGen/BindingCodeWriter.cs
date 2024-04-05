@@ -186,31 +186,34 @@ public sealed class BindingCodeWriter
 			AppendLine($"[InterceptsLocationAttribute(@\"{location.FilePath}\", {location.Line}, {location.Column})]");
 		}
 
+		// TODO: The setter action is broken at the moment, it needs to be changed completely:
+		// 	- see https://sharplab.io/#v2:CYLg1APg9FC08MU5LVvRzBYAUDABADwCGArgC4D2sA5gKYB2dATseXcAHy4H5/4AVABYBLAM74AxpWB18Ad2IT6TVu2D4ARgE98xfADoAcgFEB+ALIBBAKoBJfGMqlmkuSpZtKzAzyh/+PgBhIWIGegkqfHJRCQAzEQAbOQBbYl1JMjE5EQZpZmY6SXItOlCANxFvPQYNeSTE0vxEyjESkTiAwJi5aVl8cXxCjzUOXzwoIigyKlpGT3VuCcwV1bX11FwAYgZSRMTiTWT8RkPk3FwAAQAmAEYLnAZiFLoxAAdiN0ttI2fXj7cuAA3rhApcAMz4G7fADKzlcdCCBzEYlB/BBOECYMhlE0ACsiuQAPz4Kz4IH4ejkADcjjoNPwAF80XxmTgWVDIdCAOocjFY/gQ/AADXwAHlyZT6bTsgzGfgALz4Xb7ACE1I5bI5Quhwr5HOx+AAmiSAEKSqky6VMzUPQ1tZikYrG/WYgWc/C4gnOoIW62y2nypUqxLqg2CyFGgAUAEpyWzAlq3Xwddd8AAtV3uj0WbQABWYlDeLHI2iRSgkABE/QyA0zFcq9qGNcmbezW6nvgWiyWy8jUa3+fw2UnoQJtMXgKbcsBcjRCAIYQAaQR5pZDlOQ8eT6e1OdRy4AVgXy9XnCl5HYzBXl1u1xPK4Ea7pl5YMazw9wSaeL3enzkFgiJIhZOHE5AGBYZAiAYQSUAw5CFokYgGAA4vMozAMCuAAJA3PcOC4QADFCtwwTIdCVpQKRkSkbxJCwLY4QA2mhqhsBwsGyFYl7MCImgUHQUYAESAcBrSUGBEFQWR8GIchu6zuEcIuG4rErgAaiwYhVAwCqkYRBgGYRK5BHs5AuHQCpMBQrCJCueakEcQEANJ0NoAiUAA1owVlNkJK5CfphmGUJMYALo4Qkxy3gAbFCaasQsHAKWcdBivihImAAHuwDDaXBA7YRiOHYSx6HscAnF0NxCF8QJwmiSBEngZBpDQbBsmUEhBgKXOykImp+Cacw+W6UFRkmWZFlWXQNnEHZ+AOU5kiue5Xk+SG/n4IFwVGaFEUEbhXK3HFlwACz4DC9K9eEtxRiV2ExIMXqEloM6pel3rkEuD0vc6mgiMATxHHQ3bFswpY/YduHHjQLSaPNIAgLmvy/gCdAQdo/VuOWKJEiucO4ojyM/H8f5uJjYO9rjYjnlSV7vodGLYSz5TEMwb17uEDZMPIggTslM5zoQhMI4kSMo2T6OY9jiL9vjlLw8Tkto/+lOFuDpY05w93Q9h9MsFDLMs7KV4gCRcVRk4Kl0CubOJKQdBxgq54PUVbvYR0+BW/CXyDCG4bZkH+AQBAji+xjZL+5QJSi8rpOqxT3IKIHwfuqH+CqvIBhij1BgABJKOp82O6nadYhn2e56aBjFw7GO+tHsdK+LJOo/8avpvgABejPGyzzP97hADsLZDwm5cCh73cGNWSr247Y/G4yMZL0m2EjkAA===
 		private void AppendSetterAction(IPathPart[] path)
 		{
-			AppendLine("static (source, value) => ");
-			AppendLine('{');
-			Indent();
+			throw new NotImplementedException();
+			// AppendLine("static (source, value) => ");
+			// AppendLine('{');
+			// Indent();
 
-			if (path.Any(part => part.IsConditional))
-			{
-				Append("if (");
-				Append(_accessExpressionBuilder.BuildExpression("source", path, depth: path.Length - 1));
-				AppendLine($" is null)");
-				AppendLines(
-					"""
-					{
-					    return;
-					}
+			// if (path.Any(part => part.IsConditional))
+			// {
+			// 	Append("if (");
+			// 	Append(_accessExpressionBuilder.BuildExpression("source", path, depth: path.Length - 1));
+			// 	AppendLine($" is null)");
+			// 	AppendLines(
+			// 		"""
+			// 		{
+			// 		    return;
+			// 		}
 
-					""");
-			}
+			// 		""");
+			// }
 
-			Append(_accessExpressionBuilder.BuildExpression("source", path, unsafeAccess: true));
-			AppendLine(" = value;");
+			// Append(_accessExpressionBuilder.BuildExpression("source", path, unsafeAccess: true));
+			// AppendLine(" = value;");
 
-			Unindent();
-			Append('}');
+			// Unindent();
+			// Append('}');
 		}
 
 		private void AppendHandlersArray(TypeDescription sourceType, IPathPart[] path)
