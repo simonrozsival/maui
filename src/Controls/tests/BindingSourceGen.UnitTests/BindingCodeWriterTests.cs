@@ -71,7 +71,7 @@ public class BindingCodeWriterTests
                         object? targetNullValue = null)
                     {
                         var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                            getter: static source => (getter(source), true),
+                            getter: source => (getter(source), true),
                             setter: static (source, value) => 
                             {
                                 if (source.A?.B is null)
@@ -136,7 +136,7 @@ public class BindingCodeWriterTests
                 object? targetNullValue = null)
             {
                 var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                    getter: static source => (getter(source), true),
+                    getter: source => (getter(source), true),
                     setter: static (source, value) => 
                     {
                         if (source.A?.B is null)
@@ -199,7 +199,7 @@ public class BindingCodeWriterTests
                 object? targetNullValue = null)
             {
                 var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                    getter: static source => (getter(source), true),
+                    getter: source => (getter(source), true),
                     setter: static (source, value) => 
                     {
                         source.A.B.C = value;
@@ -258,7 +258,7 @@ public class BindingCodeWriterTests
                 object? targetNullValue = null)
             {
                 var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                    getter: static source => (getter(source), true),
+                    getter: source => (getter(source), true),
                     setter: null,
                     handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]
                     {
@@ -315,7 +315,7 @@ public class BindingCodeWriterTests
                 object? targetNullValue = null)
             {
                 var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                    getter: static source => (getter(source), true),
+                    getter: source => (getter(source), true),
                     setter: static (source, value) => 
                     {
                         if (source[12]?["Abc"] is null)
@@ -425,7 +425,7 @@ public class BindingCodeWriterTests
                 object? targetNullValue = null)
             {
                 var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
-                    getter: static source => (getter(source), true),
+                    getter: source => (getter(source), true),
                     setter: static (source, value) => 
                     {
                         if (((source.A as X)?.B as Y)?.C as Z? is null)

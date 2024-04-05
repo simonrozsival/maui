@@ -26,11 +26,22 @@ public sealed class BindingCodeWriter
 		namespace System.Runtime.CompilerServices
 		{
 			using System;
+			using System.CodeDom.Compiler;
 		
 			{{GeneratedCodeAttribute}}
 			[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-			file sealed class InterceptsLocationAttribute(string filePath, int line, int column) : Attribute
+			file sealed class InterceptsLocationAttribute : Attribute
 			{
+				public InterceptsLocationAttribute(string filePath, int line, int column)
+				{
+					FilePath = filePath;
+					Line = line;
+					Column = column;
+				}
+		
+				public string FilePath { get; }
+				public int Line { get; }
+				public int Column { get; }
 			}
 		}
 
@@ -39,7 +50,7 @@ public sealed class BindingCodeWriter
 			using System;
 			using System.CodeDom.Compiler;
 			using System.Runtime.CompilerServices;
-			using Microsoft.Maui.Controls.Internal;
+			using Microsoft.Maui.Controls.Internals;
 
 			{{GeneratedCodeAttribute}}
 			file static class GeneratedBindableObjectExtensions
@@ -120,7 +131,7 @@ public sealed class BindingCodeWriter
 					object? targetNullValue = null)
 				{
 					var binding = new TypedBinding<{{binding.SourceType}}, {{binding.PropertyType}}>(
-						getter: static source => (getter(source), true),
+						getter: source => (getter(source), true),
 				""");
 
 			Indent();

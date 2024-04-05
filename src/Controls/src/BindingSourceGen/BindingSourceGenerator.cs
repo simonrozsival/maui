@@ -102,7 +102,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			SourceType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type, enabledNullable),
 			PropertyType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable),
 			Path: parts.ToArray(),
-			GenerateSetter: true //TODO: Implement
+			GenerateSetter: false //TODO: Implement
 		);
 		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
