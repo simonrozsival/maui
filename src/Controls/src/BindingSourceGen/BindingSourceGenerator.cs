@@ -54,6 +54,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			&& invocation.Expression is MemberAccessExpressionSyntax method
 			&& method.Name.Identifier.Text == "SetBinding";
 	}
+
 	static BindingDiagnosticsWrapper GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
 	{
 		var diagnostics = new List<Diagnostic>();
@@ -61,171 +62,104 @@ public class BindingSourceGenerator : IIncrementalGenerator
 
 		var method = (MemberAccessExpressionSyntax)invocation.Expression;
 
-		var methodSymbolInfo = context.SemanticModel.GetSymbolInfo(method, cancellationToken: t);
-
-		if (methodSymbolInfo.Symbol is not IMethodSymbol methodSymbol) //TODO: Do we need this check?
-		{
-			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.UnableToResolvePath, method.GetLocation()));
-			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
-		}
-
-		// Check whether we are using correct overload
-		if (methodSymbol.Parameters.Length < 2 || methodSymbol.Parameters[1].Type.Name != "Func")
-		{
-			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.SuboptimalSetBindingOverload, method.GetLocation()));
-			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
-		}
-
-		var argumentList = invocation.ArgumentList.Arguments;
-		var getter = argumentList[1].Expression;
-
-		//Check if getter is a lambda
-		if (getter is not LambdaExpressionSyntax lambda)
-		{
-			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.GetterIsNotLambda, getter.GetLocation()));
-			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
-		}
-
-		//Check if lambda body is an expression
-		if (lambda.Body is not ExpressionSyntax)
-		{
-			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.GetterLambdaBodyIsNotExpression, lambda.Body.GetLocation()));
-			return new BindingDiagnosticsWrapper(null, diagnostics.ToArray());
-		}
-
-		var lambdaSymbol = context.SemanticModel.GetSymbolInfo(lambda, cancellationToken: t).Symbol as IMethodSymbol ?? throw new Exception("Unable to resolve lambda symbol");
-
 		var sourceCodeLocation = new SourceCodeLocation(
 			context.Node.SyntaxTree.FilePath,
 			method.Name.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
 			method.Name.GetLocation().GetLineSpan().StartLinePosition.Character + 1
 		);
 
+		var overloadDiagnostics = VerifyCorrectOverload(method, context, t);
+
+		if (overloadDiagnostics.Length > 0)
+		{
+			return ReportDiagnostics(overloadDiagnostics);
+		}
+
+		var (lambdaBody, lambdaSymbol, lambdaDiagnostics) = GetLambda(invocation, context.SemanticModel);
+
+		if (lambdaBody == null || lambdaSymbol == null || lambdaDiagnostics.Length > 0)
+		{
+			return ReportDiagnostics(lambdaDiagnostics);
+		}
+
 		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
 		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
-
 		var parts = new List<IPathPart>();
-		var correctlyParsed = ParsePath(lambda.Body, enabledNullable, context, parts);
+		var correctlyParsed = PathParser.ParsePath(lambdaBody, enabledNullable, context, parts);
 
 		if (!correctlyParsed)
 		{
-			diagnostics.Add(Diagnostic.Create(
-				DiagnosticsDescriptors.UnableToResolvePath, lambda.Body.GetLocation(), lambda.Body.ToString()));
+			return ReportDiagnostics([DiagnosticsFactory.UnableToResolvePath(lambdaBody.GetLocation())]);
 		}
+
+		// Sometimes analysing just the return type of the lambda is not enough. TODO: Refactor
+		// var propertyType = BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable);
+		// var lastMember = parts.Last() is Cast cast ? cast.Part : parts.Last();
+		// propertyType = propertyType with { IsNullable = lastMember is ConditionalAccess || propertyType.IsNullable };
 
 		var codeWriterBinding = new CodeWriterBinding(
 			Location: sourceCodeLocation,
-			SourceType: CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type, enabledNullable),
-			PropertyType: CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable),
+			SourceType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type, enabledNullable),
+			PropertyType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable),
 			Path: parts.ToArray(),
 			GenerateSetter: true //TODO: Implement
 		);
 		return new BindingDiagnosticsWrapper(codeWriterBinding, diagnostics.ToArray());
 	}
-	static bool ParsePath(CSharpSyntaxNode? expressionSyntax, bool enabledNullable, GeneratorSyntaxContext context, List<IPathPart> parts, bool isNodeNullable = false, object? index = null)
+
+	private static Diagnostic[] VerifyCorrectOverload(SyntaxNode method, GeneratorSyntaxContext context, CancellationToken t)
 	{
-		if (expressionSyntax is IdentifierNameSyntax identifier)
-		{
-			return true;
-		}
-		else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
-		{
-			var member = memberAccess.Name.Identifier.Text;
-			var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Name).Type;
-			if (typeInfo == null)
-			{
-				return false;
-			};
-			if (!ParsePath(memberAccess.Expression, enabledNullable, context, parts))
-			{
-				return false;
-			}
+		var methodSymbolInfo = context.SemanticModel.GetSymbolInfo(method, cancellationToken: t);
 
-			IPathPart part = new MemberAccess(member);
-			if (isNodeNullable || IsTypeNullable(typeInfo, enabledNullable))
-			{
-				part = new ConditionalAccess(part);
-			}
+		if (methodSymbolInfo.Symbol is not IMethodSymbol methodSymbol) //TODO: Do we need this check?
+		{
+			return [DiagnosticsFactory.UnableToResolvePath(method.GetLocation())];
+		}
 
-			parts.Add(part);
-			return true;
-		}
-		else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
+		if (methodSymbol.Parameters.Length < 2 || methodSymbol.Parameters[1].Type.Name != "Func")
 		{
-			var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
-			if (typeInfo == null)
-			{
-				return false;
-			}; // TODO
-			var argumentList = elementAccess.ArgumentList.Arguments;
-			if (argumentList.Count != 1)
-			{
-				return false;
-			}
-			var indexExpression = argumentList[0].Expression;
-			IIndex? indexValue = context.SemanticModel.GetConstantValue(indexExpression).Value switch
-			{
-				int i => new NumericIndex(i),
-				string s => new StringIndex(s),
-				_ => null
-			};
+			return [DiagnosticsFactory.SuboptimalSetBindingOverload(method.GetLocation())];
+		}
 
-			if (indexValue is null)
-			{
-				return false;
-			}
-
-			if (!ParsePath(elementAccess.Expression, enabledNullable, context, parts))
-			{
-				return false;
-			}
-
-			var defaultMemberName = "Item"; // TODO we need to check the value of the `[DefaultMemberName]` attribute on the member type
-			IPathPart part = new IndexAccess(defaultMemberName, indexValue);
-			if (isNodeNullable || IsTypeNullable(typeInfo, enabledNullable))
-			{
-				part = new ConditionalAccess(part);
-			}
-			parts.Add(part);
-			return true;
-		}
-		else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
-		{
-			return ParsePath(conditionalAccess.Expression, enabledNullable, context, parts, isNodeNullable: true) &&
-			ParsePath(conditionalAccess.WhenNotNull, enabledNullable, context, parts);
-		}
-		else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
-		{
-			var member = memberBinding.Name.Identifier.Text;
-			IPathPart part = new MemberAccess(member);
-			if (isNodeNullable)
-			{
-				part = new ConditionalAccess(part);
-			}
-			parts.Add(part);
-			return true;
-		}
-		else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
-		{
-			return ParsePath(parenthesized.Expression, enabledNullable, context, parts);
-		}
-		else if (expressionSyntax is InvocationExpressionSyntax)
-		{
-			return false;
-		}
-		else
-		{
-			return false;
-		}
+		return Array.Empty<Diagnostic>();
 	}
 
+	private static (ExpressionSyntax? lambdaBodyExpression, IMethodSymbol? lambdaSymbol, Diagnostic[] diagnostics) GetLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+	{
+		var argumentList = invocation.ArgumentList.Arguments;
+		var getter = argumentList[1].Expression;
+
+		if (getter is not LambdaExpressionSyntax lambda)
+		{
+			return (null, null, [DiagnosticsFactory.GetterIsNotLambda(getter.GetLocation())]);
+		}
+
+		if (lambda.Body is not ExpressionSyntax lambdaBody)
+		{
+			return (null, null, [DiagnosticsFactory.GetterLambdaBodyIsNotExpression(lambda.Body.GetLocation())]);
+		}
+
+		if (semanticModel.GetSymbolInfo(lambda).Symbol is not IMethodSymbol lambdaSymbol)
+		{
+			return (null, null, [DiagnosticsFactory.GetterIsNotLambda(lambda.GetLocation())]);
+		}
+
+		return (lambdaBody, lambdaSymbol, Array.Empty<Diagnostic>());
+	}
+
+	private static BindingDiagnosticsWrapper ReportDiagnostics(Diagnostic[] diagnostics) => new(null, diagnostics);
+}
+
+internal static class BindingGenerationUtilities
+{
 	internal static bool IsTypeNullable(ITypeSymbol typeInfo, bool enabledNullable)
 	{
 		if (!enabledNullable && typeInfo.IsReferenceType)
+		{
+			return true;
+		}
+
+		if (typeInfo.NullableAnnotation == NullableAnnotation.Annotated)
 		{
 			return true;
 		}
@@ -245,7 +179,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			IsValueType: typeSymbol.IsValueType);
 	}
 
-	static (bool, string) GetNullabilityAndName(ITypeSymbol typeSymbol, bool enabledNullable)
+	internal static (bool, string) GetNullabilityAndName(ITypeSymbol typeSymbol, bool enabledNullable)
 	{
 		if (typeSymbol.IsReferenceType && (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated || !enabledNullable))
 		{
