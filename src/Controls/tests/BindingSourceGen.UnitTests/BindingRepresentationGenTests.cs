@@ -16,7 +16,7 @@ public class BindingRepresentationGenTests
         label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("string"),
@@ -26,7 +26,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class BindingRepresentationGenTests
         label.SetBinding(Label.RotationProperty, static (Button b) => b.Text?.Length);
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button"),
@@ -49,7 +49,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -78,7 +78,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
 
     }
 
@@ -91,7 +91,7 @@ public class BindingRepresentationGenTests
         label.SetBinding(Label.RotationProperty, static (Button? b) => b?.Text?.Length);
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
@@ -102,7 +102,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -129,7 +129,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class BindingRepresentationGenTests
         label.SetBinding(Label.RotationProperty, static (Button? b) => b?.Text?.Length);
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
@@ -152,7 +152,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact(Skip = "Require checking path for elements that can be null")]
@@ -169,7 +169,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -180,7 +180,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: false
             );
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
@@ -209,7 +209,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
@@ -237,7 +237,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -266,7 +266,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo"),
@@ -296,7 +296,7 @@ public class BindingRepresentationGenTests
                 ],
                 GenerateSetter: false);
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact(Skip = "Requires checking path for casts")]
@@ -313,7 +313,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -326,7 +326,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: false
             );
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -348,7 +348,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -362,7 +362,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: false
             );
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -384,7 +384,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -398,7 +398,7 @@ public class BindingRepresentationGenTests
                 GenerateSetter: false
             );
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -415,7 +415,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -429,7 +429,7 @@ public class BindingRepresentationGenTests
             );
 
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
     [Fact]
@@ -451,7 +451,7 @@ public class BindingRepresentationGenTests
         }
         """;
 
-        var actualBinding = SourceGenHelpers.GetBinding(source);
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
@@ -465,6 +465,6 @@ public class BindingRepresentationGenTests
                 GenerateSetter: false
             );
 
-        AssertExtensions.BindingsAreEqual(expectedBinding, actualBinding);
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 }

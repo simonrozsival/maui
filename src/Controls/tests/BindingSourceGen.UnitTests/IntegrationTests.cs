@@ -14,8 +14,7 @@ public class IntegrationTests
         """;
 
         var result = SourceGenHelpers.Run(source);
-        var code = result.Results.Single().GeneratedSources.Single().SourceText.ToString();
-
+        AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
             //------------------------------------------------------------------------------
@@ -96,9 +95,7 @@ public class IntegrationTests
                 }
             }
             """,
-            code);
-
-            Assert.Empty(result.Diagnostics);
+            result.GeneratedCode);
     }
 
     [Fact]
@@ -139,8 +136,7 @@ public class IntegrationTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-        var code = result.Results.Single().GeneratedSources.Single().SourceText.ToString();
-
+        AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
             //------------------------------------------------------------------------------
@@ -225,6 +221,6 @@ public class IntegrationTests
                 }
             }
             """,
-            code);
+            result.GeneratedCode);
     }
 }
