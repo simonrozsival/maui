@@ -8,9 +8,9 @@ namespace Microsoft.Maui.Controls.BindingSourceGen;
 
 internal class PathParser
 {
-    internal static bool ParsePath(CSharpSyntaxNode? expressionSyntax, bool enabledNullable, GeneratorSyntaxContext context, List<IPathPart> parts)
+    internal static bool ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<IPathPart> parts)
     {
-        if (expressionSyntax is IdentifierNameSyntax identifier)
+        if (expressionSyntax is IdentifierNameSyntax)
         {
             return true;
         }
@@ -22,7 +22,7 @@ internal class PathParser
             {
                 return false;
             };
-            if (!ParsePath(memberAccess.Expression, enabledNullable, context, parts))
+            if (!ParsePath(memberAccess.Expression, context, parts))
             {
                 return false;
             }
@@ -57,7 +57,7 @@ internal class PathParser
                 return false;
             }
 
-            if (!ParsePath(elementAccess.Expression, enabledNullable, context, parts))
+            if (!ParsePath(elementAccess.Expression, context, parts))
             {
                 return false;
             }
@@ -69,8 +69,8 @@ internal class PathParser
         }
         else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
         {
-            return ParsePath(conditionalAccess.Expression, enabledNullable, context, parts) &&
-            ParsePath(conditionalAccess.WhenNotNull, enabledNullable, context, parts);
+            return ParsePath(conditionalAccess.Expression, context, parts) &&
+            ParsePath(conditionalAccess.WhenNotNull, context, parts);
         }
         else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
         {
@@ -82,7 +82,7 @@ internal class PathParser
         }
         else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
         {
-            return ParsePath(parenthesized.Expression, enabledNullable, context, parts);
+            return ParsePath(parenthesized.Expression, context, parts);
         }
         else if (expressionSyntax is BinaryExpressionSyntax asExpression && asExpression.Kind() == SyntaxKind.AsExpression)
         {
@@ -93,13 +93,13 @@ internal class PathParser
                 return false;
             };
 
-            if (!ParsePath(asExpression.Left, enabledNullable, context, parts))
+            if (!ParsePath(asExpression.Left, context, parts))
             {
                 return false;
             }
 
             int last = parts.Count - 1;
-            parts[last] = new Cast(parts[last], BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(typeInfo, enabledNullable));
+            parts[last] = new Cast(parts[last], BindingGenerationUtilities.CreateTypeDescriptionForCast(typeInfo));
             return true;
         }
         else if (expressionSyntax is InvocationExpressionSyntax)

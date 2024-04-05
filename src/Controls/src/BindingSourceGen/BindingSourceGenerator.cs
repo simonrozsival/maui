@@ -85,7 +85,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
 		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
 		var parts = new List<IPathPart>();
-		var correctlyParsed = PathParser.ParsePath(lambdaBody, enabledNullable, context, parts);
+		var correctlyParsed = PathParser.ParsePath(lambdaBody, context, parts);
 
 		if (!correctlyParsed)
 		{
@@ -175,6 +175,20 @@ internal static class BindingGenerationUtilities
 		return new TypeDescription(
 			GlobalName: name,
 			IsNullable: isNullable,
+			IsGenericParameter: typeSymbol.Kind == SymbolKind.TypeParameter,
+			IsValueType: typeSymbol.IsValueType);
+	}
+
+	internal static TypeDescription CreateTypeDescriptionForCast(ITypeSymbol typeSymbol)
+	{
+		// We can cast to nullable value type or non-nullable reference type
+		var name = typeSymbol.IsValueType ?
+			((INamedTypeSymbol)typeSymbol).TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) :
+			typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+		return new TypeDescription(
+			GlobalName: name,
+			IsNullable: typeSymbol.IsValueType,
 			IsGenericParameter: typeSymbol.Kind == SymbolKind.TypeParameter,
 			IsValueType: typeSymbol.IsValueType);
 	}
