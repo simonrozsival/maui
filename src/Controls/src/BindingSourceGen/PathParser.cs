@@ -98,9 +98,8 @@ internal class PathParser
                 return false;
             }
 
-            var lastPart = parts.Last();
-            parts.RemoveAt(parts.Count - 1);
-            parts.Add(new Cast(lastPart, BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(typeInfo, enabledNullable)));
+            int last = parts.Count - 1;
+            parts[last] = new Cast(parts[last], BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(typeInfo, enabledNullable));
             return true;
         }
         else if (expressionSyntax is InvocationExpressionSyntax)
