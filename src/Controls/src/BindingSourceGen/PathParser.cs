@@ -17,11 +17,6 @@ internal class PathParser
         else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
         {
             var member = memberAccess.Name.Identifier.Text;
-            var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Name).Type;
-            if (typeInfo == null)
-            {
-                return false;
-            };
             if (!ParsePath(memberAccess.Expression, context, parts))
             {
                 return false;
@@ -34,11 +29,6 @@ internal class PathParser
         }
         else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
         {
-            var typeInfo = context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
-            if (typeInfo == null)
-            {
-                return false;
-            }; // TODO
             var argumentList = elementAccess.ArgumentList.Arguments;
             if (argumentList.Count != 1)
             {
@@ -101,10 +91,6 @@ internal class PathParser
             int last = parts.Count - 1;
             parts[last] = new Cast(parts[last], BindingGenerationUtilities.CreateTypeDescriptionForCast(typeInfo));
             return true;
-        }
-        else if (expressionSyntax is InvocationExpressionSyntax)
-        {
-            return false;
         }
         else
         {
