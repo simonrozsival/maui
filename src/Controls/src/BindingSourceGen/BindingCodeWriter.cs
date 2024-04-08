@@ -217,7 +217,7 @@ public sealed class BindingCodeWriter
 
 		private void AppendSetterAction(TypeDescription sourceType, IPathPart[] path)
 		{
-			var setter = SetterBuilder.Build(sourceType, path);
+			var setter = Setter.From(sourceType, path);
 			if (setter.PatternMatchingExpressions.Length > 0)
 			{
 				Append("if (");

@@ -12,7 +12,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithoutAnyPatternMatchingForEmptyPath()
     {
-        var setter = SetterBuilder.Build(NullableType, []);
+        var setter = Setter.From(NullableType, []);
 
         Assert.Empty(setter.PatternMatchingExpressions);
         Assert.Equal("source = value;", setter.AssignmentStatement);
@@ -21,7 +21,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithSourceNotNullPatternMatchingForSignlePathStepWhenSourceTypeIsNullable()
     {
-        var setter = SetterBuilder.Build(NullableType, [new MemberAccess("A")]);
+        var setter = Setter.From(NullableType, [new MemberAccess("A")]);
 
         Assert.Single(setter.PatternMatchingExpressions);
         Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
@@ -31,7 +31,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithoutAnyPatternMatchingForSignlePathStepWhenSourceTypeIsNotNullable()
     {
-        var setter = SetterBuilder.Build(NonNullableType, [new MemberAccess("A")]);
+        var setter = Setter.From(NonNullableType, [new MemberAccess("A")]);
 
         Assert.Empty(setter.PatternMatchingExpressions);
         Assert.Equal("source.A = value;", setter.AssignmentStatement);
@@ -40,7 +40,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithCorrectConditionalAccess()
     {
-        var setter = SetterBuilder.Build(NonNullableType, 
+        var setter = Setter.From(NonNullableType, 
             [
                 new MemberAccess("A"),
                 new ConditionalAccess(new MemberAccess("B")),
@@ -56,7 +56,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithPatternMatchingWithValueTypeCast1()
     {
-        var setter = SetterBuilder.Build(NonNullableType, 
+        var setter = Setter.From(NonNullableType, 
             [
                 new MemberAccess("A"),
                 new Cast(new TypeDescription("X", IsValueType: false)),
@@ -75,7 +75,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithPatternMatchingWithValueTypeCast2()
     {
-        var setter = SetterBuilder.Build(NonNullableType, 
+        var setter = Setter.From(NonNullableType, 
             [
                 new MemberAccess("A"),
                 new Cast(new TypeDescription("X", IsValueType: false)),
@@ -95,7 +95,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithPatternMatchingWithCastsAndConditionalAccess()
     {
-        var setter = SetterBuilder.Build(NonNullableType, 
+        var setter = Setter.From(NonNullableType, 
             [
                 new MemberAccess("A"),
                 new Cast(TargetType: new TypeDescription("X", IsValueType: false, IsNullable: false, IsGenericParameter: false)),
