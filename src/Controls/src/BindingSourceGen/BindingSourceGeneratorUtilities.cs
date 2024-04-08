@@ -23,9 +23,9 @@ internal static class BindingGenerationUtilities
 
     internal static TypeDescription CreateTypeNameFromITypeSymbol(ITypeSymbol typeSymbol, bool enabledNullable)
     {
-        var (isNullable, name) = GetNullabilityAndName(typeSymbol, enabledNullable);
+        var isNullable = IsTypeNullable(typeSymbol, enabledNullable);
         return new TypeDescription(
-            GlobalName: name,
+            GlobalName: GetGlobalName(typeSymbol, isNullable, typeSymbol.IsValueType),
             IsNullable: isNullable,
             IsGenericParameter: typeSymbol.Kind == SymbolKind.TypeParameter,
             IsValueType: typeSymbol.IsValueType);
@@ -45,19 +45,13 @@ internal static class BindingGenerationUtilities
             IsValueType: typeSymbol.IsValueType);
     }
 
-    internal static (bool, string) GetNullabilityAndName(ITypeSymbol typeSymbol, bool enabledNullable)
+    internal static string GetGlobalName(ITypeSymbol typeSymbol, bool IsNullable, bool IsValueType)
     {
-        if (typeSymbol.IsReferenceType && (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated || !enabledNullable))
+        if (IsNullable && IsValueType)
         {
-            return (true, typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            return ((INamedTypeSymbol)typeSymbol).TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
 
-        if (IsTypeNullable(typeSymbol, enabledNullable))
-        {
-            var type = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return (true, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-        }
-
-        return (false, typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        return typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 }
