@@ -8,34 +8,48 @@ namespace Microsoft.Maui.Controls.BindingSourceGen;
 
 internal class PathParser
 {
-    internal static bool ParsePath(CSharpSyntaxNode? expressionSyntax, GeneratorSyntaxContext context, List<IPathPart> parts)
+    internal PathParser(GeneratorSyntaxContext context)
+    {
+        Context = context;
+    }
+
+    internal GeneratorSyntaxContext Context { get; }
+
+    internal (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) ParsePath(CSharpSyntaxNode? expressionSyntax)
     {
         if (expressionSyntax is IdentifierNameSyntax)
         {
-            return true;
+            return (new List<Diagnostic>(), new LinkedList<IPathPart>());
         }
         else if (expressionSyntax is MemberAccessExpressionSyntax memberAccess)
         {
-            var member = memberAccess.Name.Identifier.Text;
-            if (!ParsePath(memberAccess.Expression, context, parts))
+            var (diagnostics, parts) = ParsePath(memberAccess.Expression);
+            if (diagnostics.Count > 0)
             {
-                return false;
+                return (diagnostics, parts);
             }
 
+            var member = memberAccess.Name.Identifier.Text;
             IPathPart part = new MemberAccess(member);
-
-            parts.Add(part);
-            return true;
+            parts.AddLast(part);
+            return (diagnostics, parts);
         }
         else if (expressionSyntax is ElementAccessExpressionSyntax elementAccess)
         {
+            var (diagnostics, parts) = ParsePath(elementAccess.Expression);
+            if (diagnostics.Count > 0)
+            {
+                return (diagnostics, parts);
+            }
+
             var argumentList = elementAccess.ArgumentList.Arguments;
             if (argumentList.Count != 1)
             {
-                return false;
+                return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
             }
+
             var indexExpression = argumentList[0].Expression;
-            IIndex? indexValue = context.SemanticModel.GetConstantValue(indexExpression).Value switch
+            IIndex? indexValue = Context.SemanticModel.GetConstantValue(indexExpression).Value switch
             {
                 int i => new NumericIndex(i),
                 string s => new StringIndex(s),
@@ -44,57 +58,73 @@ internal class PathParser
 
             if (indexValue is null)
             {
-                return false;
-            }
-
-            if (!ParsePath(elementAccess.Expression, context, parts))
-            {
-                return false;
+                return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
             }
 
             var defaultMemberName = "Item"; // TODO we need to check the value of the `[DefaultMemberName]` attribute on the member type
             IPathPart part = new IndexAccess(defaultMemberName, indexValue);
-            parts.Add(part);
-            return true;
+            parts.AddLast(part);
+
+            return (diagnostics, parts);
         }
         else if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccess)
         {
-            return ParsePath(conditionalAccess.Expression, context, parts) &&
-            ParsePath(conditionalAccess.WhenNotNull, context, parts);
+            var (diagnostics, parts) = ParsePath(conditionalAccess.Expression);
+            if (diagnostics.Count > 0)
+            {
+                return (diagnostics, parts);
+            }
+
+            var (diagnosticNotNull, partsNotNull) = ParsePath(conditionalAccess.WhenNotNull);
+            if (diagnosticNotNull.Count > 0)
+            {
+                return (diagnosticNotNull, partsNotNull);
+            }
+
+            while (partsNotNull.Count > 0)
+            {
+                parts.AddLast(partsNotNull.First.Value);
+                partsNotNull.RemoveFirst();
+            }
+
+            return (diagnostics, parts);
         }
         else if (expressionSyntax is MemberBindingExpressionSyntax memberBinding)
         {
             var member = memberBinding.Name.Identifier.Text;
             IPathPart part = new MemberAccess(member);
             part = new ConditionalAccess(part);
-            parts.Add(part);
-            return true;
+
+            return (new List<Diagnostic>(), new LinkedList<IPathPart>([part]));
         }
         else if (expressionSyntax is ParenthesizedExpressionSyntax parenthesized)
         {
-            return ParsePath(parenthesized.Expression, context, parts);
+            return ParsePath(parenthesized.Expression);
         }
         else if (expressionSyntax is BinaryExpressionSyntax asExpression && asExpression.Kind() == SyntaxKind.AsExpression)
         {
-            var castTo = asExpression.Right;
-            var typeInfo = context.SemanticModel.GetTypeInfo(castTo).Type;
-            if (typeInfo == null)
+            var (diagnostics, parts) = ParsePath(asExpression.Left);
+            if (diagnostics.Count > 0)
             {
-                return false;
-            };
-
-            if (!ParsePath(asExpression.Left, context, parts))
-            {
-                return false;
+                return (diagnostics, parts);
             }
 
-            int last = parts.Count - 1;
-            parts[last] = new Cast(parts[last], BindingGenerationUtilities.CreateTypeDescriptionForCast(typeInfo));
-            return true;
+            var castTo = asExpression.Right;
+            var typeInfo = Context.SemanticModel.GetTypeInfo(castTo).Type;
+            if (typeInfo == null)
+            {
+                return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(asExpression.GetLocation()) }, new LinkedList<IPathPart>());
+            };
+
+
+            var last = parts.Last;
+            parts.RemoveLast();
+            parts.AddLast(new Cast(last.Value, BindingGenerationUtilities.CreateTypeDescriptionForCast(typeInfo)));
+            return (diagnostics, parts);
         }
         else
         {
-            return false;
+            return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(Location.None) }, new LinkedList<IPathPart>());
         }
     }
 }

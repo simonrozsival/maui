@@ -84,12 +84,13 @@ public class BindingSourceGenerator : IIncrementalGenerator
 
 		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
 		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
-		var parts = new List<IPathPart>();
-		var correctlyParsed = PathParser.ParsePath(lambdaBody, context, parts);
 
-		if (!correctlyParsed)
+		var pathParser = new PathParser(context);
+		var (pathDiagnostics, parts) = pathParser.ParsePath(lambdaBody);
+
+		if (pathDiagnostics.Count > 0)
 		{
-			return ReportDiagnostics([DiagnosticsFactory.UnableToResolvePath(lambdaBody.GetLocation())]);
+			return ReportDiagnostics(pathDiagnostics.ToArray());
 		}
 
 		// Sometimes analysing just the return type of the lambda is not enough. TODO: Refactor
