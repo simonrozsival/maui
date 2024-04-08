@@ -15,11 +15,11 @@ internal class PathParser
 
     private GeneratorSyntaxContext Context { get; }
 
-    internal (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) ParsePath(CSharpSyntaxNode? expressionSyntax)
+    internal (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) ParsePath(CSharpSyntaxNode? expressionSyntax)
     {
         return expressionSyntax switch
         {
-            IdentifierNameSyntax _ => (new List<Diagnostic>(), new LinkedList<IPathPart>()),
+            IdentifierNameSyntax _ => ([], new LinkedList<IPathPart>()),
             MemberAccessExpressionSyntax memberAccess => HandleMemberAccessExpression(memberAccess),
             ElementAccessExpressionSyntax elementAccess => HandleElementAccessExpression(elementAccess),
             ConditionalAccessExpressionSyntax conditionalAccess => HandleConditionalAccessExpression(conditionalAccess),
@@ -30,10 +30,10 @@ internal class PathParser
         };
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleMemberAccessExpression(MemberAccessExpressionSyntax memberAccess)
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleMemberAccessExpression(MemberAccessExpressionSyntax memberAccess)
     {
         var (diagnostics, parts) = ParsePath(memberAccess.Expression);
-        if (diagnostics.Count > 0)
+        if (diagnostics.Length > 0)
         {
             return (diagnostics, parts);
         }
@@ -44,10 +44,10 @@ internal class PathParser
         return (diagnostics, parts);
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleElementAccessExpression(ElementAccessExpressionSyntax elementAccess)
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleElementAccessExpression(ElementAccessExpressionSyntax elementAccess)
     {
         var (diagnostics, parts) = ParsePath(elementAccess.Expression);
-        if (diagnostics.Count > 0)
+        if (diagnostics.Length > 0)
         {
             return (diagnostics, parts);
         }
@@ -55,7 +55,7 @@ internal class PathParser
         var argumentList = elementAccess.ArgumentList.Arguments;
         if (argumentList.Count != 1)
         {
-            return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
+            return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
         }
 
         var indexExpression = argumentList[0].Expression;
@@ -68,7 +68,7 @@ internal class PathParser
 
         if (indexValue is null)
         {
-            return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
+            return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
         }
 
         var defaultMemberName = "Item"; // TODO we need to check the value of the `[DefaultMemberName]` attribute on the member type
@@ -78,16 +78,16 @@ internal class PathParser
         return (diagnostics, parts);
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleConditionalAccessExpression(ConditionalAccessExpressionSyntax conditionalAccess)
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleConditionalAccessExpression(ConditionalAccessExpressionSyntax conditionalAccess)
     {
         var (diagnostics, parts) = ParsePath(conditionalAccess.Expression);
-        if (diagnostics.Count > 0)
+        if (diagnostics.Length > 0)
         {
             return (diagnostics, parts);
         }
 
         var (diagnosticNotNull, partsNotNull) = ParsePath(conditionalAccess.WhenNotNull);
-        if (diagnosticNotNull.Count > 0)
+        if (diagnosticNotNull.Length > 0)
         {
             return (diagnosticNotNull, partsNotNull);
         }
@@ -101,19 +101,19 @@ internal class PathParser
         return (diagnostics, parts);
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleMemberBindingExpression(MemberBindingExpressionSyntax memberBinding)
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleMemberBindingExpression(MemberBindingExpressionSyntax memberBinding)
     {
         var member = memberBinding.Name.Identifier.Text;
         IPathPart part = new MemberAccess(member);
         part = new ConditionalAccess(part);
 
-        return (new List<Diagnostic>(), new LinkedList<IPathPart>([part]));
+        return ([], new LinkedList<IPathPart>([part]));
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleBinaryExpression(BinaryExpressionSyntax asExpression)
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleBinaryExpression(BinaryExpressionSyntax asExpression)
     {
         var (diagnostics, parts) = ParsePath(asExpression.Left);
-        if (diagnostics.Count > 0)
+        if (diagnostics.Length > 0)
         {
             return (diagnostics, parts);
         }
@@ -122,7 +122,7 @@ internal class PathParser
         var typeInfo = Context.SemanticModel.GetTypeInfo(castTo).Type;
         if (typeInfo == null)
         {
-            return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(asExpression.GetLocation()) }, new LinkedList<IPathPart>());
+            return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(asExpression.GetLocation()) }, new LinkedList<IPathPart>());
         };
 
         var last = parts.Last;
@@ -131,8 +131,8 @@ internal class PathParser
         return (diagnostics, parts);
     }
 
-    private (List<Diagnostic> diagnostics, LinkedList<IPathPart> parts) HandleDefaultCase()
+    private (Diagnostic[] diagnostics, LinkedList<IPathPart> parts) HandleDefaultCase()
     {
-        return (new List<Diagnostic> { DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation()) }, new LinkedList<IPathPart>());
+        return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation()) }, new LinkedList<IPathPart>());
     }
 }

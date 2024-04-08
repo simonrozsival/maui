@@ -88,9 +88,9 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var pathParser = new PathParser(context);
 		var (pathDiagnostics, parts) = pathParser.ParsePath(lambdaBody);
 
-		if (pathDiagnostics.Count > 0)
+		if (pathDiagnostics.Length > 0)
 		{
-			return ReportDiagnostics(pathDiagnostics.ToArray());
+			return ReportDiagnostics(pathDiagnostics);
 		}
 
 		// Sometimes analysing just the return type of the lambda is not enough. TODO: Refactor
