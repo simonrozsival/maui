@@ -58,8 +58,10 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	static BindingDiagnosticsWrapper GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
 	{
 		var diagnostics = new List<Diagnostic>();
-		var invocation = (InvocationExpressionSyntax)context.Node;
+		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
+		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
 
+		var invocation = (InvocationExpressionSyntax)context.Node;
 		var method = (MemberAccessExpressionSyntax)invocation.Expression;
 
 		var sourceCodeLocation = new SourceCodeLocation(
@@ -82,26 +84,23 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			return ReportDiagnostics(lambdaDiagnostics);
 		}
 
-		NullableContext nullableContext = context.SemanticModel.GetNullableContext(context.Node.Span.Start);
-		var enabledNullable = (nullableContext & NullableContext.Enabled) == NullableContext.Enabled;
+		var lambdaTypeInfo = context.SemanticModel.GetTypeInfo(lambdaBody, t);
+		if (lambdaTypeInfo.Type == null)
+		{
+			return ReportDiagnostics([DiagnosticsFactory.UnableToResolvePath(lambdaBody.GetLocation())]); // TODO: New diagnostic
+		}
 
 		var pathParser = new PathParser(context);
 		var (pathDiagnostics, parts) = pathParser.ParsePath(lambdaBody);
-
 		if (pathDiagnostics.Length > 0)
 		{
 			return ReportDiagnostics(pathDiagnostics);
 		}
 
-		// Sometimes analysing just the return type of the lambda is not enough. TODO: Refactor
-		// var propertyType = BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable);
-		// var lastMember = parts.Last() is Cast cast ? cast.Part : parts.Last();
-		// propertyType = propertyType with { IsNullable = lastMember is ConditionalAccess || propertyType.IsNullable };
-
 		var codeWriterBinding = new CodeWriterBinding(
 			Location: sourceCodeLocation,
 			SourceType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.Parameters[0].Type, enabledNullable),
-			PropertyType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaSymbol.ReturnType, enabledNullable),
+			PropertyType: BindingGenerationUtilities.CreateTypeNameFromITypeSymbol(lambdaTypeInfo.Type, enabledNullable),
 			Path: parts.ToArray(),
 			GenerateSetter: false //TODO: Implement
 		);

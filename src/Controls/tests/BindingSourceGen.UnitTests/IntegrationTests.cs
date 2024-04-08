@@ -187,7 +187,7 @@ public class IntegrationTests
                     public static void SetBinding1(
                         this BindableObject bindableObject,
                         BindableProperty bidnableProperty,
-                        Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass> getter,
+                        Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass?> getter,
                         BindingMode mode = BindingMode.Default,
                         IValueConverter? converter = null,
                         object? converterParameter = null,
@@ -196,7 +196,7 @@ public class IntegrationTests
                         object? fallbackValue = null,
                         object? targetNullValue = null)
                     {
-                        var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
+                        var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass?>(
                             getter: source => (getter(source), true),
                             setter: null,
                             handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]

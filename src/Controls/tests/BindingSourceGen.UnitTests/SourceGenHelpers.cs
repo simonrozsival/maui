@@ -33,7 +33,7 @@ internal static class SourceGenHelpers
         var result = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out Compilation compilation, out _).GetRunResult().Results.Single();
 
         var generatedCodeDiagnostic = compilation.GetDiagnostics();
-        var generatedCode = result.GeneratedSources.Single().SourceText.ToString();
+        var generatedCode = result.GeneratedSources.Length == 1 ? result.GeneratedSources.Single().SourceText.ToString() : "";
 
         var trackedSteps = result.TrackedSteps;
 

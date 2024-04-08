@@ -155,7 +155,7 @@ public class BindingRepresentationGenTests
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
-    [Fact(Skip = "Require checking path for elements that can be null")]
+    [Fact]
     public void GenerateBindingWithNullablePropertyReferenceWhenNullableEnabled()
     {
         var source = """
@@ -299,7 +299,7 @@ public class BindingRepresentationGenTests
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
 
-    [Fact(Skip = "Requires checking path for casts")]
+    [Fact]
     public void GenerateBindingWhenGetterContainsSimpleReferenceTypeCast()
     {
         var source = """
@@ -309,7 +309,7 @@ public class BindingRepresentationGenTests
 
         class Foo
         {
-            public object Value { get; set; }
+            public object Value { get; set; } = "Value";
         }
         """;
 
@@ -317,7 +317,7 @@ public class BindingRepresentationGenTests
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
-                new TypeDescription("string", IsNullable: true), // May be hard
+                new TypeDescription("string", IsNullable: true),
                 [
                     new Cast(
                         new MemberAccess("Value"),
