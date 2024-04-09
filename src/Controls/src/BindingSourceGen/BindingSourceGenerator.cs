@@ -127,12 +127,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	private static (ExpressionSyntax? lambdaBodyExpression, IMethodSymbol? lambdaSymbol, Diagnostic[] diagnostics) GetLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
 	{
 		var argumentList = invocation.ArgumentList.Arguments;
-		var getter = argumentList[1].Expression;
-
-		if (getter is not LambdaExpressionSyntax lambda)
-		{
-			return (null, null, [DiagnosticsFactory.GetterIsNotLambda(getter.GetLocation())]);
-		}
+		var lambda = (LambdaExpressionSyntax)argumentList[1].Expression;
 
 		if (lambda.Body is not ExpressionSyntax lambdaBody)
 		{
