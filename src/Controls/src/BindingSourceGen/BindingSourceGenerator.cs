@@ -194,7 +194,7 @@ public sealed record CodeWriterBinding(
 	SourceCodeLocation Location,
 	TypeDescription SourceType,
 	TypeDescription PropertyType,
-	IPathPart[] Path,
+	IPathPart[] Path,  // TODO: This will break caching. Implement EquatableArray
 	SetterOptions SetterOptions);
 
 public sealed record SourceCodeLocation(string FilePath, int Line, int Column);
