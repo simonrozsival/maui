@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31410.414
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -216,6 +216,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITest.Appium", "src\TestUtils\src\UITest.Appium\UITest.Appium.csproj", "{5BC29B1A-1EBC-41BF-A0B6-D1B73F8A4991}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITest.NUnit", "src\TestUtils\src\UITest.NUnit\UITest.NUnit.csproj", "{A7B4FF91-8AF6-4A36-805C-B73D888AC1BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Controls.BindingSourceGen", "src\Controls\src\BindingSourceGen\Controls.BindingSourceGen.csproj", "{F3E4596C-3047-42F8-9724-80BCE74C141C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Controls.BindingSourceGen.UnitTests", "src\Controls\tests\BindingSourceGen.UnitTests\Controls.BindingSourceGen.UnitTests.csproj", "{0048EA9A-D751-4576-A2BB-2A37BFB385A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -534,6 +538,14 @@ Global
 		{A7B4FF91-8AF6-4A36-805C-B73D888AC1BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7B4FF91-8AF6-4A36-805C-B73D888AC1BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7B4FF91-8AF6-4A36-805C-B73D888AC1BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E4596C-3047-42F8-9724-80BCE74C141C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3E4596C-3047-42F8-9724-80BCE74C141C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3E4596C-3047-42F8-9724-80BCE74C141C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3E4596C-3047-42F8-9724-80BCE74C141C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0048EA9A-D751-4576-A2BB-2A37BFB385A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0048EA9A-D751-4576-A2BB-2A37BFB385A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0048EA9A-D751-4576-A2BB-2A37BFB385A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0048EA9A-D751-4576-A2BB-2A37BFB385A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -633,6 +645,8 @@ Global
 		{401CA2F5-EAD1-4414-AE8F-42444BF458EB} = {7AC28763-9C68-4BF9-A1BA-25CBFFD2D15C}
 		{5BC29B1A-1EBC-41BF-A0B6-D1B73F8A4991} = {7AC28763-9C68-4BF9-A1BA-25CBFFD2D15C}
 		{A7B4FF91-8AF6-4A36-805C-B73D888AC1BE} = {7AC28763-9C68-4BF9-A1BA-25CBFFD2D15C}
+		{F3E4596C-3047-42F8-9724-80BCE74C141C} = {50C758FE-4E10-409A-94F5-A75480960864}
+		{0048EA9A-D751-4576-A2BB-2A37BFB385A5} = {25D0D27A-C5FE-443D-8B65-D6C987F4A80E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B8ABEAD-D2B5-4370-A187-62B5ABE4EE50}
