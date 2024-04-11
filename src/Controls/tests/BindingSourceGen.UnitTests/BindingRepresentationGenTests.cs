@@ -282,7 +282,6 @@ public class BindingRepresentationGenTests
             public Dictionary<string, string> Items { get; set; } = new();
         }
         """;
-
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
                 new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
@@ -294,6 +293,97 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Length"),
                 ],
                 SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenGetterContainsCustomIndexerWithIndexerNameAttribute()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        using System.Runtime.CompilerServices;
+
+        var label = new Label();
+        var foo = new Foo();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f["key"].Length);
+
+        class Foo
+        {   [IndexerName("CustomIndexer")]
+            public string this[string key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("int", IsValueType: true),
+            [
+                new IndexAccess("CustomIndexer", "key"),
+                new MemberAccess("Length"),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenGetterContainsCustomIndexerWithDefaultMemberAttribute()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        using System.Text;
+
+        var label = new Label();
+        var foo = new Foo();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.s[0]);
+
+        class Foo
+        { 
+            public StringBuilder s {get; set;} = new();
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("char", IsValueType: true),
+            [
+                new MemberAccess("s"),
+                new IndexAccess("Chars", 0),
+            ],
+            SetterOptions: new(IsWritable: true));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenGetterContainsCustomIndexerWithoutAttributes()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f["key"].Length);
+
+        class Foo
+        { 
+            public string this[string key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("int", IsValueType: true),
+            [
+                new IndexAccess("Item", "key"),
+                new MemberAccess("Length"),
+            ],
+            SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }

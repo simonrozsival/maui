@@ -65,8 +65,8 @@ internal class PathParser
             return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
         }
 
-        var defaultMemberName = "Item"; // TODO we need to check the value of the `[DefaultMemberName]` attribute on the member type
-        IPathPart part = new IndexAccess(defaultMemberName, indexValue);
+        var name = GetIndexerName(elementAccess);
+        IPathPart part = new IndexAccess(name, indexValue);
         parts.Add(part);
 
         return (diagnostics, parts);
@@ -121,5 +121,46 @@ internal class PathParser
     private (Diagnostic[] diagnostics, List<IPathPart> parts) HandleDefaultCase()
     {
         return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation()) }, new List<IPathPart>());
+    }
+
+    private string GetIndexerName(ElementAccessExpressionSyntax elementAccess)
+    {
+        const string DefaultName = "Item";
+
+        var typeSymbol = Context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
+        if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
+        {
+            return DefaultName;
+        }
+
+        var defaultMemberAttribute = GetAttribute(typeSymbol, "DefaultMemberAttribute");
+        if (defaultMemberAttribute != null)
+        {
+            return GetAttributeValue(defaultMemberAttribute);
+        }
+
+
+        var symbol = Context.SemanticModel.GetSymbolInfo(elementAccess).Symbol;
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            var indexerNameAttr = GetAttribute(propertySymbol, "IndexerNameAttribute");
+
+            if (indexerNameAttr != null)
+            {
+                return GetAttributeValue(indexerNameAttr);
+            }
+        }
+
+        return DefaultName;
+
+        AttributeData? GetAttribute(ISymbol symbol, string attributeName)
+        {
+            return symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.Name == attributeName);
+        }
+
+        string GetAttributeValue(AttributeData attribute)
+        {
+            return (attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as string : null) ?? DefaultName;
+        }
     }
 }
