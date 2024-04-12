@@ -22,6 +22,7 @@ internal class PathParser
             IdentifierNameSyntax _ => ([], new List<IPathPart>()),
             MemberAccessExpressionSyntax memberAccess => HandleMemberAccessExpression(memberAccess),
             ElementAccessExpressionSyntax elementAccess => HandleElementAccessExpression(elementAccess),
+            ElementBindingExpressionSyntax elementBinding => ElementBindingExpressionSyntax(elementBinding),
             ConditionalAccessExpressionSyntax conditionalAccess => HandleConditionalAccessExpression(conditionalAccess),
             MemberBindingExpressionSyntax memberBinding => HandleMemberBindingExpression(memberBinding),
             ParenthesizedExpressionSyntax parenthesized => ParsePath(parenthesized.Expression),
@@ -52,23 +53,14 @@ internal class PathParser
             return (diagnostics, parts);
         }
 
-        var argumentList = elementAccess.ArgumentList.Arguments;
-        if (argumentList.Count != 1)
+        var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementAccess).Symbol;
+        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccess(elementAccessSymbol, elementAccess.ArgumentList.Arguments, elementAccess.GetLocation());
+        if (elementAccessDiagnostics.Length > 0)
         {
-            return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
+            return (elementAccessDiagnostics, elementAccessParts);
         }
 
-        var indexExpression = argumentList[0].Expression;
-        object? indexValue = Context.SemanticModel.GetConstantValue(indexExpression).Value;
-        if (indexValue is null)
-        {
-            return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(elementAccess.GetLocation()) }, parts);
-        }
-
-        var name = GetIndexerName(elementAccess);
-        IPathPart part = new IndexAccess(name, indexValue);
-        parts.Add(part);
-
+        parts.AddRange(elementAccessParts);
         return (diagnostics, parts);
     }
 
@@ -99,6 +91,19 @@ internal class PathParser
         return ([], new List<IPathPart>([part]));
     }
 
+    private (Diagnostic[] diagnostics, List<IPathPart> parts) ElementBindingExpressionSyntax(ElementBindingExpressionSyntax elementBinding)
+    {
+        var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementBinding).Symbol;
+        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccess(elementAccessSymbol, elementBinding.ArgumentList.Arguments, elementBinding.GetLocation());
+        if (elementAccessDiagnostics.Length > 0)
+        {
+            return (elementAccessDiagnostics, elementAccessParts);
+        }
+
+        elementAccessParts[0] = new ConditionalAccess(elementAccessParts[0]);
+        return (elementAccessDiagnostics, elementAccessParts);
+    }
+
     private (Diagnostic[] diagnostics, List<IPathPart> parts) HandleBinaryExpression(BinaryExpressionSyntax asExpression)
     {
         var (diagnostics, parts) = ParsePath(asExpression.Left);
@@ -123,35 +128,54 @@ internal class PathParser
         return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation()) }, new List<IPathPart>());
     }
 
-    private string GetIndexerName(ElementAccessExpressionSyntax elementAccess)
+    private (Diagnostic[], List<IPathPart>) HandleElementAccess(ISymbol? elementAccessSymbol, SeparatedSyntaxList<ArgumentSyntax> argumentList, Location location)
     {
-        const string DefaultName = "Item";
-
-        var typeSymbol = Context.SemanticModel.GetTypeInfo(elementAccess.Expression).Type;
-        if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
+        if (argumentList.Count != 1)
         {
-            return DefaultName;
+            return ([DiagnosticsFactory.UnableToResolvePath(location)], []);
         }
 
-        var defaultMemberAttribute = GetAttribute(typeSymbol, "DefaultMemberAttribute");
+        var indexExpression = argumentList[0].Expression;
+        object? indexValue = Context.SemanticModel.GetConstantValue(indexExpression).Value;
+        if (indexValue is null)
+        {
+            return ([DiagnosticsFactory.UnableToResolvePath(location)], []);
+        }
+
+        var name = GetIndexerName(elementAccessSymbol);
+        IPathPart part = new IndexAccess(name, indexValue);
+
+        return ([], [part]);
+    }
+
+    private string GetIndexerName(ISymbol? elementAccessSymbol)
+    {
+        const string defaultName = "Item";
+
+        if (elementAccessSymbol is not IPropertySymbol propertySymbol)
+        {
+            return defaultName;
+        }
+
+        var containgType = propertySymbol.ContainingType;
+        if (containgType == null)
+        {
+            return defaultName;
+        }
+
+        var defaultMemberAttribute = GetAttribute(containgType, "DefaultMemberAttribute");
         if (defaultMemberAttribute != null)
         {
             return GetAttributeValue(defaultMemberAttribute);
         }
 
-
-        var symbol = Context.SemanticModel.GetSymbolInfo(elementAccess).Symbol;
-        if (symbol is IPropertySymbol propertySymbol)
+        var indexerNameAttr = GetAttribute(propertySymbol, "IndexerNameAttribute");
+        if (indexerNameAttr != null)
         {
-            var indexerNameAttr = GetAttribute(propertySymbol, "IndexerNameAttribute");
-
-            if (indexerNameAttr != null)
-            {
-                return GetAttributeValue(indexerNameAttr);
-            }
+            return GetAttributeValue(indexerNameAttr);
         }
 
-        return DefaultName;
+        return defaultName;
 
         AttributeData? GetAttribute(ISymbol symbol, string attributeName)
         {
@@ -160,7 +184,7 @@ internal class PathParser
 
         string GetAttributeValue(AttributeData attribute)
         {
-            return (attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as string : null) ?? DefaultName;
+            return (attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as string : null) ?? defaultName;
         }
     }
 }

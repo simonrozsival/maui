@@ -329,6 +329,115 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
+    public void GenerateBindingWhenGetterContainsNullableIndexer()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f["key"]?.Length);
+
+        class Foo
+        {
+            public string? this[string key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("int", IsValueType: true, IsNullable: true),
+            [
+                new IndexAccess("Item", "key"),
+                new ConditionalAccess(new MemberAccess("Length")),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenGetterContainsConditionallyAccessedIndexer()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.bar?["key"].Length);
+
+        class Foo
+        {
+            public Bar? bar { get; set; }
+        }
+
+        class Bar
+        {
+            public string this[string key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("int", IsValueType: true, IsNullable: true),
+            [
+                new MemberAccess("bar"),
+                new ConditionalAccess(new IndexAccess("Item", "key")),
+                new MemberAccess("Length"),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenGetterContainsComplexCombinedIndexers()
+    {
+        var source = """
+            using Microsoft.Maui.Controls;
+            using System.Runtime.CompilerServices;
+            using MyNamespace;
+
+            var label = new Label();
+            label.SetBinding(Label.TextProperty, static (MySourceClass s) => (s[12]?["Abc"][0]));
+
+            namespace MyNamespace
+            {
+                public class MySourceClass
+                {
+                    public B this[int index] => new B();
+                }
+
+                public class B
+                {
+                    [IndexerName("Indexer")]
+                    public MyPropertyClass[] this[string index] => [];
+                }
+
+                public class MyPropertyClass
+                {
+
+                }
+
+            }
+            """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new TypeDescription("global::MyNamespace.MySourceClass"),
+            new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: true),
+            [
+                new IndexAccess("Item", 12),
+                new ConditionalAccess(new IndexAccess("Indexer", "Abc")),
+                new IndexAccess("Item", 0),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
     public void GenerateBindingWhenGetterContainsCustomIndexerWithDefaultMemberAttribute()
     {
         var source = """
