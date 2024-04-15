@@ -22,7 +22,7 @@ internal class PathParser
             IdentifierNameSyntax _ => ([], new List<IPathPart>()),
             MemberAccessExpressionSyntax memberAccess => HandleMemberAccessExpression(memberAccess),
             ElementAccessExpressionSyntax elementAccess => HandleElementAccessExpression(elementAccess),
-            ElementBindingExpressionSyntax elementBinding => ElementBindingExpressionSyntax(elementBinding),
+            ElementBindingExpressionSyntax elementBinding => HandleElementBindingExpression(elementBinding),
             ConditionalAccessExpressionSyntax conditionalAccess => HandleConditionalAccessExpression(conditionalAccess),
             MemberBindingExpressionSyntax memberBinding => HandleMemberBindingExpression(memberBinding),
             ParenthesizedExpressionSyntax parenthesized => ParsePath(parenthesized.Expression),
@@ -54,7 +54,7 @@ internal class PathParser
         }
 
         var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementAccess).Symbol;
-        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccess(elementAccessSymbol, elementAccess.ArgumentList.Arguments, elementAccess.GetLocation());
+        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccessSymbol(elementAccessSymbol, elementAccess.ArgumentList.Arguments, elementAccess.GetLocation());
         if (elementAccessDiagnostics.Length > 0)
         {
             return (elementAccessDiagnostics, elementAccessParts);
@@ -91,10 +91,10 @@ internal class PathParser
         return ([], new List<IPathPart>([part]));
     }
 
-    private (Diagnostic[] diagnostics, List<IPathPart> parts) ElementBindingExpressionSyntax(ElementBindingExpressionSyntax elementBinding)
+    private (Diagnostic[] diagnostics, List<IPathPart> parts) HandleElementBindingExpression(ElementBindingExpressionSyntax elementBinding)
     {
         var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementBinding).Symbol;
-        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccess(elementAccessSymbol, elementBinding.ArgumentList.Arguments, elementBinding.GetLocation());
+        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccessSymbol(elementAccessSymbol, elementBinding.ArgumentList.Arguments, elementBinding.GetLocation());
         if (elementAccessDiagnostics.Length > 0)
         {
             return (elementAccessDiagnostics, elementAccessParts);
@@ -128,7 +128,7 @@ internal class PathParser
         return (new Diagnostic[] { DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation()) }, new List<IPathPart>());
     }
 
-    private (Diagnostic[], List<IPathPart>) HandleElementAccess(ISymbol? elementAccessSymbol, SeparatedSyntaxList<ArgumentSyntax> argumentList, Location location)
+    private (Diagnostic[], List<IPathPart>) HandleElementAccessSymbol(ISymbol? elementAccessSymbol, SeparatedSyntaxList<ArgumentSyntax> argumentList, Location location)
     {
         if (argumentList.Count != 1)
         {
