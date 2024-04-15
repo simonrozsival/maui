@@ -367,6 +367,7 @@ public class BindingCodeWriterTests
                         {
                             return;
                         }
+                        
                         if (source[12] is {} p0)
                         {
                             p0["Abc"][0] = value;
