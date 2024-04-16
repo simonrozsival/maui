@@ -17,7 +17,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			predicate: static (node, _) => IsSetBindingMethod(node),
 			transform: static (ctx, t) => GetBindingForGeneration(ctx, t)
 		)
-		.WithTrackingName("BindingsWithDiagnostics");
+		.WithTrackingName(TrackingNames.BindingsWithDiagnostics);
 
 
 		context.RegisterSourceOutput(bindingsWithDiagnostics, (spc, bindingWithDiagnostic) =>
@@ -31,7 +31,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var bindings = bindingsWithDiagnostics
 			.Where(static binding => binding.Diagnostics.Length == 0 && binding.Binding != null)
 			.Select(static (binding, t) => binding.Binding!)
-			.WithTrackingName("Bindings")
+			.WithTrackingName(TrackingNames.Bindings)
 			.Collect();
 
 
@@ -193,6 +193,12 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	}
 
 	private static BindingDiagnosticsWrapper ReportDiagnostics(Diagnostic[] diagnostics) => new(null, diagnostics);
+}
+
+internal class TrackingNames
+{
+	public const string BindingsWithDiagnostics = nameof(BindingsWithDiagnostics);
+	public const string Bindings = nameof(Bindings);
 }
 
 public sealed record BindingDiagnosticsWrapper(

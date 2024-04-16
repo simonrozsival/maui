@@ -19,15 +19,20 @@ internal static class SourceGenHelpers
     private static readonly CSharpParseOptions ParseOptions = new CSharpParseOptions(LanguageVersion.Preview).WithFeatures(
                 [new KeyValuePair<string, string>("InterceptorsPreviewNamespaces", "Microsoft.Maui.Controls.Generated")]);
 
-    internal static CodeGeneratorResult Run(string source)
+    internal static CSharpGeneratorDriver CreateDriver()
     {
-        var inputCompilation = CreateCompilation(source);
         var generator = new BindingSourceGenerator();
         var sourceGenerator = generator.AsSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(
+        return CSharpGeneratorDriver.Create(
             [sourceGenerator],
             driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true),
             parseOptions: ParseOptions);
+    }
+
+    internal static CodeGeneratorResult Run(string source)
+    {
+        var inputCompilation = CreateCompilation(source);
+        var driver = CreateDriver();
 
         var result = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out Compilation compilation, out _).GetRunResult().Results.Single();
 
