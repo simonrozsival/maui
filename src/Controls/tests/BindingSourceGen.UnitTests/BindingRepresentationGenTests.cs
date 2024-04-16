@@ -432,7 +432,7 @@ public class BindingRepresentationGenTests
                 new ConditionalAccess(new IndexAccess("Indexer", "Abc")),
                 new IndexAccess("Item", 0),
             ],
-            SetterOptions: new(IsWritable: false));
+            SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -652,6 +652,143 @@ public class BindingRepresentationGenTests
                     new ConditionalAccess(new MemberAccess("X")),
                 ],
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void SetsIsWritableFalseWhenPropertyComesFromImmutableCollection()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.S[0]);
+
+        class Foo
+        {
+            public string S { get; set; } = "Value";
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("char", IsValueType: true),
+            [
+                new MemberAccess("S"),
+                new IndexAccess("Chars", 0),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void SetsIsWritableTrueWhenPropertyComesFromMutableCollection()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.S[0]);
+
+        class Foo
+        {
+            public char[] S { get; set; } = { 'A' };
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("char", IsValueType: true),
+            [
+                new MemberAccess("S"),
+                new IndexAccess("Item", 0),
+            ],
+            SetterOptions: new(IsWritable: true));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void SetsIsWritableFalseWhenCustomIndexerHasNoSetter()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f["key"]);
+
+        class Foo
+        {
+            public string this[string key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("string"),
+            [
+                new IndexAccess("Item", "key"),
+            ],
+            SetterOptions: new(IsWritable: false));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void SetsIsWritableTrueWhenCustomIndexerHasSetter()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f["key"]);
+
+        class Foo
+        {
+            public string this[string key] { get => key; set {} }
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo"),
+            new TypeDescription("string"),
+            [
+                new IndexAccess("Item", "key"),
+            ],
+            SetterOptions: new(IsWritable: true));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void SetsIsWritableWhenElementAccessIsConditional()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo? f) => f?[0]);
+
+        class Foo
+        {
+            public int this[int key] => key;
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new CodeWriterBinding(
+            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new TypeDescription("global::Foo", IsNullable: true),
+            new TypeDescription("int", IsValueType: true, IsNullable: true),
+            [
+                new ConditionalAccess(new IndexAccess("Item", 0)),
+            ],
+            SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
