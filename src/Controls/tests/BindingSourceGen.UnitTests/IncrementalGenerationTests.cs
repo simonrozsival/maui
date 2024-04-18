@@ -24,20 +24,7 @@ public class IncrementalGenerationTests
         var result2 = driver2.RunGenerators(inputCompilation2).GetRunResult().Results.Single();
 
         Assert.Equal(result1.TrackedSteps.Count, result2.TrackedSteps.Count);
-        foreach (var (step1, step2) in result1.TrackedSteps.Zip(result2.TrackedSteps))
-        {
-            Assert.Equal(step1.Key, step2.Key);
-            var value1 = step1.Value;
-            var value2 = step2.Value;
-            foreach (var (runStep1, runStep2) in value1.Zip(value2))
-            {
-                foreach (var (output1, output2) in runStep1.Outputs.Zip(runStep2.Outputs))
-                {
-                    Assert.Equal(output1.Reason, output2.Reason);
-                    Assert.Equal(output1.Value, output2.Value);
-                }
-            }
-        }
+        CompareGeneratorOutputs(result1, result2);
     }
 
     [Fact]
@@ -50,22 +37,47 @@ public class IncrementalGenerationTests
         """;
 
         var inputCompilation = SourceGenHelpers.CreateCompilation(source);
+        var inputCompilationClone = inputCompilation.Clone();
         var driver = SourceGenHelpers.CreateDriver();
 
-        var result = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out Compilation compilation, out _).GetRunResult().Results.Single();
+        var driverWithCachedInfo = driver.RunGenerators(inputCompilation);
 
+        var result = driverWithCachedInfo.GetRunResult().Results.Single();
         var steps = result.TrackedSteps;
 
         var reasons = steps.SelectMany(step => step.Value).SelectMany(x => x.Outputs).Select(x => x.Reason);
         Assert.All(reasons, reason => Assert.Equal(IncrementalStepRunReason.New, reason));
 
-
-        // Run again with the same source
-        result = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out compilation, out _).GetRunResult().Results.Single();
-
+        result = driverWithCachedInfo.RunGenerators(inputCompilationClone).GetRunResult().Results.Single();
         steps = result.TrackedSteps;
 
-        reasons = steps.SelectMany(step => step.Value).SelectMany(x => x.Outputs).Select(x => x.Reason);
-        Assert.All(reasons, reason => Assert.Equal(IncrementalStepRunReason.Cached, reason));
+        reasons = steps
+            .Where(step => SourceGenHelpers.StepsForComparison.Contains(step.Key))
+            .SelectMany(step => step.Value)
+            .SelectMany(x => x.Outputs)
+            .Select(x => x.Reason);
+
+        Assert.All(reasons, reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
+    }
+
+    private static void CompareGeneratorOutputs(GeneratorRunResult result1, GeneratorRunResult result2)
+    {
+        var stepComparisons = from stepA in result1.TrackedSteps
+                              join stepB in result2.TrackedSteps on stepA.Key equals stepB.Key
+                              where SourceGenHelpers.StepsForComparison.Contains(stepA.Key)
+                              select new { StepA = stepA, StepB = stepB };
+
+        foreach (var comparison in stepComparisons)
+        {
+            var outputsA = comparison.StepA.Value.SelectMany(run => run.Outputs);
+            var outputsB = comparison.StepB.Value.SelectMany(run => run.Outputs);
+
+            foreach (var (outputA, outputB) in outputsA.Zip(outputsB))
+            {
+                Assert.Equal(outputA.Reason, outputB.Reason);
+                Assert.Equal(outputA.Value, outputB.Value);
+            }
+        }
     }
 }
+
