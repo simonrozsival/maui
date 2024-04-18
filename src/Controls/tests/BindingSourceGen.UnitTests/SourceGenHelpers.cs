@@ -1,11 +1,10 @@
+using System.Collections.Immutable;
 using System.Reflection;
-
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-
 using Microsoft.Maui.Controls.BindingSourceGen;
-using System.Runtime.Loader;
-using System.Collections.Immutable;
+
 
 internal record CodeGeneratorResult(
     string GeneratedCode,
