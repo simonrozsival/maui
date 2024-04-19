@@ -18,12 +18,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("string"),
                 new TypeDescription("int", IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Length"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -40,13 +40,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Text"),
                     new ConditionalAccess(new MemberAccess("Length")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -68,14 +68,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Button"),
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -93,13 +93,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -121,12 +121,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Value"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -143,13 +143,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Microsoft.Maui.Controls.Button", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new ConditionalAccess(new MemberAccess("Text")),
                     new ConditionalAccess(new MemberAccess("Length")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -171,12 +171,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("string", IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Value"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -199,13 +199,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new ConditionalAccess(new MemberAccess("Bar")),
                     new ConditionalAccess(new MemberAccess("Length")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -228,12 +228,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Value"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -255,14 +255,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Items"),
                     new IndexAccess("Item", 0),
                     new MemberAccess("Length"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -284,14 +284,14 @@ public class BindingRepresentationGenTests
         """;
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Items"),
                     new IndexAccess("Item", "key"),
                     new MemberAccess("Length"),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -316,13 +316,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 6, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("int", IsValueType: true),
-            [
+            new EquatableArray<IPathPart>([
                 new IndexAccess("CustomIndexer", "key"),
                 new MemberAccess("Length"),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -344,13 +344,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("int", IsValueType: true, IsNullable: true),
-            [
+                new EquatableArray<IPathPart>([
                 new IndexAccess("Item", "key"),
                 new ConditionalAccess(new MemberAccess("Length")),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -377,14 +377,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("int", IsValueType: true, IsNullable: true),
-            [
+            new EquatableArray<IPathPart>([
                 new MemberAccess("bar"),
                 new ConditionalAccess(new IndexAccess("Item", "key")),
                 new MemberAccess("Length"),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -424,14 +424,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 6, 7),
             new TypeDescription("global::MyNamespace.MySourceClass"),
             new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: true),
-            [
+                new EquatableArray<IPathPart>([
                 new IndexAccess("Item", 12),
                 new ConditionalAccess(new IndexAccess("Indexer", "Abc")),
                 new IndexAccess("Item", 0),
-            ],
+            ]),
             SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -456,13 +456,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 6, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 6, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("char", IsValueType: true),
-            [
+                new EquatableArray<IPathPart>([
                 new MemberAccess("s"),
                 new IndexAccess("Chars", 0),
-            ],
+            ]),
             SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -485,13 +485,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 4, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("int", IsValueType: true),
-            [
+            new EquatableArray<IPathPart>([
                 new IndexAccess("Item", "key"),
                 new MemberAccess("Length"),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -513,13 +513,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("string", IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("string")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -546,14 +546,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("C"),
                     new Cast(new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -580,14 +580,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("C"),
                     new Cast(new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -609,13 +609,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("int", IsNullable: true, IsValueType: true)),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
 
 
@@ -643,14 +643,14 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-                new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+                new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
-                [
+                new EquatableArray<IPathPart>([
                     new MemberAccess("C"),
                     new Cast(new TypeDescription("global::C", IsNullable: true, IsValueType: true)),
                     new ConditionalAccess(new MemberAccess("X")),
-                ],
+                ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -672,13 +672,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("char", IsValueType: true),
-            [
+            new EquatableArray<IPathPart>([
                 new MemberAccess("S"),
                 new IndexAccess("Chars", 0),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -700,13 +700,13 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("char", IsValueType: true),
-            [
+            new EquatableArray<IPathPart>([
                 new MemberAccess("S"),
                 new IndexAccess("Item", 0),
-            ],
+            ]),
             SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -728,12 +728,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("string"),
-            [
+            new EquatableArray<IPathPart>([
                 new IndexAccess("Item", "key"),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -755,12 +755,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo"),
             new TypeDescription("string"),
-            [
+            new EquatableArray<IPathPart>([
                 new IndexAccess("Item", "key"),
-            ],
+            ]),
             SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -782,12 +782,12 @@ public class BindingRepresentationGenTests
 
         var codeGeneratorResult = SourceGenHelpers.Run(source);
         var expectedBinding = new CodeWriterBinding(
-            new SourceCodeLocation(@"Path\To\Program.cs", 3, 7),
+            new InterceptorLocation(@"Path\To\Program.cs", 3, 7),
             new TypeDescription("global::Foo", IsNullable: true),
             new TypeDescription("int", IsValueType: true, IsNullable: true),
-            [
+            new EquatableArray<IPathPart>([
                 new ConditionalAccess(new IndexAccess("Item", 0)),
-            ],
+            ]),
             SetterOptions: new(IsWritable: false));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);

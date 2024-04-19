@@ -211,7 +211,7 @@ public sealed class BindingCodeWriter
 				""");
 		}
 
-		private void AppendInterceptorAttribute(SourceCodeLocation location)
+		private void AppendInterceptorAttribute(InterceptorLocation location)
 		{
 			AppendLine($"[InterceptsLocationAttribute(@\"{location.FilePath}\", {location.Line}, {location.Column})]");
 		}
@@ -279,7 +279,7 @@ public sealed class BindingCodeWriter
 			}
 		}
 
-		private void AppendHandlersArray(TypeDescription sourceType, IPathPart[] path)
+		private void AppendHandlersArray(TypeDescription sourceType, EquatableArray<IPathPart> path)
 		{
 			AppendLine($"new Tuple<Func<{sourceType}, object?>, string>[]");
 			AppendLine('{');
