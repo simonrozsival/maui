@@ -40,7 +40,7 @@ namespace Microsoft.Maui.Benchmarks
 			}
 		};
 		readonly MyObject Target = new() { Name = "B" };
-		
+
 		[Benchmark]
 		public void SourceGeneratedBindName()
 		{
@@ -49,7 +49,7 @@ namespace Microsoft.Maui.Benchmarks
 				Target.SetBinding(MyObject.NameProperty, static (MyObject o) => o.Name, source: Source, mode: BindingMode.OneWay);
 			}
 		}
-		
+
 		[Benchmark]
 		public void SourceGeneratedBindChild()
 		{
@@ -58,7 +58,7 @@ namespace Microsoft.Maui.Benchmarks
 				Target.SetBinding(MyObject.NameProperty, static (MyObject o) => o.Child?.Name, source: Source, mode: BindingMode.OneWay);
 			}
 		}
-		
+
 		[Benchmark]
 		public void SourceGeneratedBindChildIndexer()
 		{
