@@ -109,7 +109,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	private static EquatableArray<DiagnosticInfo> VerifyCorrectOverload(InvocationExpressionSyntax invocation, GeneratorSyntaxContext context, CancellationToken t)
 	{
 		var argumentList = invocation.ArgumentList.Arguments;
-		
+
 		if (argumentList.Count < 2)
 		{
 			throw new ArgumentOutOfRangeException(nameof(invocation));
