@@ -4,7 +4,7 @@ namespace BindingSourceGen.UnitTests;
 
 public class DiagnosticsTests
 {
-    [Fact(Skip = "Improve detecting overloads")]
+    [Fact]
     public void ReportsErrorWhenGetterIsNotLambda()
     {
         var source = """
@@ -36,7 +36,7 @@ public class DiagnosticsTests
     }
 
     [Fact]
-    public void ReportsWarningWhenUsingDifferentSetBindingOverload()
+    public void DoesNotReportWarningWhenUsingOverloadWithBindingClass()
     {
         var source = """
             using Microsoft.Maui.Controls;
@@ -46,11 +46,25 @@ public class DiagnosticsTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-
-        Assert.Single(result.SourceGeneratorDiagnostics);
-        Assert.Equal("BSG0004", result.SourceGeneratorDiagnostics[0].Id);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
     }
 
+    [Fact]
+    public void DoesNotReportWarningWhenUsingOverloadWithStringPath()
+    {
+        var source = """
+            using Microsoft.Maui.Controls;
+            var label = new Label();
+            var slider = new Slider();
+
+            label.BindingContext = slider;
+            label.SetBinding(Label.ScaleProperty, "Value");
+            """;
+
+        var result = SourceGenHelpers.Run(source);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+    }
+    
     [Fact]
     public void ReportsUnableToResolvePathWhenUsingMethodCall()
     {
