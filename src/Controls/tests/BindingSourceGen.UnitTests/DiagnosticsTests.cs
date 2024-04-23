@@ -36,7 +36,7 @@ public class DiagnosticsTests
     }
 
     [Fact]
-    public void DoesNotReportWarningWhenUsingOverloadWithBindingClass()
+    public void DoesNotReportWarningWhenUsingOverloadWithBindingClassDeclaredInInvocation()
     {
         var source = """
             using Microsoft.Maui.Controls;
@@ -50,7 +50,22 @@ public class DiagnosticsTests
     }
 
     [Fact]
-    public void DoesNotReportWarningWhenUsingOverloadWithStringPath()
+    public void DoesNotReportWarningWhenUsingOverloadWithBindingClassPassedAsVariable()
+    {
+        var source = """
+            using Microsoft.Maui.Controls;
+            var label = new Label();
+            var slider = new Slider();
+            var binding = new Binding("Value", source: slider);
+            label.SetBinding(Label.ScaleProperty, binding);
+            """;
+
+        var result = SourceGenHelpers.Run(source);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+    }
+
+    [Fact]
+    public void DoesNotReportWarningWhenUsingOverloadWithStringConstantPath()
     {
         var source = """
             using Microsoft.Maui.Controls;
@@ -59,6 +74,23 @@ public class DiagnosticsTests
 
             label.BindingContext = slider;
             label.SetBinding(Label.ScaleProperty, "Value");
+            """;
+
+        var result = SourceGenHelpers.Run(source);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+    }
+
+    [Fact]
+    public void DoesNotReportWarningWhenUsingOverloadWithStringVariablePath()
+    {
+        var source = """
+            using Microsoft.Maui.Controls;
+            var label = new Label();
+            var slider = new Slider();
+
+            label.BindingContext = slider;
+            var str = "Value";
+            label.SetBinding(Label.ScaleProperty, str);
             """;
 
         var result = SourceGenHelpers.Run(source);
