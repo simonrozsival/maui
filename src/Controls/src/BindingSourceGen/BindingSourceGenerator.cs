@@ -111,7 +111,8 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var argumentList = invocation.ArgumentList.Arguments;
 		var secondArgument = argumentList[1].Expression;
 
-		if (secondArgument is IdentifierNameSyntax) {
+		if (secondArgument is IdentifierNameSyntax)
+		{
 			var type = context.SemanticModel.GetTypeInfo(secondArgument, cancellationToken: t).Type;
 			if (type != null && type.Name == "Func")
 			{
