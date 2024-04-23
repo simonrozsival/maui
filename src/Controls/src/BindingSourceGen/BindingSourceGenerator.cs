@@ -109,15 +109,18 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	private static EquatableArray<DiagnosticInfo> VerifyCorrectOverload(InvocationExpressionSyntax invocation, GeneratorSyntaxContext context, CancellationToken t)
 	{
 		var argumentList = invocation.ArgumentList.Arguments;
-		if (argumentList.Count < 2)
-		{
-			return new EquatableArray<DiagnosticInfo>([DiagnosticsFactory.SuboptimalSetBindingOverload(invocation.GetLocation())]);
-		}
+		var secondArgument = argumentList[1].Expression;
 
-		var getter = argumentList[1].Expression;
-		if (getter is not LambdaExpressionSyntax)
-		{
-			return new EquatableArray<DiagnosticInfo>([DiagnosticsFactory.SuboptimalSetBindingOverload(getter.GetLocation())]);
+		if (secondArgument is IdentifierNameSyntax) {
+			var type = context.SemanticModel.GetTypeInfo(secondArgument, cancellationToken: t).Type;
+			if (type != null && type.Name == "Func")
+			{
+				return new EquatableArray<DiagnosticInfo>([DiagnosticsFactory.GetterIsNotLambda(secondArgument.GetLocation())]);
+			}
+			else // String and Binding
+			{
+				return new EquatableArray<DiagnosticInfo>([DiagnosticsFactory.SuboptimalSetBindingOverload(secondArgument.GetLocation())]);
+			}
 		}
 
 		return [];

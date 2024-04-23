@@ -56,7 +56,7 @@ internal static class DiagnosticsFactory
                 title: "SetBinding with string path",
                 messageFormat: "TODO: consider using SetBinding overload with a lambda getter",
                 category: "Usage",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true),
+                defaultSeverity: DiagnosticSeverity.Hidden,
+                isEnabledByDefault: false),
             location);
 }
