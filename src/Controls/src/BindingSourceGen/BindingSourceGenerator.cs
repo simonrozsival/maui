@@ -49,7 +49,10 @@ public class BindingSourceGenerator : IIncrementalGenerator
 	{
 		return node is InvocationExpressionSyntax invocation
 			&& invocation.Expression is MemberAccessExpressionSyntax method
-			&& method.Name.Identifier.Text == "SetBinding";
+			&& method.Name.Identifier.Text == "SetBinding"
+			&& invocation.ArgumentList.Arguments.Count >= 2
+			&& invocation.ArgumentList.Arguments[1].Expression is not LiteralExpressionSyntax
+			&& invocation.ArgumentList.Arguments[1].Expression is not ObjectCreationExpressionSyntax;
 	}
 
 	static BindingDiagnosticsWrapper GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
