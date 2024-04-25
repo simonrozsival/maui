@@ -31,7 +31,7 @@ internal static class BindingGenerationUtilities
             IsValueType: typeSymbol.IsValueType);
     }
 
-    internal static TypeDescription CreateTypeDescriptionForCStyleCast(ITypeSymbol typeSymbol, bool enabledNullable)
+    internal static TypeDescription CreateTypeDescriptionForExplicitCast(ITypeSymbol typeSymbol, bool enabledNullable)
     {
         var isNullable = IsTypeNullable(typeSymbol, enabledNullable);
         var name = GetGlobalName(typeSymbol, isNullable, typeSymbol.IsValueType);

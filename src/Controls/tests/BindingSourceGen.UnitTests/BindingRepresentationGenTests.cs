@@ -526,7 +526,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWhenGetterContainsSimpleCStyleReferenceTypeCast()
+    public void GenerateBindingWhenGetterContainsSimpleReferenceTypeExplicitCast()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -588,7 +588,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWhenGetterContainsMemberAccessOfCStyleCastReferenceType()
+    public void GenerateBindingWhenGetterContainsMemberAccessOfExplicitCastReferenceType()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -690,7 +690,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWhenGetterContainsSimpleValueTypeCStyleCast()
+    public void GenerateBindingWhenGetterContainsSimpleValueTypeExplicitCast()
     {
         var source = """
         using Microsoft.Maui.Controls;

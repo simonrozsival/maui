@@ -33,6 +33,19 @@ public class AccessExpressionBuilderTests
     }
 
     [Fact]
+    public void CorrectlyFormatsSimpleExplicitCastOfNonNullableValueTypes()
+    {
+        var generatedCode = Build("source",
+            [
+                new MemberAccess("A"),
+                new Cast(new TypeDescription("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
+                new MemberAccess("B"),
+            ]);
+
+        Assert.Equal("(source.A as X?)?.B", generatedCode);
+    }
+
+    [Fact]
     public void CorrectlyFormatsSimpleCastOfNullableValueTypes()
     {
         var generatedCode = Build("source",
