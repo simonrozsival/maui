@@ -36,7 +36,7 @@ public class IncrementalGenerationTests
         label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
         """;
 
-        RunGeneratorOnTwoSourcesAndVerifyResults(source, source, reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
+        RunGeneratorOnTwoSourcesAndVerifyResults([source], [source], reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class IncrementalGenerationTests
         label.SetBinding(Label.RotationProperty, static (string s) => s);
         """;
 
-        RunGeneratorOnTwoSourcesAndVerifyResults(source, newSource, reason => Assert.True(reason == IncrementalStepRunReason.Modified));
+        RunGeneratorOnTwoSourcesAndVerifyResults([source], [newSource], reason => Assert.True(reason == IncrementalStepRunReason.Modified));
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class IncrementalGenerationTests
         label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
         """;
 
-        RunGeneratorOnTwoSourcesAndVerifyResults(source, newSource, reason => Assert.True(reason == IncrementalStepRunReason.Modified));
+        RunGeneratorOnTwoSourcesAndVerifyResults([source], [newSource], reason => Assert.True(reason == IncrementalStepRunReason.Modified));
     }
 
     [Fact]
@@ -93,12 +93,32 @@ public class IncrementalGenerationTests
         var x = 42;
         """;
 
-        RunGeneratorOnTwoSourcesAndVerifyResults(source, newSource, reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
+        RunGeneratorOnTwoSourcesAndVerifyResults([source], [newSource], reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
     }
 
-    private static void RunGeneratorOnTwoSourcesAndVerifyResults(string source1, string source2, Action<IncrementalStepRunReason> assert)
+    [Fact]
+    public void DoesNotRegerateCodeWhenDifferentFileEdited()
     {
-        var inputCompilation = SourceGenHelpers.CreateCompilation(source1);
+        var fileASource = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
+        """;
+
+        var fileBSource = """
+        var x = 42;
+        """;
+
+        var fileBModified = """
+        var x = 43;
+        """;
+
+        RunGeneratorOnTwoSourcesAndVerifyResults([fileASource, fileBSource], [fileASource, fileBModified], reason => Assert.True(reason == IncrementalStepRunReason.Unchanged || reason == IncrementalStepRunReason.Cached));
+    }
+
+    private static void RunGeneratorOnTwoSourcesAndVerifyResults(List<string> sources, List<string> modified, Action<IncrementalStepRunReason> assert)
+    {
+        var inputCompilation = SourceGenHelpers.CreateCompilation(sources);
         var cloneCompilation = inputCompilation.Clone();
         var driver = SourceGenHelpers.CreateDriver();
 
@@ -110,7 +130,7 @@ public class IncrementalGenerationTests
         var reasons = steps.SelectMany(step => step.Value).SelectMany(x => x.Outputs).Select(x => x.Reason);
         Assert.All(reasons, reason => Assert.Equal(IncrementalStepRunReason.New, reason));
 
-        var newCompilation = SourceGenHelpers.CreateCompilation(source2);
+        var newCompilation = SourceGenHelpers.CreateCompilation(modified);
         var newResult = driverWithCachedInfo.RunGenerators(newCompilation).GetRunResult().Results.Single();
         var newSteps = newResult.TrackedSteps;
 
@@ -120,7 +140,6 @@ public class IncrementalGenerationTests
             .SelectMany(x => x.Outputs)
             .Select(x => x.Reason);
 
-        Console.WriteLine(string.Join(", ", newReasons));
         Assert.All(newReasons, reason => assert(reason));
     }
 
