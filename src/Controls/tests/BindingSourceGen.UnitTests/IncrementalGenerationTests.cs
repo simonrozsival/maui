@@ -40,6 +40,24 @@ public class IncrementalGenerationTests
     }
 
     [Fact]
+    public void DoesRegenerateCodeWhenSourceChanged()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
+        """;
+
+        var newSource = """
+        using Microsoft.Maui.Controls;
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (string s) => s);
+        """;
+
+        RunGeneratorOnTwoSourcesAndVerifyResults(source, newSource, reason => Assert.True(reason == IncrementalStepRunReason.Modified));
+    }
+
+    [Fact]
     public void DoesRegenerateCodeWhenNewCodeInsertedAbove()
     {
         var source = """
@@ -102,6 +120,7 @@ public class IncrementalGenerationTests
             .SelectMany(x => x.Outputs)
             .Select(x => x.Reason);
 
+        Console.WriteLine(string.Join(", ", newReasons));
         Assert.All(newReasons, reason => assert(reason));
     }
 
