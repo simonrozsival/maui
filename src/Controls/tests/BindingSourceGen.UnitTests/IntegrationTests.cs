@@ -265,16 +265,14 @@ public class IntegrationTests
             result.GeneratedCode);
     }
 
-    [Theory]
-    [InlineData("static (MySourceClass s) => (((s.A as X)?.B as Y)?.C as Z)?.D")]
-    [InlineData("static (MySourceClass s) => ((Z)((Y)((X)s.A).B).C).D")]
-    public void GenerateBindingWithNonNullableReferenceTypesCasts(string bindingLambda)
+    [Fact]
+    public void GenerateBindingWithNonNullableReferenceTypesCasts()
     {
         var source = $$"""
             using Microsoft.Maui.Controls;
             using MyNamespace;
             var label = new Label();
-            label.SetBinding(Label.TextProperty, {{bindingLambda}});
+            label.SetBinding(Label.TextProperty, static (MySourceClass s) => ((Z)((Y)((X)s.A).B).C).D);
 
             namespace MyNamespace
             {
@@ -357,7 +355,7 @@ public class IntegrationTests
                     public static void SetBinding1(
                         this BindableObject bindableObject,
                         BindableProperty bindableProperty,
-                        Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass?> getter,
+                        Func<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass> getter,
                         BindingMode mode = BindingMode.Default,
                         IValueConverter? converter = null,
                         object? converterParameter = null,
@@ -366,15 +364,11 @@ public class IntegrationTests
                         object? fallbackValue = null,
                         object? targetNullValue = null)
                     {
-                        Action<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass?>? setter = null;
+                        Action<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>? setter = null;
                         if (ShouldUseSetter(mode, bindableProperty))
                         {
                             setter = static (source, value) =>
                             {
-                                if (value is null)
-                                {
-                                    return;
-                                }
                                 if (source.A is global::MyNamespace.X p0
                                     && p0.B is global::MyNamespace.Y p1
                                     && p1.C is global::MyNamespace.Z p2)
@@ -384,7 +378,7 @@ public class IntegrationTests
                             };
                         }
 
-                        var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass?>(
+                        var binding = new TypedBinding<global::MyNamespace.MySourceClass, global::MyNamespace.MyPropertyClass>(
                             getter: source => (getter(source), true),
                             setter,
                             handlers: new Tuple<Func<global::MyNamespace.MySourceClass, object?>, string>[]

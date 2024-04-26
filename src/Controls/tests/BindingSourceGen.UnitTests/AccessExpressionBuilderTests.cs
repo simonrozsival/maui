@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.Maui.Controls.BindingSourceGen;
 using Xunit;
 
@@ -27,19 +26,6 @@ public class AccessExpressionBuilderTests
                 new MemberAccess("A"),
                 new Cast(new TypeDescription("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
                 new ConditionalAccess(new MemberAccess("B")),
-            ]);
-
-        Assert.Equal("(source.A as X?)?.B", generatedCode);
-    }
-
-    [Fact]
-    public void CorrectlyFormatsSimpleExplicitCastOfNonNullableValueTypes()
-    {
-        var generatedCode = Build("source",
-            [
-                new MemberAccess("A"),
-                new Cast(new TypeDescription("X", IsNullable: false, IsGenericParameter: false, IsValueType: true)),
-                new MemberAccess("B"),
             ]);
 
         Assert.Equal("(source.A as X?)?.B", generatedCode);

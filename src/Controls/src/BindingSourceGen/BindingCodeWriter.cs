@@ -81,7 +81,8 @@ public sealed class BindingCodeWriter
 
 	public void AddBinding(CodeWriterBinding binding)
 	{
-		_bindings.Add(binding);
+		var transformedBinding = CodeWriterBindingRepresentationAdapter.Transform(binding);
+		_bindings.Add(transformedBinding);
 	}
 
 	private string GenerateBindingMethods(int indent)
