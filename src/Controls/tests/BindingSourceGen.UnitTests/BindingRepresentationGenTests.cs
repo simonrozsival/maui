@@ -183,7 +183,7 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWithNullableReferenceTypesWhenNullableDisabled()
+    public void GenerateBindingWithNullableReferenceTypesWhenNullableDisabledAndConditionalAccessOperator()
     {
         var source = """
         using Microsoft.Maui.Controls;
@@ -212,17 +212,22 @@ public class BindingRepresentationGenTests
     }
 
     [Fact]
-    public void GenerateBindingWithNullableValueTypeWhenNullableDisabled()
+    public void GenerateBindingWhenNullableDisabledAndPropertyNonNullableValueType()
     {
         var source = """
         using Microsoft.Maui.Controls;
         #nullable disable
         var label = new Label();
-        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Value);
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Bar.Length);
 
         class Foo
         {
-            public int? Value { get; set; }
+            public Bar Bar { get; set; }
+        }
+
+        class Bar
+        {
+            public int Length { get; set; }
         }
         """;
 
@@ -230,9 +235,83 @@ public class BindingRepresentationGenTests
         var expectedBinding = new SetBindingInvocationDescription(
                 new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
                 new TypeDescription("global::Foo", IsNullable: true),
-                new TypeDescription("int", IsValueType: true, IsNullable: true),
+                new TypeDescription("int", IsValueType: true),
                 new EquatableArray<IPathPart>([
-                    new MemberAccess("Value"),
+                    new ConditionalAccess(new MemberAccess("Bar")),
+                    new ConditionalAccess(new MemberAccess("Length")),
+                ]),
+                SetterOptions: new(IsWritable: true));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenNullableDisabledAndPropertyNullableValueType()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        #nullable disable
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Bar.Length);
+
+        class Foo
+        {
+            public Bar Bar { get; set; }
+        }
+
+        class Bar
+        {
+            public int? Length { get; set; }
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new SetBindingInvocationDescription(
+                new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
+                new TypeDescription("global::Foo", IsNullable: true),
+                new TypeDescription("int", IsNullable: true, IsValueType: true),
+                new EquatableArray<IPathPart>([
+                    new ConditionalAccess(new MemberAccess("Bar")),
+                    new ConditionalAccess(new MemberAccess("Length")),
+                ]),
+                SetterOptions: new(IsWritable: true, AcceptsNullValue: true));
+
+        AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
+    }
+
+    [Fact]
+    public void GenerateBindingWhenNullableDisabledAndPropertyReferenceType()
+    {
+        var source = """
+        using Microsoft.Maui.Controls;
+        #nullable disable
+        var label = new Label();
+        label.SetBinding(Label.RotationProperty, static (Foo f) => f.Bar.Length);
+
+        class Foo
+        {
+            public Bar Bar { get; set; }
+        }
+
+        class Bar
+        {
+            public CustomLength Length { get; set; }
+        }
+
+        class CustomLength 
+        {
+
+        }
+        """;
+
+        var codeGeneratorResult = SourceGenHelpers.Run(source);
+        var expectedBinding = new SetBindingInvocationDescription(
+                new InterceptorLocation(@"Path\To\Program.cs", 4, 7),
+                new TypeDescription("global::Foo", IsNullable: true),
+                new TypeDescription("global::CustomLength", IsNullable: true),
+                new EquatableArray<IPathPart>([
+                    new ConditionalAccess(new MemberAccess("Bar")),
+                    new ConditionalAccess(new MemberAccess("Length")),
                 ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true));
 
@@ -520,7 +599,7 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("string")),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -548,7 +627,7 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("string")),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -582,7 +661,7 @@ public class BindingRepresentationGenTests
                     new Cast(new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -616,7 +695,7 @@ public class BindingRepresentationGenTests
                     new Cast(new TypeDescription("global::C")),
                     new MemberAccess("X"),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -653,7 +732,7 @@ public class BindingRepresentationGenTests
                     new Cast(new TypeDescription("global::C")),
                     new ConditionalAccess(new MemberAccess("X")),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
@@ -683,7 +762,7 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("int", IsNullable: true, IsValueType: true)),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -712,7 +791,7 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Value"),
                     new Cast(new TypeDescription("int", IsValueType: true)),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
@@ -749,7 +828,7 @@ public class BindingRepresentationGenTests
                     new Cast(new TypeDescription("global::C", IsNullable: true, IsValueType: true)),
                     new ConditionalAccess(new MemberAccess("X")),
                 ]),
-                SetterOptions: new(IsWritable: true, AcceptsNullValue: false));
+                SetterOptions: new(IsWritable: true));
 
         AssertExtensions.BindingsAreEqual(expectedBinding, codeGeneratorResult);
     }
