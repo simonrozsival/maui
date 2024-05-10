@@ -55,18 +55,16 @@ public sealed record TypeDescription(
 
 public sealed record SetterOptions(bool IsWritable, bool AcceptsNullValue = false);
 
-public sealed record MemberAccess(string MemberName, bool IsValueType = false) : IPathPart
+public sealed record MemberAccess(string MemberName, bool IsValueType = false, bool IsNullableValueType = false) : IPathPart
 {
 	public string PropertyName => MemberName;
-
-	public bool IsMemberValueType => IsValueType;
-
 
 	public bool Equals(IPathPart other)
 	{
 		return other is MemberAccess memberAccess
 			&& MemberName == memberAccess.MemberName
-			&& IsMemberValueType == memberAccess.IsMemberValueType;
+			&& IsValueType == memberAccess.IsValueType
+			&& IsNullableValueType == memberAccess.IsNullableValueType;
 	}
 }
 

@@ -126,7 +126,7 @@ public class IntegrationTests
             {
                 public class A
                 {
-                    public B B { get; set; } = null!;
+                    public B B { get; set; }
                 }
 
                 public class B
@@ -205,7 +205,7 @@ public class IntegrationTests
                                 if (source is {} p0
                                     && p0.B is {} p1)
                                 {
-                                    p1.C = value.Value;
+                                    p1.C = value;
                                 }
                             };
                         }
@@ -457,7 +457,7 @@ public class IntegrationTests
 
 
         var label = new Label();
-        label.SetBinding(Label.RotationProperty, static (A a) => a?.B.C);
+        label.SetBinding(Label.RotationProperty, static (A a) => a.B.C);
 
         namespace MyNamespace
             {
@@ -551,15 +551,15 @@ public class IntegrationTests
                             {
                                 if (source is {} p0)
                                 {
-                                    p0.B.C = value.Value;
+                                    p0.B.C = value;
                                 }
                             };
                         }
 
-                        var binding = new TypedBinding<global::MyNamespace.A, global::MyNamespace.C?>(
+                        var binding = new TypedBinding<global::MyNamespace.A?, global::MyNamespace.C?>(
                             getter: source => (getter(source), true),
                             setter,
-                            handlers: new Tuple<Func<global::MyNamespace.A, object?>, string>[]
+                            handlers: new Tuple<Func<global::MyNamespace.A?, object?>, string>[]
                             {
                                 new(static source => source, "B"),
                                 new(static source => source?.B, "C"),

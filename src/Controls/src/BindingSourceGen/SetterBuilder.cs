@@ -9,7 +9,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
         string sourceVariableName = "source",
         string assignedValueExpression = "value")
     {
-        var builder = new SetterBuilder(considerAllReferenceTypesPotentiallyNullable, sourceVariableName, assignedValueExpression);
+        var builder = new SetterBuilder(considerAllReferenceTypesPotentiallyNullable, sourceVariableName, sourceTypeDescription, assignedValueExpression);
 
         if (path.Length > 0)
         {
@@ -32,27 +32,36 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
         private string _expression;
         private int _variableCounter = 0;
         private List<string>? _patternMatching;
+        
+        private IPathPart? _currentPart;
         private IPathPart? _previousPart;
+        private IPathPart _sourcePart;
 
-        public SetterBuilder(bool considerAllReferenceTypesPotentiallyNullable, string sourceVariableName, string assignedValueExpression)
+        public SetterBuilder(bool considerAllReferenceTypesPotentiallyNullable, string sourceVariableName, TypeDescription sourceTypeDescription, string assignedValueExpression)
         {
             _considerAllReferenceTypesPotentiallyNullable = considerAllReferenceTypesPotentiallyNullable;
             _sourceVariableName = sourceVariableName;
             _assignedValueExpression = assignedValueExpression;
+
+            _sourcePart = new MemberAccess(sourceVariableName, sourceTypeDescription.IsValueType, sourceTypeDescription.IsValueType && sourceTypeDescription.IsNullable);
+            _currentPart = _sourcePart;
 
             _expression = sourceVariableName;
         }
 
         public void AddPart(IPathPart nextPart)
         {
-            _previousPart = HandlePreviousPart(nextPart);
+            var newPart =  HandleCurrentPart(nextPart);
+            _previousPart = _currentPart;
+            _currentPart = newPart;
+
         }
 
-        private IPathPart? HandlePreviousPart(IPathPart? nextPart)
+        private IPathPart? HandleCurrentPart(IPathPart? nextPart)
         {
-            if (_previousPart is {} previousPart)
+            if (_currentPart is { } currentPart && currentPart != _sourcePart)
             {
-                if (previousPart is Cast { TargetType: var targetType })
+                if (currentPart is Cast { TargetType: var targetType })
                 {
                     AddIsExpression(targetType.GlobalName);
 
@@ -62,19 +71,19 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
                         return innerPart;
                     }
                 }
-                else if (previousPart is ConditionalAccess { Part: var innerPart })
+                else if (currentPart is ConditionalAccess { Part: var innerPart })
                 {
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, innerPart);
                 }
-                else if (previousPart is MemberAccess memberAccess && !memberAccess.IsMemberValueType && _considerAllReferenceTypesPotentiallyNullable) 
+                else if (currentPart is MemberAccess memberAccess && (_previousPart is MemberAccess previousPartAccess && !previousPartAccess.IsValueType || _previousPart is ConditionalAccess) && _considerAllReferenceTypesPotentiallyNullable)
                 {
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, memberAccess);
                 }
                 else
                 {
-                    _expression = AccessExpressionBuilder.Build(_expression, previousPart);
+                    _expression = AccessExpressionBuilder.Build(_expression, currentPart);
                 }
             }
 
@@ -98,7 +107,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
         private string CreateAssignmentStatement()
         {
-            HandlePreviousPart(nextPart: null);
+            HandleCurrentPart(nextPart: null);
             return $"{_expression} = {_assignedValueExpression};";
         }
 
