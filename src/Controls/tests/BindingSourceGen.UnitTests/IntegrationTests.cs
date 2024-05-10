@@ -335,6 +335,36 @@ public class IntegrationTests
                     }
                 """
             },
+            new object[]
+            {
+                """
+                // Nullable value type on path
+                #nullable disable
+                using Microsoft.Maui.Controls;
+                using MyNamespace;
+
+                var label = new Label();
+                label.SetBinding(Label.RotationProperty, static (A a) => a.B?.C);
+
+                namespace MyNamespace
+                    {
+                        public class A
+                        {
+                            public B? B { get; set; }
+                        }
+
+                        public struct B
+                        {
+                            public C C { get; set; }
+                        }
+
+                        public class C
+                        {
+
+                        }
+                    }
+                """
+            },
         };
 
     [Theory]
@@ -457,7 +487,7 @@ public class IntegrationTests
 
 
         var label = new Label();
-        label.SetBinding(Label.RotationProperty, static (A a) => a.B.C);
+        label.SetBinding(Label.RotationProperty, static (A a) => a.B.C.D);
 
         namespace MyNamespace
             {
@@ -478,6 +508,10 @@ public class IntegrationTests
 
                 public class C
                 {
+                    public D D { get; set;}
+                }
+
+                public class D {
 
                 }
             }
@@ -535,7 +569,7 @@ public class IntegrationTests
                     public static void SetBinding1(
                         this BindableObject bindableObject,
                         BindableProperty bindableProperty,
-                        Func<global::MyNamespace.A?, global::MyNamespace.C?> getter,
+                        Func<global::MyNamespace.A?, global::MyNamespace.D?> getter,
                         BindingMode mode = BindingMode.Default,
                         IValueConverter? converter = null,
                         object? converterParameter = null,
@@ -544,25 +578,27 @@ public class IntegrationTests
                         object? fallbackValue = null,
                         object? targetNullValue = null)
                     {
-                        Action<global::MyNamespace.A?, global::MyNamespace.C?>? setter = null;
+                        Action<global::MyNamespace.A?, global::MyNamespace.D?>? setter = null;
                         if (ShouldUseSetter(mode, bindableProperty))
                         {
                             setter = static (source, value) =>
                             {
-                                if (source is {} p0)
+                                if (source is {} p0
+                                    && p0.B.C is {} p1)
                                 {
-                                    p0.B.C = value;
+                                    p1.D = value;
                                 }
                             };
                         }
 
-                        var binding = new TypedBinding<global::MyNamespace.A?, global::MyNamespace.C?>(
+                        var binding = new TypedBinding<global::MyNamespace.A?, global::MyNamespace.D?>(
                             getter: source => (getter(source), true),
                             setter,
                             handlers: new Tuple<Func<global::MyNamespace.A?, object?>, string>[]
                             {
                                 new(static source => source, "B"),
                                 new(static source => source?.B, "C"),
+                                new(static source => source?.B.C, "D"),
                             })
                         {
                             Mode = mode,
