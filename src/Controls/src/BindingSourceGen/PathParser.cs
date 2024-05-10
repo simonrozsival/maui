@@ -58,12 +58,13 @@ internal class PathParser
         }
 
         var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementAccess).Symbol;
-        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccessSymbol(elementAccessSymbol, elementAccess.ArgumentList.Arguments, elementAccess.GetLocation());
+        var elementType = Context.SemanticModel.GetTypeInfo(elementAccess).Type;
+
+        var (elementAccessDiagnostics, elementAccessParts) = CreateIndexAccess(elementAccessSymbol, elementType, elementAccess.ArgumentList.Arguments, elementAccess.GetLocation());
         if (elementAccessDiagnostics.Length > 0)
         {
             return (elementAccessDiagnostics, elementAccessParts);
         }
-
         parts.AddRange(elementAccessParts);
         return (diagnostics, parts);
     }
@@ -101,7 +102,9 @@ internal class PathParser
     private (EquatableArray<DiagnosticInfo> diagnostics, List<IPathPart> parts) HandleElementBindingExpression(ElementBindingExpressionSyntax elementBinding)
     {
         var elementAccessSymbol = Context.SemanticModel.GetSymbolInfo(elementBinding).Symbol;
-        var (elementAccessDiagnostics, elementAccessParts) = HandleElementAccessSymbol(elementAccessSymbol, elementBinding.ArgumentList.Arguments, elementBinding.GetLocation());
+        var elementType = Context.SemanticModel.GetTypeInfo(elementBinding).Type;
+
+        var (elementAccessDiagnostics, elementAccessParts) = CreateIndexAccess(elementAccessSymbol, elementType, elementBinding.ArgumentList.Arguments, elementBinding.GetLocation());
         if (elementAccessDiagnostics.Length > 0)
         {
             return (elementAccessDiagnostics, elementAccessParts);
@@ -153,7 +156,7 @@ internal class PathParser
         return (new EquatableArray<DiagnosticInfo>([DiagnosticsFactory.UnableToResolvePath(Context.Node.GetLocation())]), new List<IPathPart>());
     }
 
-    private (EquatableArray<DiagnosticInfo>, List<IPathPart>) HandleElementAccessSymbol(ISymbol? elementAccessSymbol, SeparatedSyntaxList<ArgumentSyntax> argumentList, Location location)
+    private (EquatableArray<DiagnosticInfo>, List<IPathPart>) CreateIndexAccess(ISymbol? elementAccessSymbol, ITypeSymbol? typeSymbol, SeparatedSyntaxList<ArgumentSyntax> argumentList, Location location)
     {
         if (argumentList.Count != 1)
         {
@@ -168,7 +171,9 @@ internal class PathParser
         }
 
         var name = GetIndexerName(elementAccessSymbol);
-        IPathPart part = new IndexAccess(name, indexValue);
+        var isReferenceType = typeSymbol?.IsReferenceType ?? false;
+        var isNullableValueType = typeSymbol != null ? BindingGenerationUtilities.IsNullableValueType(typeSymbol) : false;
+        IPathPart part = new IndexAccess(name, indexValue, !isReferenceType, isNullableValueType);
 
         return ([], [part]);
     }

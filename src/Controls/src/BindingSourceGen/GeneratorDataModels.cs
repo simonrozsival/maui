@@ -68,13 +68,17 @@ public sealed record MemberAccess(string MemberName, bool IsValueType = false, b
 	}
 }
 
-public sealed record IndexAccess(string DefaultMemberName, object Index) : IPathPart
+public sealed record IndexAccess(string DefaultMemberName, object Index, bool IsValueType = false, bool IsNullableValueType = false) : IPathPart
 {
 	public string? PropertyName => $"{DefaultMemberName}[{Index}]";
 
 	public bool Equals(IPathPart other)
 	{
-		return other is IndexAccess indexAccess && DefaultMemberName == indexAccess.DefaultMemberName && Index.Equals(indexAccess.Index);
+		return other is IndexAccess indexAccess 
+			&& DefaultMemberName == indexAccess.DefaultMemberName 
+			&& Index.Equals(indexAccess.Index)
+			&& IsValueType == indexAccess.IsValueType
+			&& IsNullableValueType == indexAccess.IsNullableValueType;
 	}
 }
 

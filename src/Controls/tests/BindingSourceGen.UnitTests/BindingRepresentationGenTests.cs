@@ -557,7 +557,7 @@ public class BindingRepresentationGenTests
             new TypeDescription("char", IsValueType: true),
                 new EquatableArray<IPathPart>([
                 new MemberAccess("s"),
-                new IndexAccess("Chars", 0),
+                new IndexAccess("Chars", 0, IsValueType: true),
             ]),
             SetterOptions: new(IsWritable: true),
             ConsiderAllReferenceTypesPotentiallyNullable: false);
@@ -881,7 +881,7 @@ public class BindingRepresentationGenTests
             new TypeDescription("char", IsValueType: true),
             new EquatableArray<IPathPart>([
                 new MemberAccess("S"),
-                new IndexAccess("Chars", 0),
+                new IndexAccess("Chars", 0, IsValueType: true),
             ]),
             SetterOptions: new(IsWritable: false),
             ConsiderAllReferenceTypesPotentiallyNullable: false);
@@ -910,7 +910,7 @@ public class BindingRepresentationGenTests
             new TypeDescription("char", IsValueType: true),
             new EquatableArray<IPathPart>([
                 new MemberAccess("S"),
-                new IndexAccess("Item", 0),
+                new IndexAccess("Item", 0, IsValueType: true),
             ]),
             SetterOptions: new(IsWritable: true),
             ConsiderAllReferenceTypesPotentiallyNullable: false);
@@ -994,7 +994,7 @@ public class BindingRepresentationGenTests
             new TypeDescription("global::Foo", IsNullable: true),
             new TypeDescription("int", IsValueType: true, IsNullable: true),
             new EquatableArray<IPathPart>([
-                new ConditionalAccess(new IndexAccess("Item", 0)),
+                new ConditionalAccess(new IndexAccess("Item", 0, IsValueType: true)),
             ]),
             SetterOptions: new(IsWritable: false),
             ConsiderAllReferenceTypesPotentiallyNullable: false);
