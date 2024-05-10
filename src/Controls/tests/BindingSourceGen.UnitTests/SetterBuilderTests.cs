@@ -21,7 +21,7 @@ public class SetterBuilderTests
     [Fact]
     public void GeneratesSetterWithSourceNotNullPatternMatchingForSignlePathStepWhenSourceTypeIsNullable()
     {
-        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A")]));
+        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new ConditionalAccess(new MemberAccess("A"))]));
 
         Assert.Single(setter.PatternMatchingExpressions);
         Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);

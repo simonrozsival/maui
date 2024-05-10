@@ -5,17 +5,14 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
     public static Setter From(
         TypeDescription sourceTypeDescription,
         EquatableArray<IPathPart> path,
+        bool considerAllReferenceTypesPotentiallyNullable = false,
         string sourceVariableName = "source",
         string assignedValueExpression = "value")
     {
-        var builder = new SetterBuilder(sourceVariableName, assignedValueExpression);
+        var builder = new SetterBuilder(considerAllReferenceTypesPotentiallyNullable, sourceVariableName, assignedValueExpression);
 
         if (path.Length > 0)
         {
-            if (sourceTypeDescription.IsNullable)
-            {
-                builder.AddIsExpression("{}");
-            }
 
             foreach (var part in path)
             {
@@ -28,6 +25,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
     private sealed class SetterBuilder
     {
+        private readonly bool _considerAllReferenceTypesPotentiallyNullable;
         private readonly string _sourceVariableName;
         private readonly string _assignedValueExpression;
 
@@ -36,8 +34,9 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
         private List<string>? _patternMatching;
         private IPathPart? _previousPart;
 
-        public SetterBuilder(string sourceVariableName, string assignedValueExpression)
+        public SetterBuilder(bool considerAllReferenceTypesPotentiallyNullable, string sourceVariableName, string assignedValueExpression)
         {
+            _considerAllReferenceTypesPotentiallyNullable = considerAllReferenceTypesPotentiallyNullable;
             _sourceVariableName = sourceVariableName;
             _assignedValueExpression = assignedValueExpression;
 
@@ -67,6 +66,11 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
                 {
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, innerPart);
+                }
+                else if (previousPart is MemberAccess memberAccess && !memberAccess.IsMemberValueType && _considerAllReferenceTypesPotentiallyNullable) 
+                {
+                    AddIsExpression("{}");
+                    _expression = AccessExpressionBuilder.Build(_expression, memberAccess);
                 }
                 else
                 {

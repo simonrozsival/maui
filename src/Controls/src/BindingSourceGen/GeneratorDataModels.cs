@@ -18,7 +18,8 @@ public sealed record SetBindingInvocationDescription(
 	TypeDescription SourceType,
 	TypeDescription PropertyType,
 	EquatableArray<IPathPart> Path,
-	SetterOptions SetterOptions);
+	SetterOptions SetterOptions,
+	bool ConsiderAllReferenceTypesPotentiallyNullable);
 
 public sealed record SourceCodeLocation(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
@@ -54,13 +55,18 @@ public sealed record TypeDescription(
 
 public sealed record SetterOptions(bool IsWritable, bool AcceptsNullValue = false);
 
-public sealed record MemberAccess(string MemberName) : IPathPart
+public sealed record MemberAccess(string MemberName, bool IsValueType = false) : IPathPart
 {
-	public string? PropertyName => MemberName;
+	public string PropertyName => MemberName;
+
+	public bool IsMemberValueType => IsValueType;
+
 
 	public bool Equals(IPathPart other)
 	{
-		return other is MemberAccess memberAccess && MemberName == memberAccess.MemberName;
+		return other is MemberAccess memberAccess
+			&& MemberName == memberAccess.MemberName
+			&& IsMemberValueType == memberAccess.IsMemberValueType;
 	}
 }
 

@@ -41,7 +41,8 @@ internal class PathParser
         }
 
         var member = memberAccess.Name.Identifier.Text;
-        IPathPart part = new MemberAccess(member);
+        var IsReferenceType = Context.SemanticModel.GetTypeInfo(memberAccess).Type?.IsReferenceType ?? false;
+        IPathPart part = new MemberAccess(member, !IsReferenceType);
         parts.Add(part);
         return (diagnostics, parts);
     }
@@ -86,7 +87,8 @@ internal class PathParser
     private (EquatableArray<DiagnosticInfo> diagnostics, List<IPathPart> parts) HandleMemberBindingExpression(MemberBindingExpressionSyntax memberBinding)
     {
         var member = memberBinding.Name.Identifier.Text;
-        IPathPart part = new MemberAccess(member);
+        var IsReferenceType = Context.SemanticModel.GetTypeInfo(memberBinding).Type?.IsReferenceType ?? false;
+        IPathPart part = new MemberAccess(member, !IsReferenceType);
         part = new ConditionalAccess(part);
 
         return ([], new List<IPathPart>([part]));

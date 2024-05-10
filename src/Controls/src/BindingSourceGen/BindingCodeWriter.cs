@@ -184,7 +184,7 @@ public sealed class BindingCodeWriter
 			Indent();
 
 			Append("handlers: ");
-			AppendHandlersArray(binding.SourceType, binding.Path);
+			AppendHandlersArray(binding.SourceType, binding.Path, binding.ConsiderAllReferenceTypesPotentiallyNullable);
 			AppendLine(")");
 
 			Unindent();
@@ -234,7 +234,7 @@ public sealed class BindingCodeWriter
 				AppendLine('}');
 			}
 
-			var setter = Setter.From(binding.SourceType, binding.Path, sourceVariableName, assignedValueExpression);
+			var setter = Setter.From(binding.SourceType, binding.Path, binding.ConsiderAllReferenceTypesPotentiallyNullable, sourceVariableName, assignedValueExpression);
 			if (setter.PatternMatchingExpressions.Length > 0)
 			{
 				Append("if (");
@@ -274,7 +274,7 @@ public sealed class BindingCodeWriter
 			}
 		}
 
-		private void AppendHandlersArray(TypeDescription sourceType, EquatableArray<IPathPart> path)
+		private void AppendHandlersArray(TypeDescription sourceType, EquatableArray<IPathPart> path, bool considerAllReferenceTypesPotentiallyNullable)
 		{
 			AppendLine($"new Tuple<Func<{sourceType}, object?>, string>[]");
 			AppendLine('{');
@@ -282,12 +282,13 @@ public sealed class BindingCodeWriter
 			Indent();
 
 			string nextExpression = "source";
-			bool forceConditonalAccessToNextPart = false;
+			bool forceConditonalAccessToNextPart = !sourceType.IsValueType && considerAllReferenceTypesPotentiallyNullable;
 			foreach (var part in path)
 			{
 				var previousExpression = nextExpression;
 				nextExpression = AccessExpressionBuilder.Build(previousExpression, MaybeWrapInConditionalAccess(part, forceConditonalAccessToNextPart));
-				forceConditonalAccessToNextPart = part is Cast;
+				var isNullableReferenceType = part is MemberAccess memberAccess && !memberAccess.IsValueType;
+				forceConditonalAccessToNextPart = part is Cast || considerAllReferenceTypesPotentiallyNullable && isNullableReferenceType;
 
 				// Some parts don't have a property name, so we can't generate a handler for them (for example casts)
 				if (part.PropertyName is string propertyName)
