@@ -26,13 +26,12 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
     private sealed class SetterBuilder
     {
         private readonly bool _considerAllReferenceTypesPotentiallyNullable;
-        private readonly string _sourceVariableName;
         private readonly string _assignedValueExpression;
 
         private string _expression;
         private int _variableCounter = 0;
         private List<string>? _patternMatching;
-        
+
         private IPathPart? _currentPart;
         private IPathPart? _previousPart;
         private IPathPart _sourcePart;
@@ -40,7 +39,6 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
         public SetterBuilder(bool considerAllReferenceTypesPotentiallyNullable, string sourceVariableName, TypeDescription sourceTypeDescription, string assignedValueExpression)
         {
             _considerAllReferenceTypesPotentiallyNullable = considerAllReferenceTypesPotentiallyNullable;
-            _sourceVariableName = sourceVariableName;
             _assignedValueExpression = assignedValueExpression;
 
             _sourcePart = new MemberAccess(sourceVariableName, sourceTypeDescription.IsValueType, sourceTypeDescription.IsValueType && sourceTypeDescription.IsNullable);
@@ -51,7 +49,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
         public void AddPart(IPathPart nextPart)
         {
-            var newPart =  HandleCurrentPart(nextPart);
+            var newPart = HandleCurrentPart(nextPart);
             _previousPart = _currentPart;
             _currentPart = newPart;
 
@@ -59,6 +57,12 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
         private IPathPart? HandleCurrentPart(IPathPart? nextPart)
         {
+
+            var previousReferenceType = _previousPart is MemberAccess previousPartAccess
+                && !previousPartAccess.IsValueType || _previousPart is IndexAccess previousPartIndexAccess
+                && !previousPartIndexAccess.IsValueType || _previousPart is ConditionalAccess;
+
+
             if (_currentPart is { } currentPart && currentPart != _sourcePart)
             {
                 if (currentPart is Cast { TargetType: var targetType })
@@ -76,7 +80,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, innerPart);
                 }
-                else if ((_previousPart is MemberAccess previousPartAccess && !previousPartAccess.IsValueType || _previousPart is IndexAccess previousPartIndexAccess && !previousPartIndexAccess.IsValueType || _previousPart is ConditionalAccess) && _considerAllReferenceTypesPotentiallyNullable)
+                else if (previousReferenceType && _considerAllReferenceTypesPotentiallyNullable)
                 {
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, currentPart);
