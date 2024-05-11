@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.Maui.Controls.BindingSourceGen;
 using Xunit;
 
@@ -16,16 +15,6 @@ public class SetterBuilderTests
 
         Assert.Empty(setter.PatternMatchingExpressions);
         Assert.Equal("source = value;", setter.AssignmentStatement);
-    }
-
-    [Fact]
-    public void GeneratesSetterWithSourceNotNullPatternMatchingForSinglePathStepWhenSourceTypeIsNullable()
-    {
-        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A")]), considerAllReferenceTypesPotentiallyNullable: true);
-
-        Assert.Single(setter.PatternMatchingExpressions);
-        Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
-        Assert.Equal("p0.A = value;", setter.AssignmentStatement);
     }
 
     [Fact]
@@ -121,5 +110,45 @@ public class SetterBuilderTests
         Assert.Equal("p0.B is Y p1", setter.PatternMatchingExpressions[1]);
         Assert.Equal("p1.C is Z p2", setter.PatternMatchingExpressions[2]);
         Assert.Equal("p2.D = value;", setter.AssignmentStatement);
+    }
+
+    [Fact]
+    public void GeneratesSetterWhenNullableDisabledAndReferenceTypesOnPath()
+    {
+        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A"), new MemberAccess("B")]), considerAllReferenceTypesPotentiallyNullable: true);
+
+        Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
+        Assert.Equal("p0.A is {} p1", setter.PatternMatchingExpressions[1]);
+        Assert.Equal("p1.B = value;", setter.AssignmentStatement);
+    }
+
+    [Fact]
+    public void GeneratesSetterWhenNullableDisabledAndValueTypeOnPath()
+    {
+        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A", IsValueType: true), new MemberAccess("B")]), considerAllReferenceTypesPotentiallyNullable: true);
+
+        Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
+        Assert.Equal("p0.A.B = value;", setter.AssignmentStatement);
+    }
+
+    [Fact]
+    public void GeneratesSetterWhenNullableDisabledAndReferenceTypesAndIndexersOnPath()
+    {
+        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A"), new IndexAccess("Item", 0), new MemberAccess("B")]), considerAllReferenceTypesPotentiallyNullable: true);
+
+        Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
+        Assert.Equal("p0.A is {} p1", setter.PatternMatchingExpressions[1]);
+        Assert.Equal("p1[0] is {} p2", setter.PatternMatchingExpressions[2]);
+        Assert.Equal("p2.B = value;", setter.AssignmentStatement);
+    }
+
+    [Fact]
+    public void GeneratesSetterWhenNullableDisabledAndValueTypeAndIndexersOnPath()
+    {
+        var setter = Setter.From(NullableType, new EquatableArray<IPathPart>([new MemberAccess("A", IsValueType: true), new IndexAccess("Item", 0), new MemberAccess("B")]), considerAllReferenceTypesPotentiallyNullable: true);
+
+        Assert.Equal("source is {} p0", setter.PatternMatchingExpressions[0]);
+        Assert.Equal("p0.A[0] is {} p1", setter.PatternMatchingExpressions[1]);
+        Assert.Equal("p1.B = value;", setter.AssignmentStatement);
     }
 }
