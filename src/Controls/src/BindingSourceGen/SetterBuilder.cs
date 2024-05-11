@@ -76,10 +76,10 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, innerPart);
                 }
-                else if (currentPart is MemberAccess memberAccess && (_previousPart is MemberAccess previousPartAccess && !previousPartAccess.IsValueType || _previousPart is ConditionalAccess) && _considerAllReferenceTypesPotentiallyNullable)
+                else if ((_previousPart is MemberAccess previousPartAccess && !previousPartAccess.IsValueType || _previousPart is IndexAccess previousPartIndexAccess && !previousPartIndexAccess.IsValueType || _previousPart is ConditionalAccess) && _considerAllReferenceTypesPotentiallyNullable)
                 {
                     AddIsExpression("{}");
-                    _expression = AccessExpressionBuilder.Build(_expression, memberAccess);
+                    _expression = AccessExpressionBuilder.Build(_expression, currentPart);
                 }
                 else
                 {
