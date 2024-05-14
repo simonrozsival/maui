@@ -129,7 +129,7 @@ public class BindingRepresentationGenTests
                 new TypeDescription("global::Foo"),
                 new TypeDescription("int", IsValueType: true, IsNullable: true),
                 new EquatableArray<IPathPart>([
-                    new MemberAccess("Value", IsValueType: true, IsNullableValueType: true),
+                    new MemberAccess("Value", IsValueType: true),
                 ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true),
                 ConsiderAllReferenceTypesPotentiallyNullable: false);
@@ -281,7 +281,7 @@ public class BindingRepresentationGenTests
                 new TypeDescription("int", IsNullable: true, IsValueType: true),
                 new EquatableArray<IPathPart>([
                     new MemberAccess("Bar"),
-                    new MemberAccess("Length", IsValueType: true, IsNullableValueType: true),
+                    new MemberAccess("Length", IsValueType: true),
                 ]),
                 SetterOptions: new(IsWritable: true, AcceptsNullValue: true),
                 ConsiderAllReferenceTypesPotentiallyNullable: true);
@@ -786,7 +786,7 @@ public class BindingRepresentationGenTests
                     new MemberAccess("Value", IsValueType: true),
                     new Cast(new TypeDescription("int", IsNullable: true, IsValueType: true)),
                 ]),
-                SetterOptions: new(IsWritable: true), 
+                SetterOptions: new(IsWritable: true),
                 ConsiderAllReferenceTypesPotentiallyNullable: false);
 
 

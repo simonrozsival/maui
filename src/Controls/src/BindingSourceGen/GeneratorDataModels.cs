@@ -55,7 +55,7 @@ public sealed record TypeDescription(
 
 public sealed record SetterOptions(bool IsWritable, bool AcceptsNullValue = false);
 
-public sealed record MemberAccess(string MemberName, bool IsValueType = false, bool IsNullableValueType = false) : IPathPart
+public sealed record MemberAccess(string MemberName, bool IsValueType = false) : IPathPart
 {
 	public string PropertyName => MemberName;
 
@@ -63,22 +63,20 @@ public sealed record MemberAccess(string MemberName, bool IsValueType = false, b
 	{
 		return other is MemberAccess memberAccess
 			&& MemberName == memberAccess.MemberName
-			&& IsValueType == memberAccess.IsValueType
-			&& IsNullableValueType == memberAccess.IsNullableValueType;
+			&& IsValueType == memberAccess.IsValueType;
 	}
 }
 
-public sealed record IndexAccess(string DefaultMemberName, object Index, bool IsValueType = false, bool IsNullableValueType = false) : IPathPart
+public sealed record IndexAccess(string DefaultMemberName, object Index, bool IsValueType = false) : IPathPart
 {
 	public string? PropertyName => $"{DefaultMemberName}[{Index}]";
 
 	public bool Equals(IPathPart other)
 	{
-		return other is IndexAccess indexAccess 
-			&& DefaultMemberName == indexAccess.DefaultMemberName 
+		return other is IndexAccess indexAccess
+			&& DefaultMemberName == indexAccess.DefaultMemberName
 			&& Index.Equals(indexAccess.Index)
-			&& IsValueType == indexAccess.IsValueType
-			&& IsNullableValueType == indexAccess.IsNullableValueType;
+			&& IsValueType == indexAccess.IsValueType;
 	}
 }
 

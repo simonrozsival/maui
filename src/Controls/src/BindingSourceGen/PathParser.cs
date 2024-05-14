@@ -43,8 +43,7 @@ internal class PathParser
         var member = memberAccess.Name.Identifier.Text;
         var typeInfo = Context.SemanticModel.GetTypeInfo(memberAccess).Type;
         var isReferenceType = typeInfo?.IsReferenceType ?? false;
-        var isNullableValueType = typeInfo != null ? BindingGenerationUtilities.IsNullableValueType(typeInfo) : false;
-        IPathPart part = new MemberAccess(member, !isReferenceType, isNullableValueType);
+        IPathPart part = new MemberAccess(member, !isReferenceType);
         parts.Add(part);
         return (diagnostics, parts);
     }
@@ -92,8 +91,7 @@ internal class PathParser
         var member = memberBinding.Name.Identifier.Text;
         var typeInfo = Context.SemanticModel.GetTypeInfo(memberBinding).Type;
         var isReferenceType = typeInfo?.IsReferenceType ?? false;
-        var isNullableValueType = typeInfo != null ? BindingGenerationUtilities.IsNullableValueType(typeInfo) : false;
-        IPathPart part = new MemberAccess(member, !isReferenceType, isNullableValueType);
+        IPathPart part = new MemberAccess(member, !isReferenceType);
         part = new ConditionalAccess(part);
 
         return ([], new List<IPathPart>([part]));
@@ -172,8 +170,7 @@ internal class PathParser
 
         var name = GetIndexerName(elementAccessSymbol);
         var isReferenceType = typeSymbol?.IsReferenceType ?? false;
-        var isNullableValueType = typeSymbol != null ? BindingGenerationUtilities.IsNullableValueType(typeSymbol) : false;
-        IPathPart part = new IndexAccess(name, indexValue, !isReferenceType, isNullableValueType);
+        IPathPart part = new IndexAccess(name, indexValue, !isReferenceType);
 
         return ([], [part]);
     }
