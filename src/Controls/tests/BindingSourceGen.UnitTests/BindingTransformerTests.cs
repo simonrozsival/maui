@@ -13,7 +13,7 @@ public class BindingTransformerTests
             PropertyType: new TypeDescription("MyType2"),
             Path: new EquatableArray<IPathPart>([new MemberAccess("A")]),
             SetterOptions: new SetterOptions(IsWritable: true),
-            ConsiderAllReferenceTypesPotentiallyNullable: true);
+            NullableContextEnabled: false);
 
         var transformer = new ReferenceTypesConditionalAccessTransformer();
         var transformedBinding = transformer.Transform(binding);
@@ -35,7 +35,7 @@ public class BindingTransformerTests
                     new MemberAccess("B"),
                 ]),
             SetterOptions: new SetterOptions(IsWritable: true),
-            ConsiderAllReferenceTypesPotentiallyNullable: true);
+            NullableContextEnabled: false);
 
         var transformer = new ReferenceTypesConditionalAccessTransformer();
         var transformedBinding = transformer.Transform(binding);
@@ -61,7 +61,7 @@ public class BindingTransformerTests
                     new MemberAccess("B"),
                 ]),
             SetterOptions: new SetterOptions(IsWritable: true),
-            ConsiderAllReferenceTypesPotentiallyNullable: true);
+            NullableContextEnabled: false);
 
         var transformer = new ReferenceTypesConditionalAccessTransformer();
         var transformedBinding = transformer.Transform(binding);
@@ -88,7 +88,7 @@ public class BindingTransformerTests
                     new MemberAccess("B"),
                 ]),
             SetterOptions: new SetterOptions(IsWritable: true),
-            ConsiderAllReferenceTypesPotentiallyNullable: true);
+            NullableContextEnabled: false);
 
         var transformer = new ReferenceTypesConditionalAccessTransformer();
         var transformedBinding = transformer.Transform(binding);
@@ -116,7 +116,7 @@ public class BindingTransformerTests
                     new MemberAccess("B", IsValueType: true),
                 ]),
             SetterOptions: new SetterOptions(IsWritable: true),
-            ConsiderAllReferenceTypesPotentiallyNullable: true);
+            NullableContextEnabled: false);
 
         var transformer = new ReferenceTypesConditionalAccessTransformer();
         var transformedBinding = transformer.Transform(binding);

@@ -76,7 +76,7 @@ public sealed class BindingCodeWriter
 
 	public void AddBinding(SetBindingInvocationDescription binding)
 	{
-		if (binding.ConsiderAllReferenceTypesPotentiallyNullable)
+		if (!binding.NullableContextEnabled)
 		{
 			var referenceTypesConditionalAccessTransformer = new ReferenceTypesConditionalAccessTransformer();
 			binding = referenceTypesConditionalAccessTransformer.Transform(binding);
@@ -189,7 +189,7 @@ public sealed class BindingCodeWriter
 			Indent();
 
 			Append("handlers: ");
-			AppendHandlersArray(binding.SourceType, binding.Path, binding.ConsiderAllReferenceTypesPotentiallyNullable);
+			AppendHandlersArray(binding);
 			AppendLine(")");
 
 			Unindent();
@@ -279,21 +279,21 @@ public sealed class BindingCodeWriter
 			}
 		}
 
-		private void AppendHandlersArray(TypeDescription sourceType, EquatableArray<IPathPart> path, bool considerAllReferenceTypesPotentiallyNullable)
+		private void AppendHandlersArray(SetBindingInvocationDescription binding)
 		{
-			AppendLine($"new Tuple<Func<{sourceType}, object?>, string>[]");
+			AppendLine($"new Tuple<Func<{binding.SourceType}, object?>, string>[]");
 			AppendLine('{');
 
 			Indent();
 
 			string nextExpression = "source";
-			bool forceConditonalAccessToNextPart = !sourceType.IsValueType && considerAllReferenceTypesPotentiallyNullable;
-			foreach (var part in path)
+			bool forceConditonalAccessToNextPart = false;
+			foreach (var part in binding.Path)
 			{
 				var previousExpression = nextExpression;
 				nextExpression = AccessExpressionBuilder.Build(previousExpression, MaybeWrapInConditionalAccess(part, forceConditonalAccessToNextPart));
 				var isNullableReferenceType = part is MemberAccess memberAccess && !memberAccess.IsValueType;
-				forceConditonalAccessToNextPart = part is Cast || considerAllReferenceTypesPotentiallyNullable && isNullableReferenceType;
+				forceConditonalAccessToNextPart = part is Cast;
 
 				// Some parts don't have a property name, so we can't generate a handler for them (for example casts)
 				if (part.PropertyName is string propertyName)

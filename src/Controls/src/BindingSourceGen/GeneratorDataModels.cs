@@ -19,7 +19,7 @@ public sealed record SetBindingInvocationDescription(
 	TypeDescription PropertyType,
 	EquatableArray<IPathPart> Path,
 	SetterOptions SetterOptions,
-	bool ConsiderAllReferenceTypesPotentiallyNullable);
+	bool NullableContextEnabled);
 
 public sealed record SourceCodeLocation(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
