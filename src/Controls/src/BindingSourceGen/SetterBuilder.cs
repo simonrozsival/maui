@@ -3,21 +3,15 @@ namespace Microsoft.Maui.Controls.BindingSourceGen;
 public sealed record Setter(string[] PatternMatchingExpressions, string AssignmentStatement)
 {
     public static Setter From(
-        TypeDescription sourceTypeDescription,
-        EquatableArray<IPathPart> path,
-        bool considerAllReferenceTypesPotentiallyNullable = false,
+        IEnumerable<IPathPart> path,
         string sourceVariableName = "source",
         string assignedValueExpression = "value")
     {
-        var builder = new SetterBuilder(considerAllReferenceTypesPotentiallyNullable, sourceVariableName, sourceTypeDescription, assignedValueExpression);
+        var builder = new SetterBuilder(sourceVariableName, assignedValueExpression);
 
-        if (path.Length > 0)
+        foreach (var part in path)
         {
-
-            foreach (var part in path)
-            {
-                builder.AddPart(part);
-            }
+            builder.AddPart(part);
         }
 
         return builder.Build();
@@ -25,47 +19,29 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
     private sealed class SetterBuilder
     {
-        private readonly bool _considerAllReferenceTypesPotentiallyNullable;
         private readonly string _assignedValueExpression;
 
         private string _expression;
         private int _variableCounter = 0;
         private List<string>? _patternMatching;
-
-        private IPathPart? _currentPart;
         private IPathPart? _previousPart;
-        private IPathPart _sourcePart;
 
-        public SetterBuilder(bool considerAllReferenceTypesPotentiallyNullable, string sourceVariableName, TypeDescription sourceTypeDescription, string assignedValueExpression)
+        public SetterBuilder(string sourceVariableName, string assignedValueExpression)
         {
-            _considerAllReferenceTypesPotentiallyNullable = considerAllReferenceTypesPotentiallyNullable;
             _assignedValueExpression = assignedValueExpression;
-
-            _sourcePart = new MemberAccess(sourceVariableName, sourceTypeDescription.IsValueType, sourceTypeDescription.IsValueType && sourceTypeDescription.IsNullable);
-            _currentPart = _sourcePart;
-
             _expression = sourceVariableName;
         }
 
         public void AddPart(IPathPart nextPart)
         {
-            var newPart = HandleCurrentPart(nextPart);
-            _previousPart = _currentPart;
-            _currentPart = newPart;
-
+            _previousPart = HandlePreviousPart(nextPart);
         }
 
-        private IPathPart? HandleCurrentPart(IPathPart? nextPart)
+        private IPathPart? HandlePreviousPart(IPathPart? nextPart)
         {
-
-            var previousReferenceType = _previousPart is MemberAccess previousPartAccess
-                && !previousPartAccess.IsValueType || _previousPart is IndexAccess previousPartIndexAccess
-                && !previousPartIndexAccess.IsValueType || _previousPart is ConditionalAccess;
-
-
-            if (_currentPart is { } currentPart && currentPart != _sourcePart)
+            if (_previousPart is {} previousPart)
             {
-                if (currentPart is Cast { TargetType: var targetType })
+                if (previousPart is Cast { TargetType: var targetType })
                 {
                     AddIsExpression(targetType.GlobalName);
 
@@ -75,19 +51,14 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
                         return innerPart;
                     }
                 }
-                else if (currentPart is ConditionalAccess { Part: var innerPart })
+                else if (previousPart is ConditionalAccess { Part: var innerPart })
                 {
                     AddIsExpression("{}");
                     _expression = AccessExpressionBuilder.Build(_expression, innerPart);
                 }
-                else if (previousReferenceType && _considerAllReferenceTypesPotentiallyNullable)
-                {
-                    AddIsExpression("{}");
-                    _expression = AccessExpressionBuilder.Build(_expression, currentPart);
-                }
                 else
                 {
-                    _expression = AccessExpressionBuilder.Build(_expression, currentPart);
+                    _expression = AccessExpressionBuilder.Build(_expression, previousPart);
                 }
             }
 
@@ -111,7 +82,7 @@ public sealed record Setter(string[] PatternMatchingExpressions, string Assignme
 
         private string CreateAssignmentStatement()
         {
-            HandleCurrentPart(nextPart: null);
+            HandlePreviousPart(nextPart: null);
             return $"{_expression} = {_assignedValueExpression};";
         }
 

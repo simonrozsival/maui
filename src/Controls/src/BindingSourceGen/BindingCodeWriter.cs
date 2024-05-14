@@ -76,6 +76,11 @@ public sealed class BindingCodeWriter
 
 	public void AddBinding(SetBindingInvocationDescription binding)
 	{
+		if (binding.ConsiderAllReferenceTypesPotentiallyNullable)
+		{
+			var referenceTypesConditionalAccessTransformer = new ReferenceTypesConditionalAccessTransformer();
+			binding = referenceTypesConditionalAccessTransformer.Transform(binding);
+		}
 		_bindings.Add(binding);
 	}
 
@@ -234,7 +239,7 @@ public sealed class BindingCodeWriter
 				AppendLine('}');
 			}
 
-			var setter = Setter.From(binding.SourceType, binding.Path, binding.ConsiderAllReferenceTypesPotentiallyNullable, sourceVariableName, assignedValueExpression);
+			var setter = Setter.From(binding.Path, sourceVariableName, assignedValueExpression);
 			if (setter.PatternMatchingExpressions.Length > 0)
 			{
 				Append("if (");
