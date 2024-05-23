@@ -14,7 +14,7 @@ public class IntegrationTests
         """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
 
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
@@ -109,7 +109,7 @@ public class IntegrationTests
         """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
@@ -212,7 +212,7 @@ public class IntegrationTests
         """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
@@ -420,7 +420,7 @@ public class IntegrationTests
     public void GenerateSimpleBindingWhenNullableDisabledAndPropertyNullable(string source)
     {
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
@@ -537,7 +537,7 @@ public class IntegrationTests
         """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
             $$"""
@@ -654,7 +654,7 @@ public class IntegrationTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
 
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
@@ -777,7 +777,7 @@ public class IntegrationTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
 
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
@@ -887,7 +887,7 @@ public class IntegrationTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
 
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
@@ -993,7 +993,7 @@ public class IntegrationTests
             """;
 
         var result = SourceGenHelpers.Run(source);
-        var id = Math.Abs(result.Binding!.Location.GetHashCode());
+        var id = (uint)result.Binding!.Location.GetHashCode();
 
         AssertExtensions.AssertNoDiagnostics(result);
         AssertExtensions.CodeIsEqual(
