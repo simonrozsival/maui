@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.Maui.Controls.BindingSourceGen;
 using Xunit;
 
@@ -22,32 +21,8 @@ public class BindingCodeWriterTests
             //------------------------------------------------------------------------------
             #nullable enable
 
-            namespace System.Runtime.CompilerServices
-            {
-                using System;
-                using System.CodeDom.Compiler;
-
-                {{BindingCodeWriter.GeneratedCodeAttribute}}
-                [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-                internal sealed class InterceptsLocationAttribute : Attribute
-                {
-                    public InterceptsLocationAttribute(string filePath, int line, int column)
-                    {
-                        FilePath = filePath;
-                        Line = line;
-                        Column = column;
-                    }
-
-                    public string FilePath { get; }
-                    public int Line { get; }
-                    public int Column { get; }
-                }
-            }
-
             namespace Microsoft.Maui.Controls.Generated
             {
-                using System.CodeDom.Compiler;
-
                 {{BindingCodeWriter.GeneratedCodeAttribute}}
                 internal static partial class GeneratedBindableObjectExtensions
                 {
@@ -67,7 +42,7 @@ public class BindingCodeWriterTests
     public void BuildsWholeBinding()
     {
         var code = BindingCodeWriter.GenerateBinding(new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: new EquatableArray<IPathPart>([
@@ -90,18 +65,26 @@ public class BindingCodeWriterTests
             //------------------------------------------------------------------------------
             #nullable enable
 
+            namespace System.Runtime.CompilerServices
+            {
+                {{BindingCodeWriter.GeneratedCodeAttribute}}
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+                file sealed class InterceptsLocationAttribute(int version, string data) : Attribute
+                {
+                    private readonly int _version = version;
+                    private readonly string _data = data;
+                }
+            }
+
             namespace Microsoft.Maui.Controls.Generated
             {
                 using System;
-                using System.CodeDom.Compiler;
-                using System.Runtime.CompilerServices;
                 using Microsoft.Maui.Controls.Internals;
 
                 internal static partial class GeneratedBindableObjectExtensions
                 {
-            
                     {{BindingCodeWriter.GeneratedCodeAttribute}}
-                    [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+                    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
                     public static void SetBinding1(
                         this BindableObject bindableObject,
                         BindableProperty bindableProperty,
@@ -158,7 +141,7 @@ public class BindingCodeWriterTests
     {
         var codeBuilder = new BindingCodeWriter.BindingInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: new EquatableArray<IPathPart>([
@@ -173,7 +156,7 @@ public class BindingCodeWriterTests
         AssertExtensions.CodeIsEqual(
             $$"""
             {{BindingCodeWriter.GeneratedCodeAttribute}}
-            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
             public static void SetBinding1(
                 this BindableObject bindableObject,
                 BindableProperty bindableProperty,
@@ -229,7 +212,7 @@ public class BindingCodeWriterTests
     {
         var codeBuilder = new BindingCodeWriter.BindingInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsValueType: false, IsNullable: false, IsGenericParameter: false),
             Path: new EquatableArray<IPathPart>([
@@ -244,7 +227,7 @@ public class BindingCodeWriterTests
         AssertExtensions.CodeIsEqual(
             $$"""
             {{BindingCodeWriter.GeneratedCodeAttribute}}
-            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
             public static void SetBinding1(
                 this BindableObject bindableObject,
                 BindableProperty bindableProperty,
@@ -296,7 +279,7 @@ public class BindingCodeWriterTests
     {
         var codeBuilder = new BindingCodeWriter.BindingInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false, IsValueType: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false, IsValueType: false),
             Path: new EquatableArray<IPathPart>([
@@ -311,7 +294,7 @@ public class BindingCodeWriterTests
         AssertExtensions.CodeIsEqual(
             $$"""
             {{BindingCodeWriter.GeneratedCodeAttribute}}
-            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
             public static void SetBinding1(
                 this BindableObject bindableObject,
                 BindableProperty bindableProperty,
@@ -360,7 +343,7 @@ public class BindingCodeWriterTests
     {
         var codeBuilder = new BindingCodeWriter.BindingInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: true, IsGenericParameter: false),
             Path: new EquatableArray<IPathPart>([
@@ -375,7 +358,7 @@ public class BindingCodeWriterTests
         AssertExtensions.CodeIsEqual(
             $$"""
             {{BindingCodeWriter.GeneratedCodeAttribute}}
-            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
             public static void SetBinding1(
                 this BindableObject bindableObject,
                 BindableProperty bindableProperty,
@@ -435,7 +418,7 @@ public class BindingCodeWriterTests
     {
         var codeBuilder = new BindingCodeWriter.BindingInterceptorCodeBuilder();
         codeBuilder.AppendSetBindingInterceptor(id: 1, new SetBindingInvocationDescription(
-            Location: new InterceptorLocation(FilePath: @"Path\To\Program.cs", Line: 20, Column: 30),
+            Location: new InterceptorLocation(Version: 1, Data: "INTERCEPTABLE_LOCATION_DATA_V1"),
             SourceType: new TypeDescription("global::MyNamespace.MySourceClass", IsNullable: false, IsGenericParameter: false),
             PropertyType: new TypeDescription("global::MyNamespace.MyPropertyClass", IsNullable: false, IsGenericParameter: false),
             Path: new EquatableArray<IPathPart>([
@@ -455,7 +438,7 @@ public class BindingCodeWriterTests
         AssertExtensions.CodeIsEqual(
             $$"""
             {{BindingCodeWriter.GeneratedCodeAttribute}}
-            [InterceptsLocationAttribute(@"Path\To\Program.cs", 20, 30)]
+            [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, @"INTERCEPTABLE_LOCATION_DATA_V1")]
             public static void SetBinding1(
                 this BindableObject bindableObject,
                 BindableProperty bindableProperty,

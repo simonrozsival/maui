@@ -42,7 +42,7 @@ public class IncrementalGenerationTests
             new Dictionary<string, string> { { nameof(source), source } },
             new Dictionary<string, string> { { nameof(source), source } });
 
-        var outputs = results[nameof(source)].SelectMany(step => step.Outputs);
+        var outputs = results.Single().Value.SelectMany(step => step.Outputs);
         Assert.All(outputs, output => Assert.True(output.Reason == IncrementalStepRunReason.Unchanged || output.Reason == IncrementalStepRunReason.Cached));
     }
 
@@ -65,10 +65,12 @@ public class IncrementalGenerationTests
             new Dictionary<string, string> { { nameof(source), source } },
             new Dictionary<string, string> { { nameof(source), newSource } });
 
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], TrackingNames.BindingsWithDiagnostics);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], TrackingNames.Bindings);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, results[nameof(source)], "SourceOutput");
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], "ImplementationSourceOutput");
+		var result = results.Single().Value;
+
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, TrackingNames.BindingsWithDiagnostics);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, TrackingNames.Bindings);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, result, "SourceOutput");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, "ImplementationSourceOutput");
     }
 
     [Fact]
@@ -91,41 +93,17 @@ public class IncrementalGenerationTests
             new Dictionary<string, string> { { nameof(source), source } },
             new Dictionary<string, string> { { nameof(source), newSource } });
 
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], TrackingNames.BindingsWithDiagnostics);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], TrackingNames.Bindings);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, results[nameof(source)], "SourceOutput");
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(source)], "ImplementationSourceOutput");
+		var result = results.Single().Value;
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, TrackingNames.BindingsWithDiagnostics);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, TrackingNames.Bindings);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, result, "SourceOutput");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, result, "ImplementationSourceOutput");
     }
 
 	private static void AssertStepRunReasonEquals(IncrementalStepRunReason expectedReason, IncrementalGeneratorRunStep[] steps, string stepName)
 	{
 		Assert.Equal(expectedReason, steps.Single(r => r.Name == stepName).Outputs.Single().Reason);
 	}
-
-    [Fact]
-    public void DoesNotRegenerateCodeWhenNewCodeInsertedBelow()
-    {
-        var source = """
-        using Microsoft.Maui.Controls;
-        var label = new Label();
-        label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
-        """;
-
-        var newSource = """
-        using Microsoft.Maui.Controls;
-        var label = new Label();
-        label.SetBinding(Label.RotationProperty, static (string s) => s.Length);
-
-        var x = 42;
-        """;
-
-        var results = RunGeneratorOnMultipleSourcesAndReturnSteps(
-            new Dictionary<string, string> { { nameof(source), source } },
-            new Dictionary<string, string> { { nameof(source), newSource } });
-
-        var outputs = results[nameof(source)].SelectMany(step => step.Outputs);
-        Assert.All(outputs, output => Assert.True(output.Reason == IncrementalStepRunReason.Unchanged || output.Reason == IncrementalStepRunReason.Cached));
-    }
 
     [Fact]
     public void DoesNotRegerateCodeWhenDifferentFileEdited()
@@ -152,15 +130,20 @@ public class IncrementalGenerationTests
             new Dictionary<string, string> { { nameof(fileASource), fileASource }, { nameof(fileBSource), fileBSource } },
             new Dictionary<string, string> { { nameof(fileASource), fileASource }, { nameof(fileBSource), fileBModified } });
 
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, results[nameof(fileASource)], TrackingNames.BindingsWithDiagnostics);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, results[nameof(fileASource)], TrackingNames.Bindings);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, results[nameof(fileASource)], "SourceOutput");
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, results[nameof(fileASource)], "ImplementationSourceOutput");
+		var fileAResult = GetStepsByBindingSourceType(results, "global::Microsoft.Maui.Controls.Label");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, fileAResult, TrackingNames.BindingsWithDiagnostics);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, fileAResult, TrackingNames.Bindings);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, fileAResult, "SourceOutput");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Cached, fileAResult, "ImplementationSourceOutput");
 
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(fileBSource)], TrackingNames.BindingsWithDiagnostics);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(fileBSource)], TrackingNames.Bindings);
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, results[nameof(fileBSource)], "SourceOutput");
-		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, results[nameof(fileBSource)], "ImplementationSourceOutput");
+		var fileBResult = GetStepsByBindingSourceType(results, "global::Microsoft.Maui.Controls.Button");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, fileBResult, TrackingNames.BindingsWithDiagnostics);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, fileBResult, TrackingNames.Bindings);
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Unchanged, fileBResult, "SourceOutput");
+		AssertStepRunReasonEquals(IncrementalStepRunReason.Modified, fileBResult, "ImplementationSourceOutput");
+
+		static IncrementalGeneratorRunStep[] GetStepsByBindingSourceType(Dictionary<string, IncrementalGeneratorRunStep[]> results, string sourceType)
+			=> results.Single(result => result.Value.Any(step => step.Name == TrackingNames.Bindings && step.Outputs[0].Value is SetBindingInvocationDescription bindingInvocation && bindingInvocation.SourceType.GlobalName == sourceType)).Value;
     }
 
     private static Dictionary<string, IncrementalGeneratorRunStep[]> RunGeneratorOnMultipleSourcesAndReturnSteps(
@@ -196,7 +179,7 @@ public class IncrementalGenerationTests
         // Sometimes the binding has more than one run of the same step associated with it. 
         // In such cases keep the one with Modified reason for safety.
         return bindingRunPairs
-        .GroupBy(bindingRunPair => bindingRunPair.binding.Location.FilePath)
+        .GroupBy(bindingRunPair => bindingRunPair.binding.HintName)
         .ToDictionary(
             x => x.Key,
             x => x
