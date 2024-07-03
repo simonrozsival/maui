@@ -35,10 +35,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 
 		context.RegisterImplementationSourceOutput(bindings, (spc, binding) =>
 		{
-			var fileName = $"{binding.Location.FilePath}-GeneratedBindableObjectExtensions-{binding.Location.Line}-{binding.Location.Column}.g.cs";
-			var sanitizedFileName = fileName.Replace('/', '-').Replace('\\', '-').Replace(':', '-');
-			var code = BindingCodeWriter.GenerateBinding(binding, (uint)Math.Abs(binding.Location.GetHashCode()));
-			spc.AddSource(sanitizedFileName, code);
+			spc.AddSource(binding.HintName, BindingCodeWriter.GenerateBinding(binding, (uint)Math.Abs(binding.Location.GetHashCode())));
 		});
 	}
 
@@ -58,10 +55,9 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var enabledNullable = IsNullableContextEnabled(context);
 
 		var invocation = (InvocationExpressionSyntax)context.Node;
-		var method = (MemberAccessExpressionSyntax)invocation.Expression;
 
-		var sourceCodeLocation = SourceCodeLocation.CreateFrom(method.Name.GetLocation());
-		if (sourceCodeLocation == null)
+		var interceptableLocation = context.SemanticModel.GetInterceptableLocation(invocation, t);
+		if (interceptableLocation is null)
 		{
 			return Result<SetBindingInvocationDescription>.Failure(DiagnosticsFactory.UnableToResolvePath(invocation.GetLocation()));
 		}
@@ -104,7 +100,7 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		}
 
 		var binding = new SetBindingInvocationDescription(
-			Location: sourceCodeLocation.ToInterceptorLocation(),
+			Location: InterceptorLocation.CreateFrom(interceptableLocation),
 			SourceType: BindingGenerationUtilities.CreateTypeDescription(lambdaSymbolResult.Value.Parameters[0].Type, enabledNullable),
 			PropertyType: BindingGenerationUtilities.CreateTypeDescription(lambdaTypeInfo.Type, enabledNullable),
 			Path: new EquatableArray<IPathPart>([.. pathParseResult.Value]),

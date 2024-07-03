@@ -14,7 +14,11 @@ public sealed record SetBindingInvocationDescription(
 	TypeDescription PropertyType,
 	EquatableArray<IPathPart> Path,
 	SetterOptions SetterOptions,
-	bool NullableContextEnabled);
+	bool NullableContextEnabled)
+{
+	public string HintName
+		=> $"GeneratedBindableObjectExtensions-{Location.Version}-{Location.Data.Replace('/', '-').Replace('=', '-')}.g.cs";
+}
 
 public sealed record SourceCodeLocation(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
@@ -24,17 +28,14 @@ public sealed record SourceCodeLocation(string FilePath, TextSpan TextSpan, Line
 			: new SourceCodeLocation(location.SourceTree.FilePath, location.SourceSpan, location.GetLineSpan().Span);
 
 	public Location ToLocation()
-	{
-		return Location.Create(FilePath, TextSpan, LineSpan);
-	}
-
-	public InterceptorLocation ToInterceptorLocation()
-	{
-		return new InterceptorLocation(FilePath, LineSpan.Start.Line + 1, LineSpan.Start.Character + 1);
-	}
+		=> Location.Create(FilePath, TextSpan, LineSpan);
 }
 
-public sealed record InterceptorLocation(string FilePath, int Line, int Column);
+public sealed record InterceptorLocation(int Version, string Data)
+{
+	public static InterceptorLocation CreateFrom(Microsoft.CodeAnalysis.CSharp.InterceptableLocation location)
+		=> new(location.Version, location.Data);
+}
 
 public sealed record TypeDescription(
 	string GlobalName,

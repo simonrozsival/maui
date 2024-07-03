@@ -5,7 +5,7 @@ namespace Microsoft.Maui.Controls.BindingSourceGen;
 
 public static class BindingCodeWriter
 {
-	public static string GeneratedCodeAttribute => $"[GeneratedCodeAttribute(\"{typeof(BindingCodeWriter).Assembly.FullName}\", \"{typeof(BindingCodeWriter).Assembly.GetName().Version}\")]";
+	public static string GeneratedCodeAttribute => $"[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"{typeof(BindingCodeWriter).Assembly.FullName}\", \"{typeof(BindingCodeWriter).Assembly.GetName().Version}\")]";
 
 	public static string GenerateCommonCode() => $$"""
 		//------------------------------------------------------------------------------
@@ -18,32 +18,8 @@ public static class BindingCodeWriter
 		//------------------------------------------------------------------------------
 		#nullable enable
 
-		namespace System.Runtime.CompilerServices
-		{
-			using System;
-			using System.CodeDom.Compiler;
-		
-			{{GeneratedCodeAttribute}}
-			[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-			internal sealed class InterceptsLocationAttribute : Attribute
-			{
-				public InterceptsLocationAttribute(string filePath, int line, int column)
-				{
-					FilePath = filePath;
-					Line = line;
-					Column = column;
-				}
-		
-				public string FilePath { get; }
-				public int Line { get; }
-				public int Column { get; }
-			}
-		}
-
 		namespace Microsoft.Maui.Controls.Generated
 		{
-			using System.CodeDom.Compiler;
-
 			{{GeneratedCodeAttribute}}
 			internal static partial class GeneratedBindableObjectExtensions
 			{
@@ -68,11 +44,20 @@ public static class BindingCodeWriter
 		//------------------------------------------------------------------------------
 		#nullable enable
 
+		namespace System.Runtime.CompilerServices
+		{
+			{{GeneratedCodeAttribute}}
+			[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+			file sealed class InterceptsLocationAttribute(int version, string data) : Attribute
+			{
+				private readonly int _version = version;
+				private readonly string _data = data;
+			}
+		}
+
 		namespace Microsoft.Maui.Controls.Generated
 		{
 			using System;
-			using System.CodeDom.Compiler;
-			using System.Runtime.CompilerServices;
 			using Microsoft.Maui.Controls.Internals;
 
 			internal static partial class GeneratedBindableObjectExtensions
@@ -122,7 +107,8 @@ public static class BindingCodeWriter
 		public void AppendSetBindingInterceptor(uint id, SetBindingInvocationDescription binding)
 		{
 			AppendLine(GeneratedCodeAttribute);
-			AppendInterceptorAttribute(binding.Location);
+			// AppendLine(binding.Location.GetInterceptsLocationAttributeSyntax());
+			AppendLine($"[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({binding.Location.Version}, @\"{binding.Location.Data}\")]");
 			Append($"public static void SetBinding{id}");
 			if (binding.SourceType.IsGenericParameter && binding.PropertyType.IsGenericParameter)
 			{
@@ -213,11 +199,6 @@ public static class BindingCodeWriter
 					bindableObject.SetBinding(bindableProperty, binding);
 				}
 				""");
-		}
-
-		private void AppendInterceptorAttribute(InterceptorLocation location)
-		{
-			AppendLine($"[InterceptsLocationAttribute(@\"{location.FilePath}\", {location.Line}, {location.Column})]");
 		}
 
 		private void AppendSetterAction(SetBindingInvocationDescription binding, string sourceVariableName = "source", string valueVariableName = "value")
