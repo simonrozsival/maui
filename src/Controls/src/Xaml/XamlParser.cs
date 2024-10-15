@@ -33,7 +33,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Xml;
-using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Devices;
 
 namespace Microsoft.Maui.Controls.Xaml

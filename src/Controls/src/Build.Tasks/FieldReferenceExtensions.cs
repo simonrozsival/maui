@@ -18,5 +18,8 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			};
 			return fieldReference;
 		}
+
+		public static bool HasDoesNotInheritDataTypeAttribute(this FieldReference field, ModuleDefinition module, ILContext context)
+			=> field.Resolve().HasCustomAttributes(module.ImportReference(context.Cache, ("Microsoft.Maui.Controls", "Microsoft.Maui.Controls.Xaml", "DoesNotInheritDataTypeAttribute")));
 	}
 }

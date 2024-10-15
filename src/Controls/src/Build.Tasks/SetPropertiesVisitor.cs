@@ -305,7 +305,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 					bool skipBindingCompilation = hasSource && !context.CompileBindingsWithSource;
 					if (!skipBindingCompilation)
 					{
-						if (TryCompileBindingPath(node, context, vardefref.VariableDefinition, bindingExtensionType.Value, out var instructions))
+						if (TryCompileBindingPath(node, context, vardefref.VariableDefinition, bindingExtensionType.Value, bpRef, out var instructions))
 						{
 							foreach (var instruction in instructions)
 								yield return instruction;
@@ -421,7 +421,7 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 		}
 
 		//Once we get compiled IValueProvider, this will move to the BindingExpression
-		static bool TryCompileBindingPath(ElementNode node, ILContext context, VariableDefinition bindingExt, (string, string, string) bindingExtensionType, out IEnumerable<Instruction> instructions)
+		static bool TryCompileBindingPath(ElementNode node, ILContext context, VariableDefinition bindingExt, (string, string, string) bindingExtensionType, FieldReference bpRef, out IEnumerable<Instruction> instructions)
 		{
 			instructions = null;
 
@@ -450,11 +450,18 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			}
 
 			bool xDataTypeIsInOuterScope = false;
+			bool xDataTypeShouldNotBeInherited = false;
+
 			while (n != null)
 			{
 				if (n != skipNode && n.Properties.TryGetValue(XmlName.xDataType, out dataTypeNode))
 				{
 					break;
+				}
+
+				if (bpRef is not null && bpRef.HasDoesNotInheritDataTypeAttribute(module, context))
+				{
+					xDataTypeShouldNotBeInherited = true;
 				}
 
 				if (n.XmlType.Name == nameof(Microsoft.Maui.Controls.DataTemplate)
@@ -469,7 +476,12 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			if (dataTypeNode is null)
 			{
 				context.LoggingHelper.LogWarningOrError(BuildExceptionCode.BindingWithoutDataType, context.XamlFilePath, node.LineNumber, node.LinePosition, 0, 0, null);
+				return false;
+			}
 
+			if (xDataTypeShouldNotBeInherited)
+			{
+				context.LoggingHelper.LogWarningOrError(BuildExceptionCode.BindingShouldNotInheritDataType, context.XamlFilePath, node.LineNumber, node.LinePosition, 0, 0, null);
 				return false;
 			}
 

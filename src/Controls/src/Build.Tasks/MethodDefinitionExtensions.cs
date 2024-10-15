@@ -64,5 +64,17 @@ namespace Microsoft.Maui.Controls.Build.Tasks
 			}
 			return false;
 		}
+
+		public static bool HasCustomAttributes(this FieldDefinition self, TypeReference attribute)
+		{
+			if (!self.HasCustomAttributes)
+				return false;
+			foreach (var arg in self.CustomAttributes)
+			{
+				if (TypeRefComparer.Default.Equals(arg.AttributeType, attribute))
+					return true;
+			}
+			return false;
+		}
 	}
 }
