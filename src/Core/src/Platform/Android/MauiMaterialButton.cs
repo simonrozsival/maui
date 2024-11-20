@@ -86,7 +86,7 @@ namespace Microsoft.Maui.Platform
 
 			if (Icon is MauiResizableDrawable resizableDrawable)
 			{
-				actual = resizableDrawable.Drawable;
+				actual = MauiResizableDrawable.Drawable;
 			}
 			else
 			{
@@ -124,7 +124,7 @@ namespace Microsoft.Maui.Platform
 					(double)iconWidth / actual.IntrinsicWidth,
 					(double)iconHeight / actual.IntrinsicHeight);
 
-				if (resizable.SetPreferredSize(
+				if (MauiResizableDrawable.SetPreferredSize(
 					Math.Max(0, (int)(actual.IntrinsicWidth * ratio)),
 					Math.Max(0, (int)(actual.IntrinsicHeight * ratio))))
 				{
@@ -154,9 +154,9 @@ namespace Microsoft.Maui.Platform
 				}
 			}
 
-			public Drawable Drawable => GetDrawable(0)!;
+			public static Drawable Drawable => GetDrawable(0)!;
 
-			public bool SetPreferredSize(int width, int height)
+			public static bool SetPreferredSize(int width, int height)
 			{
 				if (OperatingSystem.IsAndroidVersionAtLeast(23))
 				{

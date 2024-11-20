@@ -36,7 +36,7 @@ namespace Microsoft.Maui.Benchmarks
 					}
 
 					layout.Add(grandchildLayout);
-					
+
 					childLayout.GetVisualTreeElements(childLayout.Frame);
 				}
 
