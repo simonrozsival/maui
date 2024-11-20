@@ -124,7 +124,7 @@ namespace Microsoft.Maui.Platform
 			if (platformView.Background is not MauiDrawable mauiDrawable)
 				return;
 
-			mauiDrawable.InvalidateBorderBounds();
+			MauiDrawable.InvalidateBorderBounds();
 		}
 
 		internal static void UpdateMauiDrawable(this AView platformView, IBorderStroke border)

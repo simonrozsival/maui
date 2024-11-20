@@ -75,7 +75,7 @@ namespace Microsoft.Maui.Platform
 		{
 			public static readonly StepperListener Instance = new StepperListener();
 
-			public void OnClick(AView? view)
+			public static void OnClick(AView? view)
 			{
 				if (!(view?.Tag is StepperHandlerHolder HandlerHolder))
 					return;

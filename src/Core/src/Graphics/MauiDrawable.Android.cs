@@ -344,7 +344,7 @@ namespace Microsoft.Maui.Graphics
 			InvalidateSelf();
 		}
 
-		public void InvalidateBorderBounds()
+		public static void InvalidateBorderBounds()
 		{
 			InvalidateSelf();
 		}
